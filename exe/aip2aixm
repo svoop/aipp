@@ -11,10 +11,11 @@ gemfile do
 end
 
 class Executable
-  attr_reader :fir, :aip, :airac
+  attr_reader :fir, :aip, :airac, :ofm, :limit
 
   def initialize
     @ogn = false
+    @limit = Float::INFINITY
     OptionParser.new do |o|
       o.banner = <<~END
         Download online AIP and convert it to AIXM.
@@ -26,6 +27,7 @@ class Executable
       o.on('-a', '--aip STRING', String, 'AIP (aeronautical information publication, e.g. "ENR-5.1")') { |v| @aip = v }
       o.on('-d', '--airac DATE', String, 'AIRAC date (e.g. "2018-01-04")') { |v| @airac = v }
       o.on('-o', '--[no-]ofm', 'Use OFM extensions (default: false)') { |v| @ofm = v }
+      o.on('-L', '--limit INTEGER', Integer, 'Stop conversion after this many airspaces') { |v| @limit = v }
       o.on('-D', '--[no-]debug', 'Enable debug mode (default: false)') { |v| $DEBUG = v }
     end.parse!
     fail(ArgumentError, "FIR must be supplied") unless @fir
@@ -34,9 +36,9 @@ class Executable
   end
 
   def run
-    extensions = [(:OFM if @ofm)].compact
-    filename = [@fir, @aip, @airac].join('_') + '.aixm'
-    loader = AIPP::Loader.new(fir: fir, aip: aip, airac: airac)
+    extensions = [(:OFM if ofm)].compact
+    filename = [fir, aip, airac].join('_') + '.aixm'
+    loader = AIPP::Loader.new(fir: fir, aip: aip, airac: airac, limit: limit)
     aixm = loader.aixm.to_xml(*extensions)
     File.write(Pathname.new(Dir.pwd).join(filename), aixm)
   end

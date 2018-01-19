@@ -37,6 +37,14 @@ them to plug in, you have to define the following public methods:
 * `url`<br>Must return the download URL of the AIP HTML as a string.
 * `convert!`<br>Takes `html` ([Nokogiri document](https://github.com/sparklemotion/nokogiri)) to parse and populate `aixm` ([AIXM document](https://github.com/svoop/aixm))
 
+You should read and honor the following attributes passed in from `aip2aixm`
+arguments:
+
+* `@fir`
+* `@aip`
+* `@airac`
+* `@limit`
+
 You should `fail` on fatal and `warn` on non-fatal problems. If `$DEBUG` is
 +true+ (e.g. by use of the `-D` option), a Pry session will open if you use
 `warn` as follows:

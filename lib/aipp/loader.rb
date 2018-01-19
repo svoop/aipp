@@ -14,8 +14,8 @@ module AIPP
       end
     end
 
-    def initialize(fir:, aip:, airac:)
-      @fir, @aip, @airac = fir.upcase, aip.upcase, airac
+    def initialize(fir:, aip:, airac:, limit:)
+      @fir, @aip, @airac, @limit = fir.upcase, aip.upcase, airac, limit
       require_relative "parser/#{@fir}/#{@aip}.rb"
       self.singleton_class.send(:include, AIPP::Parser)
       @aixm = AIXM::Document.new(effective_at: @airac)
