@@ -9,7 +9,7 @@
 Parser for Aeronautical Information Publication (AIP) available online.
 
 This gem incluces an executable to download and parse aeronautical data, then
-export is as [AIXM](https://github.com/svoop/aixm) which can be consumed by 
+export is as [AIXM](https://github.com/svoop/aixm) which can be consumed by
 [Open Flightmaps](https://openflightmaps.org).
 
 * [Homepage](https://github.com/svoop/aipp)
@@ -25,7 +25,25 @@ gem aipp
 
 ## Usage
 
-TODO
+```
+aip2aixm --help
+```
+
+## Parsers
+
+Parsers are defined as modules and named +lib/aipp/parser/{FIR}/{AIP}.rb+. For
+them to plug in, you have to define the following public methods:
+
+* `url`<br>Must return the download URL of the AIP HTML as a string.
+* `convert!`<br>Takes `html` ([Nokogiri document](https://github.com/sparklemotion/nokogiri)) to parse and populate `aixm` ([AIXM document](https://github.com/svoop/aixm))
+
+You should `fail` on fatal and `warn` on non-fatal problems. If `$DEBUG` is
++true+ (e.g. by use of the `-D` option), a Pry session will open if you use
+`warn` as follows:
+
+```ruby
+warn("my message", binding)
+```
 
 ## References
 

@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require 'bundler/inline'
+require 'optparse'
+require 'yaml'
+
+gemfile do
+  source 'https://rubygems.org'
+  ruby '>= 2.5'
+  gem 'aipp', '~> 0'
+end
+
+class Executable
+  attr_reader :fir, :aip, :airac
+
+  def initialize
+    @ogn = false
+    OptionParser.new do |o|
+      o.banner = <<~END
+        Download online AIP and convert it to AIXM.
+        Usage: #{File.basename($0)} [options]
+      END
+      o.on('-A', '--about', 'author and license information') { puts 'Written by Sven Schwyn (bitcetera.com) and distributed under MIT license.'; exit }
+      o.on('-l', '--list', "list available FIR/AIP and exit") { puts AIPP::Loader.list.to_yaml; exit }
+      o.on('-f', '--fir STRING', String, 'FIR (flight information region, e.g. "LF")') { |v| @fir = v }
+      o.on('-a', '--aip STRING', String, 'AIP (aeronautical information publication, e.g. "ENR-5.1")') { |v| @aip = v }
+      o.on('-d', '--airac DATE', String, 'AIRAC date (e.g. "2018-01-04")') { |v| @airac = v }
+      o.on('-o', '--[no-]ofm', 'Use OFM extensions (default: false)') { |v| @ofm = v }
+      o.on('-D', '--[no-]debug', 'Enable debug mode (default: false)') { |v| $DEBUG = v }
+    end.parse!
+    fail(ArgumentError, "FIR must be supplied") unless @fir
+    fail(ArgumentError, "AIP must be supplied") unless @aip
+    fail(ArgumentError, "AIRAC date must be supplied") unless @airac
+  end
+
+  def run
+    extensions = [(:OFM if @ofm)].compact
+    filename = [@fir, @aip, @airac].join('_') + '.aixm'
+    loader = AIPP::Loader.new(fir: fir, aip: aip, airac: airac)
+    aixm = loader.aixm.to_xml(*extensions)
+    File.write(Pathname.new(Dir.pwd).join(filename), aixm)
+  end
+end
+
+begin
+  executable = Executable.new
+  executable.run
+rescue => exception
+  puts "#{File.basename($0)}: #{exception.message}"
+  exit 1
+end
