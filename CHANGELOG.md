@@ -1,4 +1,4 @@
 ## 0.1.0
 
-* Initial implementation
-  * LF: D/R/P zones 
+* Initial implementation of aip2aixm executable and infrastructure
+* LF/ENR-5.1
