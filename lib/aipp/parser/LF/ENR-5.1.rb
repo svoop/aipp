@@ -38,11 +38,11 @@ module AIPP
             begin
               tds = tr.css('td')
               airspace.geometry = geometry_from tds[0]
-              airspace.vertical_limits = vertical_limits_from tds[1]
+              airspace.class_layers << class_layer_from(tds[1])
               airspace.schedule = schedule_from tds[2]
               airspace.remarks = remarks_from(tds[2], tds[3], tds[4])
               fail "airspace `#{airspace.name}' is not complete" unless airspace.complete?
-              aixm << airspace
+              aixm.features << airspace
               break if index / 2 > @limit
             rescue => exception
               warn("WARNING: error parsing airspace `#{airspace.name}': #{exception.message}", binding)
@@ -95,14 +95,16 @@ module AIPP
       end
     end
 
-    def vertical_limits_from(td)
+    def class_layer_from(td)
       above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split(/---+/)
       above.reverse!
-      AIXM::Vertical::Limits.new(
-        max_z: z_from(below[1]),
-        upper_z: z_from(above[0]),
-        lower_z: z_from(below[0]),
-        min_z: z_from(below[1])
+      AIXM::ClassLayer.new(
+        vertical_limits: AIXM::Vertical::Limits.new(
+          max_z: z_from(below[1]),
+          upper_z: z_from(above[0]),
+          lower_z: z_from(below[0]),
+          min_z: z_from(below[1])
+        )
       )
     end
 
