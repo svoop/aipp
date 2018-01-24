@@ -17,7 +17,7 @@ module AIPP
       @fir, @aip, @airac, @limit = fir.upcase, aip.upcase, airac, limit
       require_relative "parser/#{@fir}/#{@aip}.rb"
       self.singleton_class.send(:include, AIPP::Parser)
-      @aixm = AIXM::Document.new(effective_at: @airac)
+      @aixm = AIXM.document(effective_at: @airac)
       convert!
       warn "WARNING: document is not complete" unless aixm.complete?
       warn aixm.errors.prepend("WARNING: document ist not valid:").join("\n") unless aixm.valid?

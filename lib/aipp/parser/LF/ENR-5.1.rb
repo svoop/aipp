@@ -56,7 +56,7 @@ module AIPP
 
     def airspace_from(tr)
       spans = tr.css(:span)
-      AIXM::Feature::Airspace.new(
+      AIXM.airspace(
         name: [spans[1], spans[2], spans[3], spans[5].text.blank_to_nil].compact.join(' '),
         short_name: [spans[1], spans[2], spans[3]].compact.join(' '),
         type: TYPES.fetch(spans[2].text)
@@ -64,29 +64,29 @@ module AIPP
     end
 
     def geometry_from(td)
-      AIXM::Geometry.new.tap do |geometry|
+      AIXM.geometry.tap do |geometry|
         buffer = {}
         td.text.gsub(/\s+/, ' ').strip.split(/ - /).append('end').each do |element|
           case element
           when /frontière (.+)/i
-            geometry << AIXM::Horizontal::Border.new(
+            geometry << AIXM.border(
               xy: buffer.delete(:xy),
               name: BORDERS.fetch($1)
             )
           when /arc (anti-)?horaire .+ sur (\S+) , (\S+)/i
-            geometry << AIXM::Horizontal::Arc.new(
+            geometry << AIXM.arc(
               xy: buffer.delete(:xy),
-              center_xy: AIXM::XY.new(lat: $2, long: $3),
+              center_xy: AIXM.xy(lat: $2, long: $3),
               clockwise: $1.nil?
             )
           when /cercle de ([\d\.]+) (NM|km|m) .+ sur (\S+) , (\S+)/i
-            geometry << AIXM::Horizontal::Circle.new(
-              center_xy: AIXM::XY.new(lat: $3, long: $4),
+            geometry << AIXM.circle(
+              center_xy: AIXM.xy(lat: $3, long: $4),
               radius: $1.to_f.to_km(from: $2).round(3)
             )
           when /end|(\S+) , (\S+)/
-            geometry << AIXM::Horizontal::Point.new(xy: buffer[:xy]) if buffer.has_key?(:xy)
-            buffer[:xy] = AIXM::XY.new(lat: $1, long: $2) if $1
+            geometry << AIXM.point(xy: buffer[:xy]) if buffer.has_key?(:xy)
+            buffer[:xy] = AIXM.xy(lat: $1, long: $2) if $1
           else
             fail "geometry `#{element}' not recognized"
           end
@@ -97,9 +97,9 @@ module AIPP
     def class_layer_from(td)
       above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split(/---+/)
       above.reverse!
-      AIXM::ClassLayer.new(
-        vertical_limits: AIXM::Vertical::Limits.new(
-          max_z: z_from(below[1]),
+      AIXM.class_layer(
+        vertical_limits: AIXM.vertical_limits(
+          max_z: z_from(above[1]),
           upper_z: z_from(above[0]),
           lower_z: z_from(below[0]),
           min_z: z_from(below[1])
@@ -112,9 +112,9 @@ module AIPP
         when nil then nil
         when 'SFC' then AIXM::GROUND
         when 'UNL' then AIXM::UNLIMITED
-        when /(\d+)ftASFC/ then AIXM::Z.new(alt: $1.to_i, code: :QFE)
-        when /(\d+)ftAMSL/ then AIXM::Z.new(alt: $1.to_i, code: :QNH)
-        when /FL(\d+)/ then AIXM::Z.new(alt: $1.to_i, code: :QNE)
+        when /(\d+)ftASFC/ then AIXM.z($1.to_i, :qfe)
+        when /(\d+)ftAMSL/ then AIXM.z($1.to_i, :qnh)
+        when /FL(\d+)/ then AIXM.z($1.to_i, :qne)
         else fail "z `#{limit}' not recognized"
       end
     end
