@@ -15,6 +15,7 @@ class Executable
 
   def initialize
     @ogn = false
+    @airac = AIPP::AIRAC.new(Date.today).date
     @limit = Float::INFINITY
     OptionParser.new do |o|
       o.banner = <<~END
@@ -25,9 +26,9 @@ class Executable
       o.on('-l', '--list', "list available FIR/AIP and exit") { puts AIPP::Loader.list.to_yaml; exit }
       o.on('-f', '--fir STRING', String, 'FIR (flight information region, e.g. "LF")') { |v| @fir = v }
       o.on('-a', '--aip STRING', String, 'AIP (aeronautical information publication, e.g. "ENR-5.1")') { |v| @aip = v }
-      o.on('-d', '--airac DATE', String, 'AIRAC date (e.g. "2018-01-04")') { |v| @airac = v }
+      o.on('-d', '--airac DATE', String, 'AIRAC date (e.g. "2018-01-04", default: current)') { |v| @airac = v }
       o.on('-o', '--[no-]ofm', 'Use OFM extensions (default: false)') { |v| @ofm = v }
-      o.on('-L', '--limit INTEGER', Integer, 'Stop conversion after this many airspaces') { |v| @limit = v }
+      o.on('-L', '--limit INTEGER', Integer, 'Stop conversion after this many features') { |v| @limit = v }
       o.on('-D', '--[no-]debug', 'Enable debug mode (default: false)') { |v| $DEBUG = v }
     end.parse!
     fail(ArgumentError, "FIR must be supplied") unless @fir

@@ -1,6 +1,5 @@
 module AIPP
   class Loader
-
     using AIPP::Refinements
 
     attr_accessor :aixm

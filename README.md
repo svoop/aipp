@@ -53,6 +53,16 @@ You should `fail` on fatal and `warn` on non-fatal problems. If `$DEBUG` is
 warn("my message", binding)
 ```
 
+## AIRAC date calculations
+
+```ruby
+airac = AIPP::AIRAC.new(Date.parse('2017-12-24'))
+airac.date        # => 2018-12-07
+airac.id          # => 1713
+airac.next_date   # => 2018-01-04
+airac.next_id     # => 1801
+```
+
 ## References
 
 * AIP authorities
