@@ -11,12 +11,13 @@ gemfile do
 end
 
 class Executable
-  attr_reader :fir, :aip, :airac, :ofm, :limit
+  attr_reader :fir, :aip, :airac, :ofm, :limit, :verbose
 
   def initialize
     @ogn = false
     @airac = AIPP::AIRAC.new(Date.today).date
     @limit = Float::INFINITY
+    @verbose = false
     OptionParser.new do |o|
       o.banner = <<~END
         Download online AIP and convert it to AIXM.
@@ -30,6 +31,7 @@ class Executable
       o.on('-o', '--[no-]ofm', 'Use OFM extensions (default: false)') { |v| @ofm = v }
       o.on('-L', '--limit INTEGER', Integer, 'Stop conversion after this many features') { |v| @limit = v }
       o.on('-D', '--[no-]debug', 'Enable debug mode (default: false)') { |v| $DEBUG = v }
+      o.on('-v', '--[no-]verbose', 'Verbose error reporting (default: false)') { |v| @verbose = v }
     end.parse!
     fail(ArgumentError, "FIR must be supplied") unless @fir
     fail(ArgumentError, "AIP must be supplied") unless @aip
@@ -49,6 +51,10 @@ begin
   executable = Executable.new
   executable.run
 rescue => exception
-  puts "#{File.basename($0)}: #{exception.message}"
-  exit 1
+  if executable.verbose
+    raise exception
+  else
+    puts "#{File.basename($0)}: #{exception.message}"
+    exit 1
+  end
 end
