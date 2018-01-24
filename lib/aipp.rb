@@ -1,5 +1,3 @@
-require 'pry' if $DEBUG
-
 require 'tmpdir'
 require 'pathname'
 require 'open-uri'

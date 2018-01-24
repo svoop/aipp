@@ -5,6 +5,7 @@ module AIPP
       def warn(message, binding=nil)
         super(message)
         if $DEBUG && binding
+          require 'pry'
           binding.pry
         end
       end
