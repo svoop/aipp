@@ -51,7 +51,7 @@ begin
   executable = Executable.new
   executable.run
 rescue => exception
-  if executable.verbose
+  if executable&.verbose
     raise exception
   else
     puts "#{File.basename($0)}: #{exception.message}"
