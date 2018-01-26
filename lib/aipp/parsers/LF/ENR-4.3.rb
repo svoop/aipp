@@ -1,7 +1,6 @@
 module AIPP
   module Parsers
     include Helpers::URL
-#   using AIPP::Refinements
 
     def convert!
       html.css('tbody').each do |tbody|
