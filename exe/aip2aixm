@@ -42,7 +42,7 @@ class Executable
     extensions = [(:ofm if ofm)].compact
     filename = [fir, aip, airac].join('_') + '.aixm'
     loader = AIPP::Loader.new(fir: fir, aip: aip, airac: airac, limit: limit)
-    aixm = loader.aixm.to_xml(*extensions)
+    aixm = loader.aixm.to_aixm(*extensions)
     File.write(Pathname.new(Dir.pwd).join(filename), aixm)
   end
 end
