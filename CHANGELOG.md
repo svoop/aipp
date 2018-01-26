@@ -1,3 +1,9 @@
+## 0.1.1
+
+* Additions:
+  * Helper modules
+  * LF/ENR-4.1
+
 ## 0.1.0
 
 * Initial implementation of aip2aixm executable and infrastructure
