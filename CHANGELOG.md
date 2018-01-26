@@ -1,3 +1,8 @@
+## 0.1.2
+
+* Additions:
+  * LF/ENR-4.3
+
 ## 0.1.1
 
 * Additions:

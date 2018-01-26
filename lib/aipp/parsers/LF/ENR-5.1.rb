@@ -128,6 +128,5 @@ module AIPP
         end
       end.join("\n\n")
     end
-
   end
 end

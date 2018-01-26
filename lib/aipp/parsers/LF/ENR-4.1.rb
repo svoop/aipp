@@ -98,6 +98,5 @@ module AIPP
         end
       end.join("\n\n").blank_to_nil
     end
-
   end
 end
