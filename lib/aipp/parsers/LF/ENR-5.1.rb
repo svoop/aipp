@@ -5,10 +5,10 @@ module AIPP
     using AIXM::Refinements
 
     TYPES = {
-      'D' => :D,
-      'P' => :P,
-      'R' => :R,
-      'ZIT' => :P
+      'D' => 'D',
+      'P' => 'P',
+      'R' => 'R',
+      'ZIT' => 'P'
     }.freeze
 
     BORDERS = {
