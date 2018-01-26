@@ -23,7 +23,7 @@ module AIPP
     def convert!
       html.css('tbody:has(tr[id^=mid])').each do |tbody|
         airspace = nil
-        tbody.css('tr').each_with_index do |tr, index|
+        tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           if tr.attr(:class) =~ /keep-with-next-row/
             airspace = airspace_from tr
           else
@@ -35,9 +35,9 @@ module AIPP
               airspace.remarks = remarks_from(tds[2], tds[3], tds[4])
               fail "airspace `#{airspace.name}' is not complete" unless airspace.complete?
               aixm.features << airspace
-              break if index / 2 > @limit
+              break if index / 2 >= @limit
             rescue => exception
-              warn("WARNING: error parsing airspace `#{airspace.name}': #{exception.message}", binding)
+              warn("WARNING: error parsing airspace `#{airspace.name}' at ##{index}: #{exception.message}", binding)
             end
           end
         end

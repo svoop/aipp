@@ -5,19 +5,17 @@ module AIPP
 
     def convert!
       html.css('tbody').each do |tbody|
-        tbody.css('tr').each_with_index do |tr, index|
+        tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           break if index >= @limit
-          begin
-            tds = tr.css('td')
-            master, slave = tds[1].text.strip.downcase.gsub(/[^\w-]/, '').downcase.split('-')
-            navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
-            navaid.schedule = schedule_from(tds[4])
-            navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
-            navaid.send("associate_#{slave}", channel: channel_from(tds[3])) if slave
-            aixm.features << navaid
-          rescue => exception
-            warn("WARNING: error parsing navigational aid ##{index + 1}: #{exception.message}", binding)
-          end
+          tds = tr.css('td')
+          master, slave = tds[1].text.strip.downcase.gsub(/[^\w-]/, '').downcase.split('-')
+          navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
+          navaid.schedule = schedule_from(tds[4])
+          navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
+          navaid.send("associate_#{slave}", channel: channel_from(tds[3])) if slave
+          aixm.features << navaid
+        rescue => exception
+          warn("WARNING: error parsing navigational aid at ##{index}: #{exception.message}", binding)
         end
       end
       true
