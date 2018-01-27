@@ -42,8 +42,8 @@ class Executable
     extensions = [(:ofm if ofm)].compact
     filename = [fir, aip, airac].join('_') + '.aixm'
     loader = AIPP::Loader.new(fir: fir, aip: aip, airac: airac, limit: limit)
-    aixm = loader.aixm.to_aixm(*extensions)
-    File.write(Pathname.new(Dir.pwd).join(filename), aixm)
+    File.write(Pathname.new(Dir.pwd).join(filename), loader.aixm.to_aixm(*extensions))
+    puts "#{loader.aixm.features.count} feature(s) written to #{filename}"
   end
 end
 
