@@ -31,7 +31,7 @@ aip2aixm --help
 
 ## Parsers
 
-Parsers are defined as modules and named +lib/aipp/parser/{FIR}/{AIP}.rb+. For
+Parsers are defined as modules and named <tt>lib/aipp/parser/{FIR}/{AIP}.rb</tt>. For
 them to plug in, you have to define the following public methods:
 
 * `url`<br>Must return the download URL of the AIP HTML as a string.
@@ -52,6 +52,11 @@ You should `fail` on fatal and `warn` on non-fatal problems. If `$DEBUG` is
 ```ruby
 warn("my message", binding)
 ```
+
+## Helpers
+
+Any modules in <tt>lib/aipp/parser/{FIR}/helpers</tt> are required automatically and
+can be included and used in the parsers.
 
 ## AIRAC date calculations
 
