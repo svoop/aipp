@@ -128,7 +128,7 @@ module AIPP
             end
           end
         end
-      end.join("\n\n")
+      end.join("\n\n").blank_to_nil
     end
   end
 end
