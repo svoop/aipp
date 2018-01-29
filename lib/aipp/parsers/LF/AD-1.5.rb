@@ -36,7 +36,7 @@ module AIPP
               aixm.features << navaid
               last_id = id
             else
-              warn("WARNING: navigational aid `#{master}' at ##{index} skipped since not relevant to VFR")
+              warn("WARNING: navigational aid `#{master}' at ##{index} skipped: not relevant to VFR")
             end
           end
         rescue => exception
