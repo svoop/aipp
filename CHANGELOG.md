@@ -1,3 +1,10 @@
+## 0.1.3
+
+* Additons:
+  LF/AD-1.5
+* Minor changes:
+  * Summary at end of run
+
 ## 0.1.2
 
 * Additions:
