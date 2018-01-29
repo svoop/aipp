@@ -20,7 +20,7 @@ class Executable
     @verbose = false
     OptionParser.new do |o|
       o.banner = <<~END
-        Download online AIP and convert it to AIXM.
+        Download online AIP and convert it to AIXM for VFR.
         Usage: #{File.basename($0)} [options]
       END
       o.on('-A', '--about', 'author and license information') { puts 'Written by Sven Schwyn (bitcetera.com) and distributed under MIT license.'; exit }
