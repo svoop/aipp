@@ -34,7 +34,7 @@ module AIPP
 
     def vor_from(tds)
       {
-        type: :vor,
+        type: :conventional,
         f: frequency_from(tds[3]),
         north: :geographic,
       }
@@ -48,6 +48,7 @@ module AIPP
 
     def ndb_from(tds)
       {
+        type: :en_route,
         f: frequency_from(tds[3])
       }
     end
