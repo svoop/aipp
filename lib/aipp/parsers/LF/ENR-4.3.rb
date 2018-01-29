@@ -1,8 +1,10 @@
 module AIPP
   module Parsers
     include Helpers::URL
+    include Helpers::HTML
 
     def convert!
+      cleanup!
       html.css('tbody').each do |tbody|
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           break if index >= @limit

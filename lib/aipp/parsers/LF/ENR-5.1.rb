@@ -1,6 +1,7 @@
 module AIPP
   module Parsers
     include Helpers::URL
+    include Helpers::HTML
     using AIPP::Refinements
     using AIXM::Refinements
 
@@ -21,6 +22,7 @@ module AIPP
     }.freeze
 
     def convert!
+      cleanup!
       html.css('tbody:has(tr[id^=mid])').each do |tbody|
         airspace = nil
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
