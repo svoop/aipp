@@ -38,7 +38,7 @@ module AIPP
       {
         type: :conventional,
         f: frequency_from(tds[3]),
-        north: :geographic,
+        north: :magnetic,
       }
     end
 
