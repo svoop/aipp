@@ -1,7 +1,8 @@
 ## 0.1.3
 
 * Additons:
-  LF/AD-1.5
+  * LF/AD-1.5
+  * Source file line number evaluation
 * Minor changes:
   * Summary at end of run
 

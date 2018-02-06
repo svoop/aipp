@@ -5,11 +5,10 @@ module AIPP
     using AIPP::Refinements
 
     def convert!
-      cleanup!
       html.css('tbody').each do |tbody|
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           break if index >= @limit
-          tds = tr.css('td')
+          tds = cleanup(tr).css('td')
           master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
           navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
           navaid.schedule = schedule_from(tds[4])

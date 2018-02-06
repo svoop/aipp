@@ -27,6 +27,18 @@ module AIPP
       raise(LoadError, "no parser found for FIR `#{@fir}' and AIP `#{@aip}'")
     end
 
+    ##
+    # Get the line number in the source file on which the node begins. The
+    # node has to contain unique text for this to work.
+    def line(node)
+      pattern = node.text.
+        gsub(/[^\w\n]/, '').   # remove all but alnums and newlines
+        strip.
+        gsub(/\n+/, "\n*")     # collapse newlines
+      position = text =~ /#{pattern}/
+      text[0..position].count("\n") + 1
+    end
+
     private
 
     def load_parser
@@ -48,5 +60,10 @@ module AIPP
       @html ||= Nokogiri::HTML5(file)
     end
 
+    def text
+      @text ||= IO.read(file).
+        gsub(/(<.*?>|&.*?;)/, '').   # remove tags and entities
+        gsub(/[^\w\n]/, '')          # remove all but alnums and newlines
+    end
   end
 end

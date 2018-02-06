@@ -4,11 +4,10 @@ module AIPP
     include Helpers::HTML
 
     def convert!
-      cleanup!
       html.css('tbody').each do |tbody|
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           break if index >= @limit
-          tds = tr.css('td')
+          tds = cleanup(tr).css('td')
           designated_point = AIXM.designated_point(
             type: :icao,
             id: tds[0].text.strip,

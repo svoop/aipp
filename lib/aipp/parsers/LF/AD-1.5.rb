@@ -9,7 +9,6 @@ module AIPP
     }.freeze
 
     def convert!
-      cleanup!
       html.css('tbody').each do |tbody|
         name = last_id = nil
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
@@ -17,9 +16,9 @@ module AIPP
           case tr.attr(:id)
           when /TXT_NAME/
             index -= 1
-            name = tr.css('td').text.strip.split("\n").first
+            name = cleanup(tr).css('td').text.strip.split("\n").first
           when /GEO_LAT/
-            tds = tr.css('td')
+            tds = cleanup(tr).css('td')
             type, runway = tds[0].text.strip.gsub(/\s+/, ' ').split(' ', 2)
             master, slave = type.downcase.split('-')
             if respond_to?("#{master}_from", true)

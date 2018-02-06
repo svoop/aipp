@@ -37,6 +37,24 @@ them to plug in, you have to define the following public methods:
 * `url`<br>Must return the download URL of the AIP HTML as a string.
 * `convert!`<br>Takes `html` ([Nokogiri document](https://github.com/sparklemotion/nokogiri)) to parse and populate `aixm` ([AIXM document](https://github.com/svoop/aixm))
 
+To get the source file line number on which a particular text content begins,
+pass a node which contains unique text content to the `line` method before
+you perform any cleanup on the node:
+
+```ruby
+def convert!
+  html.css('tbody').each do |tbody|
+    tbody.css('tr').each do |tr|
+    puts line(tr)
+    tds = cleanup(tr).css('td')
+    (...)
+  end
+end
+```
+
+The `url` and a line number can be combined into a URI cross-referencing the
+origin of the information (e.g. for certification by third parties).
+
 You should read and honor the following attributes passed in from `aip2aixm`
 arguments:
 

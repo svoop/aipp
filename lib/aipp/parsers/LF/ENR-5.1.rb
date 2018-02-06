@@ -22,15 +22,14 @@ module AIPP
     }.freeze
 
     def convert!
-      cleanup!
       html.css('tbody:has(tr[id^=mid])').each do |tbody|
         airspace = nil
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           if tr.attr(:class) =~ /keep-with-next-row/
-            airspace = airspace_from tr
+            airspace = airspace_from cleanup(tr)
           else
             begin
-              tds = tr.css('td')
+              tds = cleanup(tr).css('td')
               airspace.geometry = geometry_from tds[0]
               airspace.class_layers << class_layer_from(tds[1])
               airspace.schedule = schedule_from tds[2]
