@@ -8,7 +8,7 @@ describe AIPP::AIRAC do
     end
   end
 
-  context "on AIRAC date" do
+  context "on AIRAC date (as Date)" do
     subject do
       AIPP::AIRAC.new(Date.parse('2018-01-04'))
     end
@@ -30,9 +30,9 @@ describe AIPP::AIRAC do
     end
   end
 
-  context "one day before AIRAC date" do
+  context "one day before AIRAC date (as String)" do
     subject do
-      AIPP::AIRAC.new(Date.parse('2018-01-03'))
+      AIPP::AIRAC.new('2018-01-03')
     end
 
     it "must calculate correct #date" do

@@ -18,6 +18,17 @@ describe AIPP::Refinements do
         "\nfoo bar\n".blank_to_nil.must_equal "\nfoo bar\n"
       end
     end
+
+    describe :constantize do
+      it "must convert to constant" do
+        "AIPP::Refinements".constantize.must_equal AIPP::Refinements
+        "AIPP::Re-fine.ments".constantize.must_equal AIPP::Refinements
+      end
+
+      it "fails to convert to inexistant constant" do
+        -> { "Foo::Bar".constantize }.must_raise NameError
+      end
+    end
   end
 
   context NilClass do

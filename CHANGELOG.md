@@ -1,3 +1,8 @@
+## 0.2.0
+
+* Complete rewrite of the framework in order to allow cross-AIP parsing made
+  necessary due to recent changes in LF AIP.
+
 ## 0.1.3
 
 * Additons:

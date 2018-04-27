@@ -3,4 +3,6 @@ Gemfile.lock
 pkg/*
 *.gem
 .bundle
+.yardoc
 *.aixm
+*.ofmx
