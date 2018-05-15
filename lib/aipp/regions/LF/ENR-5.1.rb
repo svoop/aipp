@@ -26,11 +26,13 @@ module AIPP
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:class) =~ /keep-with-next-row/
               airspace = airspace_from cleanup(node: tr)
+              airspace.region = 'LF'
+              airspace.source = source_for(tr)
             else
               begin
                 tds = cleanup(node: tr).css('td')
                 airspace.geometry = geometry_from tds[0]
-                fail("geometry is not closed") unless airspace.geometry.closed? 
+                fail("geometry is not closed") unless airspace.geometry.closed?
                 airspace.layers << layer_from(tds[1])
                 airspace.layers.first.timetable = timetable_from tds[2]
                 airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
@@ -44,6 +46,10 @@ module AIPP
       end
 
       private
+
+      def source_for(tr)
+        ['LF', 'ENR', 'ENR-5.1', options[:airac].date.xmlschema, line(node: tr)].join('|')
+      end
 
       def airspace_from(tr)
         spans = tr.css(:span)

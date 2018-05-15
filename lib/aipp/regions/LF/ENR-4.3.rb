@@ -12,6 +12,8 @@ module AIPP
               id: tds[0].text.strip,
               xy: xy_from(tds[1])
             )
+            designated_point.region = 'LF'
+            designated_point.source = source_for(tr)
             aixm.features << designated_point
           rescue => exception
             warn("error parsing designated point at ##{index}: #{exception.message}", binding)
@@ -20,6 +22,10 @@ module AIPP
       end
 
       private
+
+      def source_for(tr)
+        ['LF', 'ENR', 'ENR-4.3', options[:airac].date.xmlschema, line(node: tr)].join('|')
+      end
 
       def xy_from(td)
         parts = td.text.strip.split(/\s+/)

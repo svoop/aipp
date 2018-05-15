@@ -9,6 +9,8 @@ module AIPP
             tds = cleanup(node: tr).css('td')
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
             navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
+            navaid.region = 'LF'
+            navaid.source = source_for(tr)
             navaid.timetable = timetable_from(tds[4])
             navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
             navaid.send("associate_#{slave}", channel: channel_from(tds[3])) if slave
@@ -20,6 +22,10 @@ module AIPP
       end
 
       private
+
+      def source_for(tr)
+        ['LF', 'ENR', 'ENR-4.1', options[:airac].date.xmlschema, line(node: tr)].join('|')
+      end
 
       def base_from(tds)
         {
