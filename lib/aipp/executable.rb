@@ -37,7 +37,7 @@ module AIPP
         parser.read_config
         parser.download_html
         parser.parse_html
-#        parser.validate_aixm
+        parser.validate_aixm
         parser.write_aixm
         parser.write_config
       end
