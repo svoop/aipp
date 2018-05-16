@@ -34,10 +34,12 @@ module AIPP
       (dir = Pathname(__dir__).join('regions', options[:region])).exist? or fail("unknown region")
       dir.glob('*.rb').each { |f| require f }
       AIPP::Parser.new(options: options).tap do |parser|
+        parser.read_config
         parser.download_html
         parser.parse_html
 #        parser.validate_aixm
         parser.write_aixm
+        parser.write_config
       end
     rescue => error
       puts "ERROR: #{error.message}"

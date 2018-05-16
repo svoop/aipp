@@ -15,18 +15,19 @@ module AIPP
 
     def initialize(options:)
       @options = options
+      @config = {}
       options[:storage] = options[:storage].join(options[:region])
       options[:storage].mkpath
-      @aixm = AIXM.document
+      @aixm = AIXM.document(effective_at: options[:airac].date)
       self.class.include ['AIPP', options[:region], 'Helper'].join('::').constantize
     end
 
-    # Load config.yml.
-    def config
-      file = options[:storage].join('config.yml')
-      @config ||= YAML.load_file(file, fallback: {}).transform_keys(&:to_sym)
-    rescue Errno::ENOENT
-      {}
+    # Read the configuration from config.yml.
+    def read_config
+      puts "Reading config.yml"
+      @config = YAML.load_file(config_file, fallback: {}).transform_keys(&:to_sym) if config_file.exist?
+      @config[:namespace] ||= SecureRandom.uuid
+      @aixm.namespace = @config[:namespace]
     end
 
     # Download AIP for the current region and cache them locally.
@@ -71,6 +72,12 @@ module AIPP
       File.write(file, aixm.to_xml)
     end
 
+    # Write the configuration to config.yml.
+    def write_config
+      puts "Writing config.yml"
+      File.write(config_file, config.to_yaml)
+    end
+
     private
 
     def aips
@@ -86,6 +93,10 @@ module AIPP
       options[:storage].
         join(options[:airac].date.xmlschema).
         join(("#{aip}.html" if aip).to_s)
+    end
+
+    def config_file
+      options[:storage].join('config.yml')
     end
   end
 
