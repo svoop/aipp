@@ -11,23 +11,12 @@ module AIPP
         'ZIT' => 'P'
       }.freeze
 
-      BORDERS = {
-        'franco-allemande' => 'FRANCE_GERMANY',
-        'franco-espagnole' => 'FRANCE_SPAIN',
-        'franco-italienne' => 'FRANCE_ITALY',
-        'franco-suisse' => 'FRANCE_SWITZERLAND',
-        'franco-luxembourgeoise' => 'FRANCE_LUXEMBOURG',
-        'franco-belge' => 'BELGIUM_FRANCE'
-      }.freeze
-
       def parse
         html.css('tbody:has(tr[id^=mid])').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:class) =~ /keep-with-next-row/
               airspace = airspace_from cleanup(node: tr)
-              airspace.region = 'LF'
-              airspace.source = source_for(tr)
             else
               begin
                 tds = cleanup(node: tr).css('td')
@@ -37,8 +26,8 @@ module AIPP
                 airspace.layers.first.timetable = timetable_from tds[2]
                 airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
                 aixm.features << airspace
-              rescue => exception
-                warn("error parsing airspace `#{airspace.name}' at ##{index}: #{exception.message}", binding)
+              rescue => error
+                warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", context: error)
               end
             end
           end
@@ -48,51 +37,22 @@ module AIPP
       private
 
       def source_for(tr)
-        ['LF', 'ENR', 'ENR-5.1', options[:airac].date.xmlschema, line(node: tr)].join('|')
+        ['LF', 'ENR', 'ENR-5.1', options[:airac].date.xmlschema, tr.line].join('|')
       end
 
       def airspace_from(tr)
         spans = tr.css(:span)
         AIXM.airspace(
           name: [spans[1], spans[2], spans[3], spans[5].text.blank_to_nil].compact.join(' '),
-          short_name: [spans[1], spans[2], spans[3]].compact.join(' '),
+          local_type: [spans[1], spans[2], spans[3]].compact.join(' '),
           type: TYPES.fetch(spans[2].text)
-        )
-      end
-
-      def geometry_from(td)
-        AIXM.geometry.tap do |geometry|
-          buffer = {}
-          td.text.gsub(/\s+/, ' ').strip.split(/ - /).append('end').each do |element|
-            case element
-            when /frontière (.+)/i
-              geometry << AIXM.border(
-                xy: buffer.delete(:xy),
-                name: BORDERS.fetch($1)
-              )
-            when /arc (anti-)?horaire .+ sur (\S+) , (\S+)/i
-              geometry << AIXM.arc(
-                xy: buffer.delete(:xy),
-                center_xy: AIXM.xy(lat: $2, long: $3),
-                clockwise: $1.nil?
-              )
-            when /cercle de ([\d\.]+) (NM|km|m) .+ sur (\S+) , (\S+)/i
-              geometry << AIXM.circle(
-                center_xy: AIXM.xy(lat: $3, long: $4),
-                radius: $1.to_f.to_km(from: $2).round(3)
-              )
-            when /end|(\S+) , (\S+)/
-              geometry << AIXM.point(xy: buffer[:xy]) if buffer.has_key?(:xy)
-              buffer[:xy] = AIXM.xy(lat: $1, long: $2) if $1
-            else
-              fail "geometry `#{element}' not recognized"
-            end
-          end
+        ).tap do |airspace|
+          airspace.source = source_for(tr)
         end
       end
 
       def layer_from(td)
-        above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split(/---+/)
+        above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
         above.reverse!
         AIXM.layer(
           vertical_limits: AIXM.vertical_limits(

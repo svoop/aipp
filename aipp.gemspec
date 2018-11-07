@@ -32,6 +32,8 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'aixm', '~> 0', '>= 0.3.2'
   spec.add_runtime_dependency 'nokogiri', '~> 1'
-  spec.add_runtime_dependency 'nokogumbo', '~> 1'
+  spec.add_runtime_dependency 'nokogumbo', '~> 2'
+  spec.add_runtime_dependency 'colorize', '~> 0'
   spec.add_runtime_dependency 'pry', '~> 0'
+  spec.add_runtime_dependency 'pry-rescue', '~> 1'
 end

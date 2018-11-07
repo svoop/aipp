@@ -3,40 +3,62 @@ module AIPP
   # AIP parser infrastructure
   class Parser
     using AIPP::Refinements
+    include AIPP::Progress
 
     # @return [AIXM::Document] target document
     attr_reader :aixm
 
+    # @return [Hash] passed command line arguments
+    attr_reader :options
+
     # @return [Hash] configuration read from config.yml
     attr_reader :config
 
-    # @return [Hash] passed command line arguments
-    attr_reader :options
+    # @return [OpenStruct] object cache
+    attr_reader :cache
 
     def initialize(options:)
       @options = options
       @config = {}
+      @cache = OpenStruct.new
       options[:storage] = options[:storage].join(options[:region])
       options[:storage].mkpath
-      @aixm = AIXM.document(effective_at: options[:airac].date)
-      self.class.include ['AIPP', options[:region], 'Helper'].join('::').constantize
+      @aixm = AIXM.document(region: options[:region], effective_at: options[:airac].date)
     end
 
     # Read the configuration from config.yml.
     def read_config
-      puts "Reading config.yml"
+      info("Reading config.yml", force: true)
       @config = YAML.load_file(config_file, fallback: {}).transform_keys(&:to_sym) if config_file.exist?
       @config[:namespace] ||= SecureRandom.uuid
       @aixm.namespace = @config[:namespace]
     end
 
+    # Read the region directory and build the dependency list.
+    def read_region
+      info("Reading region #{options[:region]}", force: true)
+      dir = Pathname(__FILE__).dirname.join('regions', options[:region])
+      fail("unknown region `#{options[:region]}'") unless dir.exist?
+      dependencies = THash.new
+      dir.glob('*.rb').each do |file|
+        info("Requiring #{file.basename}")
+        require file
+        if (aip = file.basename('.*').to_s) == 'helper'
+          extend [:AIPP, options[:region], :Helper].constantize
+        else
+          dependencies[aip] = [:AIPP, options[:region], aip.classify, :DEPENDS].constantize
+        end
+      end
+      @aips = dependencies.tsort(options[:aip])
+    end
+
     # Download AIP for the current region and cache them locally.
     def download_html
-      puts "AIRAC #{options[:airac].id} effective #{options[:airac].date}"
+      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", force: true, color: :green)
       download_path.mkpath
-      aips.each do |aip|
+      @aips.each do |aip|
         unless (file = download_path(aip: aip)).exist?
-          puts "Downloading #{aip}"
+          info("Downloading #{aip}", force: true)
           IO.copy_stream(open(url(aip: aip)), file)
         end
       end
@@ -44,14 +66,13 @@ module AIPP
 
     # Parse AIP by invoking the parser classes for the current region.
     def parse_html
-      aips.each do |aip|
-        puts "Parsing #{aip}"
-        ['AIPP', options[:region], aip].join('::').constantize.new(
+      @aips.each do |aip|
+        info("Parsing #{aip}", force: true)
+        [:AIPP, options[:region], aip.classify].constantize.new(
           aixm: aixm,
           html: Nokogiri::HTML5(download_path(aip: aip)),
           config: config,
-          options: options,
-          line_finder: LineFinder.new(html_file: download_path(aip: aip))
+          options: options
         ).parse
       end
     end
@@ -60,34 +81,27 @@ module AIPP
     #
     # @raise [RuntimeError] if the document is not valid
     def validate_aixm
-      puts "Validating #{options[:schema].upcase}"
-      fail "invalid AIXM document:\n#{aixm.errors}" unless aixm.valid?
+      info("Validating #{options[:schema].upcase}", force: true)
+      unless aixm.valid?
+        send(@options[:force] ? :warn : :fail, "invalid AIXM document:\n#{aixm.errors}")
+      end 
     end
 
     # Write the AIXM document.
     def write_aixm
       file = "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
-      puts "Writing #{file}"
+      info("Writing #{file}", force: true)
       AIXM.send("#{options[:schema]}!")
       File.write(file, aixm.to_xml)
     end
 
     # Write the configuration to config.yml.
     def write_config
-      puts "Writing config.yml"
+      info("Writing config.yml", force: true)
       File.write(config_file, config.to_yaml)
     end
 
     private
-
-    def aips
-      if options[:aip]
-        fail("unknown AIP") unless AIPS.include?(options[:aip])
-        [options[:aip]]
-      else
-        AIPS
-      end
-    end
 
     def download_path(aip: nil)
       options[:storage].

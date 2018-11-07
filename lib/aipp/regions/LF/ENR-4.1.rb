@@ -9,14 +9,13 @@ module AIPP
             tds = cleanup(node: tr).css('td')
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
             navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
-            navaid.region = 'LF'
             navaid.source = source_for(tr)
             navaid.timetable = timetable_from(tds[4])
             navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
             navaid.send("associate_#{slave}", channel: channel_from(tds[3])) if slave
             aixm.features << navaid
-          rescue => exception
-            warn("error parsing navigational aid at ##{index}: #{exception.message}", binding)
+          rescue => error
+            warn("error parsing navigational aid at ##{index}: #{error.message}", context: error)
           end
         end
       end
@@ -24,7 +23,7 @@ module AIPP
       private
 
       def source_for(tr)
-        ['LF', 'ENR', 'ENR-4.1', options[:airac].date.xmlschema, line(node: tr)].join('|')
+        ['LF', 'ENR', 'ENR-4.1', options[:airac].date.xmlschema, tr.line].join('|')
       end
 
       def base_from(tds)
