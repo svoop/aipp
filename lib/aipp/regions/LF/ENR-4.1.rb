@@ -1,5 +1,7 @@
 module AIPP
   module LF
+
+    # ENR Navaids
     class ENR41 < AIP
       using AIPP::Refinements
 
@@ -21,10 +23,6 @@ module AIPP
       end
 
       private
-
-      def source_for(tr)
-        ['LF', 'ENR', 'ENR-4.1', options[:airac].date.xmlschema, tr.line].join('|')
-      end
 
       def base_from(tds)
         {
@@ -61,11 +59,6 @@ module AIPP
         {
           channel: channel_from(tds[3])
         }
-      end
-
-      def xy_from(td)
-        parts = td.text.strip.split(/\s+/)
-        AIXM.xy(lat: parts[0], long: parts[1])
       end
 
       def z_from(td)

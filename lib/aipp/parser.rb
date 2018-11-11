@@ -69,6 +69,7 @@ module AIPP
       @aips.each do |aip|
         info("Parsing #{aip}", force: true)
         [:AIPP, options[:region], aip.classify].constantize.new(
+          aip: aip,
           aixm: aixm,
           html: Nokogiri::HTML5(download_path(aip: aip)),
           config: config,
@@ -84,7 +85,7 @@ module AIPP
       info("Validating #{options[:schema].upcase}", force: true)
       unless aixm.valid?
         send(@options[:force] ? :warn : :fail, "invalid AIXM document:\n#{aixm.errors}")
-      end 
+      end
     end
 
     # Write the AIXM document.

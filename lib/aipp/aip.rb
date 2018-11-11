@@ -19,8 +19,8 @@ module AIPP
     # @return [Hash] passed command line arguments
     attr_reader :options
 
-    def initialize(html:, aixm:, config:, options:)
-      @html, @aixm, @config, @options = html, aixm, config, options
+    def initialize(aip:, html:, aixm:, config:, options:)
+      @aip, @html, @aixm, @config, @options = aip, html, aixm, config, options
       self.class.include [:AIPP, options[:region], :Helper].constantize
     end
 

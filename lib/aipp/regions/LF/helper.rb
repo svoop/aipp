@@ -1,6 +1,7 @@
 module AIPP
   module LF
     module Helper
+      using AIPP::Refinements
       using AIXM::Refinements
 
       BORDERS = {
@@ -59,6 +60,19 @@ module AIPP
         ]
       end
 
+      # Templates
+
+      def organisation_lf
+        @organisation_lf ||= AIXM.organisation(
+          name: 'FRANCE',
+          type: 'S'
+        ).tap do |organisation|
+          organisation.id = 'LF'
+        end
+      end
+
+      # Transformations
+
       def cleanup(node:)
         node.tap do |root|
           root.css('del').each { |n| n.remove }   # remove deleted entries
@@ -73,13 +87,46 @@ module AIPP
         end
       end
 
-      def organisation_lf
-        @organisation_lf ||= AIXM.organisation(
-          name: 'FRANCE',
-          type: 'S'
-        ).tap do |organisation|
-          organisation.id = 'LF'
+      # Parsers
+
+      def source_for(element)
+        [
+          options[:region],
+          @aip.split('-').first,
+          @aip,
+          options[:airac].date.xmlschema,
+          element.line
+        ].join('|')
+      end
+
+      def xy_from(td)
+        parts = td.text.strip.split(/\s+/)
+        AIXM.xy(lat: parts[0], long: parts[1])
+      end
+
+      def z_from(limit)
+        case limit
+          when nil then nil
+          when 'SFC' then AIXM::GROUND
+          when 'UNL' then AIXM::UNLIMITED
+          when /(\d+)ftASFC/ then AIXM.z($1.to_i, :qfe)
+          when /(\d+)ftAMSL/ then AIXM.z($1.to_i, :qnh)
+          when /FL(\d+)/ then AIXM.z($1.to_i, :qne)
+          else fail "z `#{limit}' not recognized"
         end
+      end
+
+      def layer_from(td)
+        above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
+        above.reverse!
+        AIXM.layer(
+          vertical_limits: AIXM.vertical_limits(
+            max_z: z_from(above[1]),
+            upper_z: z_from(above[0]),
+            lower_z: z_from(below[0]),
+            min_z: z_from(below[1])
+          )
+        )
       end
 
       def geometry_from(td)
@@ -117,6 +164,10 @@ module AIPP
             end
           end
         end
+      end
+
+      def timetable_from(td)
+        AIXM::H24 if td.text.gsub(/\W/, '') == 'H24'
       end
 
     end

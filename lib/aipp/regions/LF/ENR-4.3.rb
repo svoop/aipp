@@ -1,7 +1,8 @@
 module AIPP
   module LF
+
+    # Designated Points
     class ENR43 < AIP
-      using AIPP::Refinements
 
       def parse
         html.css('tbody').each do |tbody|
@@ -20,16 +21,6 @@ module AIPP
         end
       end
 
-      private
-
-      def source_for(tr)
-        ['LF', 'ENR', 'ENR-4.3', options[:airac].date.xmlschema, tr.line].join('|')
-      end
-
-      def xy_from(td)
-        parts = td.text.strip.split(/\s+/)
-        AIXM.xy(lat: parts[0], long: parts[1])
-      end
     end
   end
 end

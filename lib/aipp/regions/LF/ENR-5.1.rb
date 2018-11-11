@@ -1,8 +1,9 @@
 module AIPP
   module LF
+
+    # D/P/R Zones
     class ENR51 < AIP
       using AIPP::Refinements
-      using AIXM::Refinements
 
       TYPES = {
         'D' => 'D',
@@ -36,10 +37,6 @@ module AIPP
 
       private
 
-      def source_for(tr)
-        ['LF', 'ENR', 'ENR-5.1', options[:airac].date.xmlschema, tr.line].join('|')
-      end
-
       def airspace_from(tr)
         spans = tr.css(:span)
         AIXM.airspace(
@@ -49,35 +46,6 @@ module AIPP
         ).tap do |airspace|
           airspace.source = source_for(tr)
         end
-      end
-
-      def layer_from(td)
-        above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
-        above.reverse!
-        AIXM.layer(
-          vertical_limits: AIXM.vertical_limits(
-            max_z: z_from(above[1]),
-            upper_z: z_from(above[0]),
-            lower_z: z_from(below[0]),
-            min_z: z_from(below[1])
-          )
-        )
-      end
-
-      def z_from(limit)
-        case limit
-          when nil then nil
-          when 'SFC' then AIXM::GROUND
-          when 'UNL' then AIXM::UNLIMITED
-          when /(\d+)ftASFC/ then AIXM.z($1.to_i, :qfe)
-          when /(\d+)ftAMSL/ then AIXM.z($1.to_i, :qnh)
-          when /FL(\d+)/ then AIXM.z($1.to_i, :qne)
-          else fail "z `#{limit}' not recognized"
-        end
-      end
-
-      def timetable_from(td)
-        AIXM::H24 if td.text.gsub(/\W/, '') == 'H24'
       end
 
       def remarks_from(*parts)
