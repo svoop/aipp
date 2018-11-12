@@ -3,21 +3,20 @@ module AIPP
 
     # ENR Navaids
     class ENR41 < AIP
-      using AIPP::Refinements
 
       def parse
-        load_html.css('tbody').each do |tbody|
+        read.css('tbody').each do |tbody|
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             tds = cleanup(node: tr).css('td')
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
             navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
             navaid.source = source_for(tr)
-            navaid.timetable = timetable_from(tds[4])
+            navaid.timetable = timetable_from(tds[4].text)
             navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
-            navaid.send("associate_#{slave}", channel: channel_from(tds[3])) if slave
-            aixm.features << navaid
+            navaid.send("associate_#{slave}", channel: channel_from(tds[3].text)) if slave
+            write navaid
           rescue => error
-            warn("error parsing navigational aid at ##{index}: #{error.message}", context: error)
+            warn("error parsing navigational aid at ##{index}: #{error.message}", pry: error)
           end
         end
       end
@@ -29,55 +28,55 @@ module AIPP
           organisation: organisation_lf,
           id: tds[2].text.strip,
           name: tds[0].text.strip,
-          xy: xy_from(tds[5]),
-          z: z_from(tds[6])
+          xy: xy_from(tds[5].text),
+          z: z_from(tds[6].text)
         }
       end
 
       def vor_from(tds)
         {
           type: :conventional,
-          f: frequency_from(tds[3]),
+          f: f_from(tds[3].text),
           north: :magnetic,
         }
       end
 
       def dme_from(tds)
         {
-          channel: channel_from(tds[3])
+          channel: channel_from(tds[3].text)
         }
       end
 
       def ndb_from(tds)
         {
           type: :en_route,
-          f: frequency_from(tds[3])
+          f: f_from(tds[3].text)
         }
       end
 
       def tacan_from(tds)
         {
-          channel: channel_from(tds[3])
+          channel: channel_from(tds[3].text)
         }
       end
 
-      def z_from(td)
-        parts = td.text.strip.split(/\s+/)
+      def z_from(text)
+        parts = text.strip.split(/\s+/)
         AIXM.z(parts[0].to_i, :qnh) if parts[1] == 'ft'
       end
 
-      def frequency_from(td)
-        parts = td.text.strip.split(/\s+/)
+      def f_from(text)
+        parts = text.strip.split(/\s+/)
         AIXM.f(parts[0].to_f, parts[1]) if parts[1] =~ /hz$/i
       end
 
-      def channel_from(td)
-        parts = td.text.strip.split(/\s+/)
+      def channel_from(text)
+        parts = text.strip.split(/\s+/)
         parts.last if parts[-2].downcase == 'ch'
       end
 
-      def timetable_from(td)
-        code = td.text.strip
+      def timetable_from(text)
+        code = text.strip
         AIXM.timetable(code: code) unless code.empty?
       end
 

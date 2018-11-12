@@ -8,9 +8,10 @@
 
 Parser for Aeronautical Information Publication (AIP) available online.
 
-This gem incluces two executables to download and parse aeronautical data, then export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
+This gem incluces two executables to download and parse aeronautical data as HTML or PDF, then export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
 
 * [Homepage](https://github.com/svoop/aipp)
+* [Rubydoc](https://www.rubydoc.info/gems/aipp/AIPP)
 * Author: [Sven Schwyn - Bitcetera](http://www.bitcetera.com)
 
 ## Install
@@ -68,8 +69,9 @@ module AIPP
       DEPENDS = %w(ENR-2.1 ENR-2.2)   # declare dependencies to other AIPs
 
       def parse
-        html = load_html
-        # read from "html" (Nokogiri::HTML::Document) and write to "aixm"
+        html = read               # read the Nokogiri::HTML5 document
+        feature = (...)           # build the feature
+        write(feature: feature)   # write the feature to AIXM::Document
       end
 
     end
@@ -86,8 +88,9 @@ module AIPP
 
       def parse
         %i(one two three).each do |part|
-          html = load_html(aip_file: "#{aip}.#{part}")
-          # read from "html" (Nokogiri::HTML::Document) and write to "aixm"
+          html = read(aip_file: "#{aip}.#{part}")   # read with a non-standard name
+          support_html = read(aip_file: 'AD-0.6')        # maybe read necessary support documents
+          (...)
         end
       end
 
@@ -96,14 +99,48 @@ module AIPP
 end
 ```
 
-Inside the `parse` method, you have access to the following objects:
+Inside the `parse` method, you have access to the following methods:
 
-* `aixm` – target: instance of `AIXM::Document` (see [AIXM Rubygem](https://github.com/svoop/aixm))
+* [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
+* [`write`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#write-instance_method) – write a [`AIXM::Feature`]([AIXM Rubygem](https://github.com/svoop/aixm)
+* any method defined in <tt>helper.rb</tt>
+* some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
+* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
+
+As well as the following objects:
+
 * `options` – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
 * `config` – configuration read from <tt>config.yml</tt>
 * `cache` – virgin `OStruct` instance to make objects available across AIPs
 
-Furthermore, you have access to any method defined in <tt>helper.rb</tt> and you can overwrite any of them if need be (most notably `url_for`).
+### Callbacks
+
+A simple yet effective callback infrastructure allows for tapping into any method call. The following example adds a before callback to a method of the AIXM gem:
+
+```ruby
+AIXM::Component::Runway::Direction.extend AIPP::Callback
+AIXM::Component::Runway::Direction.before :xy= do |object, method, args|
+  if args.first.nil?
+    @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
+    airport_id = object.send(:runway).airport.id
+    direction_name = object.name.to_s
+    if xy = @fixtures.dig(airport_id, direction_name, 'xy')
+      patch "#{airport_id} #{direction_name}"
+      lat, long = xy.split(/\s+/)
+      [AIXM.xy(lat: lat, long: long)]
+    end
+  end
+end
+```
+
+You don't have to consume `args` as an array, Ruby has a syntax to unsplat arrays on the fly:
+
+```ruby
+AIXM::Component::Runway::Direction.before :xy= do |object, method, (value)|
+  if value.nil?
+```
+
+This callback is executed right before the `xy` setter. If the callback returns anything but `nil`, this return value is is passed to the `xy` setter instead of the original arguments. This allows for fixture data to be used instead of missing input.
 
 ### Source File Line Numbers
 
@@ -113,11 +150,11 @@ In order to reference the source of an AIXM/OFMX feature, it's necessary to know
 tr.line
 ```
 
-:warning: Make sure you have build Nokogumbo `--with-libxml2`. Otherwise, all elements will report line number `0` and therefore render OFMX documents invalid. See the [Nokogumbo README](https://github.com/rubys/nokogumbo/blob/master/README.md#flavors-of-nokogumbo) for more on this.
+⚠️ Make sure you have build Nokogumbo `--with-libxml2`. Otherwise, all elements will report line number `0` and therefore render OFMX documents invalid. See the [Nokogumbo README](https://github.com/rubys/nokogumbo/blob/master/README.md#flavors-of-nokogumbo) for more on this.
 
 ### Errors
 
-You should `fail` on fatal problems. The `-E` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
+You should `fail` on fatal problems. The `-e` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
 
 ```ruby
 fail "my message"
@@ -125,22 +162,45 @@ fail "my message"
 
 ### Warnings
 
-You should `warn` on non-fatal problems. The `-W ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
+You should `warn` on non-fatal problems. The `-w ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
 
 ```ruby
-warn("my message", context: binding)   # open Pry with binding context
-warn("my message", context: error)     # open Pry with error context
+warn("my message", pry: binding)   # open Pry attached to the binding
+warn("my message", pry: error)     # open Pry attached to the error
 ```
 
-### Informational Messages
+### Messages
 
-You may `info` any other useful information:
+#### info
+
+Use `info` for essential info messages:
 
 ```ruby
-info("my message")                  # show info only in verbose mode (-V)
-info("my message", force: true)     # always show info
-info("my message", color: :green)   # show info with this color
+info("my message")                  # displays "my message" in black
+info("my message", color: :green)   # displays "my message" in green
 ```
+
+#### debug
+
+Use `debug` for in-depth info messages which are only shown if the `--verbose` mode is set:
+
+```ruby
+debug("my message")   # displays "my message" in blue
+```
+
+#### patch
+
+Use `patch` to inform about applied patches (e.g. in callbacks):
+
+```ruby
+patch("my message")   # displays "PATCH: my message" in magenta
+```
+
+### Pry
+
+Pry is loaded with stack explorer support. Type `help` in the Pry console to see all available commands. The most useful command in the context of this gem is `up` which beams you one frame up in the caller stack.
+
+Note: It's not currently possible to use pry-byebug at this time since it [interferes with pry-rescue](https://github.com/ConradIrwin/pry-rescue/issues/71).
 
 ## AIRAC Date Calculations
 

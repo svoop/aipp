@@ -1,7 +1,11 @@
 ## 0.2.1
 
 #### Changes
+* Require Ruby 2.6
 * Fix broken downloader
+
+#### Additions
+* Support for PDF files
 
 ## 0.2.0
 
@@ -38,5 +42,6 @@
 ## 0.1.0
 
 #### Initial Implementation
+* Require Ruby 2.5
 * Framework and aip2aixm executable
 * LF/ENR-5.1

@@ -1,9 +1,9 @@
 module AIPP
   module LF
     module Helper
-      using AIPP::Refinements
       using AIXM::Refinements
 
+      # Map border names to OFMX
       BORDERS = {
         'franco-allemande' => 'FRANCE_GERMANY',
         'franco-espagnole' =>  'FRANCE_SPAIN',
@@ -13,12 +13,13 @@ module AIPP
         'franco-belge' => 'BELGIUM_FRANCE',
         'germano-suisse' => 'GERMANY_SWITZERLAND',
         'hispano-andorrane' => 'ANDORRA_SPAIN',
-        'la côte atlantique française' => 'FRANCE_ATLANTIC_COAST',
-        'côte méditérrannéenne' => 'FRANCE_MEDITERRANEAN_COAST',
-        'limite des eaux territoriales atlantique françaises' => 'FRANCE_ATLANTIC_TERRITORIAL_SEA',
-        'parc national des écrins' => 'FRANCE_ECRINS_NATIONAL_PARK'
+        'la côte atlantique française' => 'FRANCE_ATLANTIC_COAST',   # TODO: handle internally
+        'côte méditérrannéenne' => 'FRANCE_MEDITERRANEAN_COAST',   # TODO: handle internally
+        'limite des eaux territoriales atlantique françaises' => 'FRANCE_ATLANTIC_TERRITORIAL_SEA',   # TODO: handle internally
+        'parc national des écrins' => 'FRANCE_ECRINS_NATIONAL_PARK'   # TODO: handle internally
       }.freeze
 
+      # Intersection points between three countries
       INTERSECTIONS = {
         'FRANCE_SPAIN|ANDORRA_SPAIN' => AIXM.xy(lat: 42.502720, long: 1.725965),
         'ANDORRA_SPAIN|FRANCE_SPAIN' => AIXM.xy(lat: 42.603571, long: 1.442681),
@@ -29,9 +30,22 @@ module AIPP
         'GERMANY_SWITZERLAND|FRANCE_GERMANY' => AIXM.xy(lat: 47.589831, long: 7.589049)
       }
 
+      # Map surface compositions to OFMX composition and preparation
+      COMPOSITIONS = {
+        'bituminous concrete' => { composition: :bitumen, preparation: :paved },
+        'paved' => { preparation: :paved },
+        'concrete' => { composition: :concrete, preparation: :paved },
+        'not paved' => { preparation: :natural },
+        'bituminous mix' => { composition: :bitumen },
+        'grass' => { composition: :grass },
+        'asphalt' => { composition: :asphalt, preparation: :paved },
+        'macadam' => { composition: :macadam }
+      }
+
+      # Transform French text fragments to English
       ANGLICISE_MAP = {
         /[^A-Z0-9 .\-]/ => '',
-        / 0(\d)/ => ' \1',
+        /0(\d)/ => '\1',
         /(\d)-(\d)/ => '\1.\2',
         /PARTIE/ => '',
         /DELEG\./ => 'DELEG ',
@@ -54,12 +68,21 @@ module AIPP
 
       # Download URL
 
+      # @param aip_file [String] e.g. ENR-5.1, AD-2.LFMV or VAC.LFMV
       def url_for(aip_file)
-        "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_%s/FRANCE/AIRAC-%s/html/eAIP/FR-%s-fr-FR.html" % [
-          options[:airac].date.strftime('%d_%^b_%Y'),   # 04_JAN_2018
-          options[:airac].date.xmlschema,               # 2018-01-04
-          aip_file                                      # ENR-5.1 or AD-2.LFMV
-        ]
+        case aip_file
+        when /^VAC\.(\w+)/
+          "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_%s/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.%s.pdf" % [
+            options[:airac].date.strftime('%d_%^b_%Y'),   # 04_JAN_2018
+            $1
+          ]
+        else
+          "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_%s/FRANCE/AIRAC-%s/html/eAIP/FR-%s-fr-FR.html" % [
+            options[:airac].date.strftime('%d_%^b_%Y'),   # 04_JAN_2018
+            options[:airac].date.xmlschema,               # 2018-01-04
+            aip_file
+          ]
+        end
       end
 
       # Templates
@@ -82,7 +105,7 @@ module AIPP
       end
 
       def anglicise(name:)
-        name.uptrans.tap do |string|
+        name&.uptrans&.tap do |string|
           ANGLICISE_MAP.each do |regexp, replacement|
             string.gsub!(regexp, replacement)
           end
@@ -91,18 +114,19 @@ module AIPP
 
       # Parsers
 
-      def source_for(element)
+      def source_for(element, aip_file: nil)
+        aip_file ||= @aip
         [
           options[:region],
-          @aip.split('-').first,
-          @aip,
+          aip_file.split('-').first,
+          aip_file,
           options[:airac].date.xmlschema,
           element.line
         ].join('|')
       end
 
-      def xy_from(td)
-        parts = td.text.strip.split(/\s+/)
+      def xy_from(text)
+        parts = text.strip.split(/\s+/)
         AIXM.xy(lat: parts[0], long: parts[1])
       end
 
@@ -118,10 +142,11 @@ module AIPP
         end
       end
 
-      def layer_from(td)
-        above, below = td.text.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
+      def layer_from(text_for_limits, text_for_class=nil)
+        above, below = text_for_limits.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
         above.reverse!
         AIXM.layer(
+          class: text_for_class,
           vertical_limits: AIXM.vertical_limits(
             max_z: z_from(above[1]),
             upper_z: z_from(above[0]),
@@ -131,10 +156,10 @@ module AIPP
         )
       end
 
-      def geometry_from(td)
+      def geometry_from(text)
         AIXM.geometry.tap do |geometry|
           buffer = {}
-          td.text.gsub(/\s+/, ' ').strip.split(/ - /).append('end').each do |element|
+          text.gsub(/\s+/, ' ').strip.split(/ - /).append('end').each do |element|
             case element
             when /arc (anti-)?horaire .+ sur (\S+) , (\S+)/i
               geometry << AIXM.arc(
@@ -168,8 +193,8 @@ module AIPP
         end
       end
 
-      def timetable_from(td)
-        AIXM::H24 if td.text.gsub(/\W/, '') == 'H24'
+      def timetable_from(text)
+        AIXM::H24 if text.gsub(/\W/, '') == 'H24'
       end
 
     end

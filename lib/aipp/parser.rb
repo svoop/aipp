@@ -2,8 +2,6 @@ module AIPP
 
   # AIP parser infrastructure
   class Parser
-    using AIPP::Refinements
-    include AIPP::Progress
 
     # @return [Hash] passed command line arguments
     attr_reader :options
@@ -20,7 +18,7 @@ module AIPP
     def initialize(options:)
       @options = options
       @options[:storage] = options[:storage].join(options[:region])
-      @options[:storage].mkpath
+      @options[:storage].mkpath unless @options[:storage].exist?
       @config = {}
       @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
       @cache = OpenStruct.new
@@ -29,7 +27,7 @@ module AIPP
 
     # Read the configuration from config.yml.
     def read_config
-      info("Reading config.yml", force: true)
+      info("Reading config.yml")
       @config = YAML.load_file(config_file, fallback: {}).transform_keys(&:to_sym) if config_file.exist?
       @config[:namespace] ||= SecureRandom.uuid
       @aixm.namespace = @config[:namespace]
@@ -37,29 +35,32 @@ module AIPP
 
     # Read the region directory and build the dependency list.
     def read_region
-      info("Reading region #{options[:region]}", force: true)
+      info("Reading region #{options[:region]}")
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
       dir.glob('*.rb').each do |file|
-        info("Requiring #{file.basename}")
+        debug("Requiring #{file.basename}")
         require file
         if (aip = file.basename('.*').to_s) == 'helper'
-          extend [:AIPP, options[:region], :Helper].constantize
+          extend ("AIPP::%s::Helper" % options[:region]).constantize
         else
-          @dependencies[aip] = [:AIPP, options[:region], aip.classify, :DEPENDS].constantize
+          @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
         end
       end
     end
 
     # Parse AIP by invoking the parser classes for the current region.
     def parse_aip
-      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", force: true, color: :green)
-      @dependencies.tsort(options[:aip]).each do |aip|
-        info("Parsing #{aip}", force: true)
-        [:AIPP, options[:region], aip.classify].constantize.new(
-          aip: aip,
-          parser: self
-        ).parse
+      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", color: :green)
+      AIPP::Downloader.new(storage: options[:storage], archive: options[:airac].date.xmlschema) do |downloader|
+        @dependencies.tsort(options[:aip]).each do |aip|
+          info("Parsing #{aip}")
+          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
+            aip: aip,
+            downloader: downloader,
+            parser: self
+          ).parse
+        end
       end
     end
 
@@ -67,23 +68,24 @@ module AIPP
     #
     # @raise [RuntimeError] if the document is not valid
     def validate_aixm
-      info("Validating #{options[:schema].upcase}", force: true)
+      info("Validating #{options[:schema].upcase}")
       unless aixm.valid?
-        send(@options[:force] ? :warn : :fail, "invalid AIXM document:\n#{aixm.errors}")
+        message = "invalid AIXM document:\n" + aixm.errors.map(&:message).join("\n")
+        @options[:force] ? warn(message, pry: binding) : fail(message)
       end
     end
 
     # Write the AIXM document.
     def write_aixm
       file = "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
-      info("Writing #{file}", force: true)
+      info("Writing #{file}")
       AIXM.send("#{options[:schema]}!")
       File.write(file, aixm.to_xml)
     end
 
     # Write the configuration to config.yml.
     def write_config
-      info("Writing config.yml", force: true)
+      info("Writing config.yml")
       File.write(config_file, config.to_yaml)
     end
 

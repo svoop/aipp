@@ -3,16 +3,15 @@ module AIPP
 
     # FIR, TMA etc
     class ENR21 < AIP
-      using AIPP::Refinements
 
-      # Map source types to type and local type
+      # Map source types to type and optional local type
       SOURCE_TYPES = {
-        'FIR' => { type: 'FIR', local_type: nil },
-        'UIR' => { type: 'UIR', local_type: nil },
-        'UTA' => { type: 'UTA', local_type: nil },
-        'CTA' => { type: 'CTA', local_type: nil },
+        'FIR' => { type: 'FIR' },
+        'UIR' => { type: 'UIR' },
+        'UTA' => { type: 'UTA' },
+        'CTA' => { type: 'CTA' },
         'LTA' => { type: 'CTA', local_type: 'LTA' },
-        'TMA' => { type: 'TMA', local_type: nil },
+        'TMA' => { type: 'TMA' },
         'SIV' => { type: 'SECTOR', local_type: 'SIV' }   # providing FIS
       }.freeze
 
@@ -26,39 +25,39 @@ module AIPP
       }.freeze
 
       def parse
-        load_html.css('tbody').each do |tbody|
+        read.css('tbody').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)
               aixm.features << airspace if airspace
               airspace = airspace_from cleanup(node: tr).css(:td).first
-              info "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
+              debug "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
               next
             end
             begin
               tds = cleanup(node: tr).css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
                 airspace = airspace_from tds[0]
-                info "Parsing #{airspace.type} #{airspace.name}"
+                debug "Parsing #{airspace.type} #{airspace.name}"
               end
               if airspace
                 if tds[0].text.blank_to_nil
-                  airspace.geometry = geometry_from tds[0]
+                  airspace.geometry = geometry_from tds[0].text
                   fail("geometry is not closed") unless airspace.geometry.closed?
                 end
-                layer = layer_from(tds[-3])
-                layer.class = class_from(tds[1]) if tds.count == 5
+                layer = layer_from(tds[-3].text)
+                layer.class = class_from(tds[1].text) if tds.count == 5
                 layer.location_indicator = LOCATION_INDICATORS.fetch("#{airspace.type} #{airspace.name}", nil)
                 # TODO: unit, call sign and frequency from tds[-2]
-                layer.timetable = timetable_from(tds[-1])
-                layer.remarks = remarks_from(tds[-1])
+                layer.timetable = timetable_from(tds[-1].text)
+                layer.remarks = remarks_from(tds[-1].text)
                 airspace.layers << layer
               end
             rescue => error
-              warn("error parsing #{airspace.type} `#{airspace.name}' at ##{index}: #{error.message}", context: error)
+              warn("error parsing #{airspace.type} `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
             end
           end
-          aixm.features << airspace if airspace
+          write airspace if airspace
         end
       end
 
@@ -77,12 +76,12 @@ module AIPP
         end
       end
 
-      def class_from(td)
-        td.text.strip
+      def class_from(text)
+        text.strip
       end
 
-      def remarks_from(td)
-        td.text.strip.gsub(/(\s)\s+/, '\1').blank_to_nil
+      def remarks_from(text)
+        text.strip.gsub(/(\s)\s+/, '\1').blank_to_nil
       end
     end
   end

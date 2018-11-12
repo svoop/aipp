@@ -8,7 +8,7 @@ module AIPP
       @options = options
       @options[:airac] = AIPP::AIRAC.new
       @options[:storage] = Pathname(Dir.home).join('.aipp')
-      @options[:verbose] = @options[:force] = @options[:pry_on_error] = false
+      @options[:force] = $PRY_ON_WARN = $PRY_ON_ERROR = false
       OptionParser.new do |o|
         o.banner = <<~END
           Download online AIP and convert it to #{options[:schema].upcase}.
@@ -18,10 +18,10 @@ module AIPP
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { |v| @options[:region] = v.upcase }
         o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { |v| @options[:aip] = v.upcase }
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { |v| @options[:storage] = Pathname(v) }
-        o.on('-v', '--[no-]verbose', 'verbose process output (default: false)') { |v| @options[:verbose] = v }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
-        o.on('-W', '--pry-on-warn ID', Integer, 'open pry on warn with ID (default: nil)') { |v| @options[:pry_on_warn] = v }
-        o.on('-E', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| @options[:pry_on_error] = v }
+        o.on('-v', '--[no-]verbose', 'verbose output and Ruby debug mode (default: false)') { |v| $DEBUG = v }
+        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { |v| $PRY_ON_WARN = v || true }
+        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| $PRY_ON_WARN = v }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
         o.on('-L', '--list', 'list implemented regions and AIPs') { list }
@@ -33,7 +33,7 @@ module AIPP
     #
     # @raise [RuntimeError] if the region does not exist
     def run
-      Pry::rescue do
+      Pry.rescue do
         fail(OptionParser::MissingArgument, :region) unless options[:region]
         AIPP::Parser.new(options: options).tap do |parser|
           parser.read_config

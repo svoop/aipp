@@ -19,21 +19,25 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version = '>= 2.5'
+  spec.required_ruby_version = '>= 2.6'
 
-  spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'minitest-sound'
   spec.add_development_dependency 'minitest-matchers'
+  spec.add_development_dependency 'spy'
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-minitest'
 
-  spec.add_runtime_dependency 'aixm', '~> 0', '>= 0.3.2'
+  spec.add_runtime_dependency 'aixm', '~> 0'
+  spec.add_runtime_dependency 'activesupport', '~> 5'
   spec.add_runtime_dependency 'nokogiri', '~> 1'
   spec.add_runtime_dependency 'nokogumbo', '~> 2'
+  spec.add_runtime_dependency 'pdf-reader', '~> 2'
+  spec.add_runtime_dependency 'rubyzip', '~> 1'
   spec.add_runtime_dependency 'colorize', '~> 0'
   spec.add_runtime_dependency 'pry', '~> 0'
   spec.add_runtime_dependency 'pry-rescue', '~> 1'
+  spec.add_runtime_dependency 'pry-stack_explorer', '~> 0'
 end

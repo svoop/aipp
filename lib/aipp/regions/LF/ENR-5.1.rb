@@ -3,17 +3,17 @@ module AIPP
 
     # D/P/R Zones
     class ENR51 < AIP
-      using AIPP::Refinements
 
-      TYPES = {
-        'D' => 'D',
-        'P' => 'P',
-        'R' => 'R',
-        'ZIT' => 'P'
+      # Map source types to type and optional local type
+      SOURCE_TYPES = {
+        'D' => { type: 'D' },
+        'P' => { type: 'P' },
+        'R' => { type: 'R' },
+        'ZIT' => { type: 'P', local_type: 'ZIT' }
       }.freeze
 
       def parse
-        load_html.css('tbody:has(tr[id^=mid])').each do |tbody|
+        read.css('tbody:has(tr[id^=mid])').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:class) =~ /keep-with-next-row/
@@ -21,14 +21,14 @@ module AIPP
             else
               begin
                 tds = cleanup(node: tr).css('td')
-                airspace.geometry = geometry_from tds[0]
+                airspace.geometry = geometry_from tds[0].text
                 fail("geometry is not closed") unless airspace.geometry.closed?
-                airspace.layers << layer_from(tds[1])
-                airspace.layers.first.timetable = timetable_from tds[2]
+                airspace.layers << layer_from(tds[1].text)
+                airspace.layers.first.timetable = timetable_from tds[2].text
                 airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
-                aixm.features << airspace
+                write airspace
               rescue => error
-                warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", context: error)
+                warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
               end
             end
           end
@@ -39,10 +39,12 @@ module AIPP
 
       def airspace_from(tr)
         spans = tr.css(:span)
+        source_type = spans[2].text.blank_to_nil
+        fail "unknown type `#{source_type}'" unless SOURCE_TYPES.has_key? source_type
         AIXM.airspace(
           name: [spans[1], spans[2], spans[3], spans[5].text.blank_to_nil].compact.join(' '),
-          local_type: [spans[1], spans[2], spans[3]].compact.join(' '),
-          type: TYPES.fetch(spans[2].text)
+          type: SOURCE_TYPES.dig(source_type, :type),
+          local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
           airspace.source = source_for(tr)
         end

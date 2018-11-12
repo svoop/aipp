@@ -1,0 +1,9 @@
+module AIPP
+  module LF
+
+    # Helipads
+    class AD31 < AIP
+
+    end
+  end
+end
