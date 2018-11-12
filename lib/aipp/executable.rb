@@ -24,9 +24,9 @@ module AIPP
         o.on('-E', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| @options[:pry_on_error] = v }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
+        o.on('-L', '--list', 'list implemented regions and AIPs') { list }
         o.on('-V', '--version', 'show version and exit') { version }
       end.parse!
-      fail(OptionParser::MissingArgument, :region) unless @options[:region]
     end
 
     # Load necessary files and execute the parser.
@@ -34,6 +34,7 @@ module AIPP
     # @raise [RuntimeError] if the region does not exist
     def run
       Pry::rescue do
+        fail(OptionParser::MissingArgument, :region) unless options[:region]
         AIPP::Parser.new(options: options).tap do |parser|
           parser.read_config
           parser.read_region
@@ -56,7 +57,19 @@ module AIPP
     end
 
     def readme
-      puts IO.read("#{File.dirname($0)}/../gems/aipp-#{AIPP::VERSION}/README.md")
+      readme_path = Pathname($0).dirname.join('..', 'gems', "aipp-#{AIPP::VERSION}", 'README.md')
+      puts IO.read(readme_path)
+      exit
+    end
+
+    def list
+      regions_path = Pathname($0).dirname.join('..', 'gems', "aipp-#{AIPP::VERSION}", 'lib', 'aipp', 'regions')
+      hash = Dir.each_child(regions_path).each.with_object({}) do |region, hash|
+        hash[region] = Dir.children(regions_path.join(region)).sort.map do |aip|
+          File.basename(aip, '.rb') unless aip == 'helper.rb'
+        end.compact
+      end
+      puts hash.to_yaml.sub(/\A\W*/, '')
       exit
     end
 
