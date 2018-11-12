@@ -1,3 +1,8 @@
+## 0.2.1
+
+#### Changes
+* Fix broken downloader
+
 ## 0.2.0
 
 #### Changes

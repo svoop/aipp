@@ -42,12 +42,12 @@ module AIPP
     # @return [Nokogiri::HTML5] HTML document
     def load_html(aip_file: nil)
       aip_file ||= aip
-      unless (storage_path = storage_path(aip_file)).exist?
-        info("Downloading #{storage_file}", force: true)
+      unless (aip_path = storage_path(aip_file)).exist?
+        info("Downloading #{aip_file}", force: true)
         storage_path.mkpath
-        IO.copy_stream(open(url_for(aip_file)), storage_path)
+        IO.copy_stream(open(url_for(aip_file)), aip_path)
       end
-      Nokogiri::HTML5(storage_path)
+      Nokogiri::HTML5(aip_path)
     end
 
     private
