@@ -37,8 +37,7 @@ module AIPP
         AIPP::Parser.new(options: options).tap do |parser|
           parser.read_config
           parser.read_region
-          parser.download_html
-          parser.parse_html
+          parser.parse_aip
           parser.validate_aixm
           parser.write_aixm
           parser.write_config

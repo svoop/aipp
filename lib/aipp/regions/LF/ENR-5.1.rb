@@ -13,7 +13,7 @@ module AIPP
       }.freeze
 
       def parse
-        html.css('tbody:has(tr[id^=mid])').each do |tbody|
+        load_html.css('tbody:has(tr[id^=mid])').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:class) =~ /keep-with-next-row/

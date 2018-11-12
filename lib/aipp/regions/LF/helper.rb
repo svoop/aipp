@@ -52,11 +52,13 @@ module AIPP
         / +/ => ' '
       }.freeze
 
-      def url(aip:)
+      # Download URL
+
+      def url_for(aip_file)
         "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_%s/FRANCE/AIRAC-%s/html/eAIP/FR-%s-fr-FR.html" % [
           options[:airac].date.strftime('%d_%^b_%Y'),   # 04_JAN_2018
           options[:airac].date.xmlschema,               # 2018-01-04
-          aip                                           # ENR-5.1
+          aip_file                                      # ENR-5.1 or AD-2.LFMV
         ]
       end
 

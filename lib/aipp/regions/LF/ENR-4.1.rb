@@ -6,7 +6,7 @@ module AIPP
       using AIPP::Refinements
 
       def parse
-        html.css('tbody').each do |tbody|
+        load_html.css('tbody').each do |tbody|
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             tds = cleanup(node: tr).css('td')
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')

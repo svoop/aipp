@@ -40,15 +40,15 @@ To implement a region, you have to create a new directory <tt>lib/aipp/regions/{
 
 ### helper.rb
 
-Create the file <tt>helper.rb</tt> which defines the module `AIPP::LF::Helper`:
+Create the file <tt>helper.rb</tt> which defines the module `AIPP::LF::Helper` and usually contains the URL builder method `url_for` used by all AIP parsers:
 
 ```ruby
 module AIPP
   module LF
     module Helper
 
-      def url(aip:)
-        # build and return the download URL
+      def url_for(aip_file)
+        # build and return the download URL for the aip file
       end
 
     end
@@ -56,7 +56,7 @@ module AIPP
 end
 ```
 
-### Parser Classes
+### AIP Parsers
 
 Say, you want to parse ENR-4.3, you have to create the file <tt>ENR-4.3.rb</tt> which defines the class `AIPP::LF::ENR43` as follows:
 
@@ -68,7 +68,27 @@ module AIPP
       DEPENDS = %w(ENR-2.1 ENR-2.2)   # declare dependencies to other AIPs
 
       def parse
-        # read from "html" and write to "aixm"
+        html = load_html
+        # read from "html" (Nokogiri::HTML::Document) and write to "aixm"
+      end
+
+    end
+  end
+end
+```
+
+Some AIP may be split over several files which require a little more code to load the individual HTML source files:
+
+```ruby
+module AIPP
+  module LF
+    class AD2 < AIP
+
+      def parse
+        %i(one two three).each do |part|
+          html = load_html(aip_file: "#{aip}.#{part}")
+          # read from "html" (Nokogiri::HTML::Document) and write to "aixm"
+        end
       end
 
     end
@@ -78,21 +98,24 @@ end
 
 Inside the `parse` method, you have access to the following objects:
 
-* `html` – source: instance of `Nokogiri::HTML::Document`
 * `aixm` – target: instance of `AIXM::Document` (see [AIXM Rubygem](https://github.com/svoop/aixm))
+* `options` – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
 * `config` – configuration read from <tt>config.yml</tt>
-* `options` – arguments read from `aip2aixm` or `aip2ofmx` respectively
 * `cache` – virgin `OStruct` instance to make objects available across AIPs
 
-In order to reference the source of an AIXM/OFMX feature, it's necessary to know the line number where a particular node occurs in the HTML source file:
+Furthermore, you have access to any method defined in <tt>helper.rb</tt> and you can overwrite any of them if need be (most notably `url_for`).
+
+### Source File Line Numbers
+
+In order to reference the source of an AIXM/OFMX feature, it's necessary to know the line number where a particular node occurs in the HTML source file. You can ask any HTML element as follows:
 
 ```ruby
 tr.line
 ```
 
-:warning: Make sure you have build Nokogumbo `--with-libxml2`. Otherwise, any element will report line number `0` and therefore render OFMX documents invalid. See the [Nokogumbo README](https://github.com/rubys/nokogumbo/blob/master/README.md#flavors-of-nokogumbo) for more on this.
+:warning: Make sure you have build Nokogumbo `--with-libxml2`. Otherwise, all elements will report line number `0` and therefore render OFMX documents invalid. See the [Nokogumbo README](https://github.com/rubys/nokogumbo/blob/master/README.md#flavors-of-nokogumbo) for more on this.
 
-Furthermore, you have access to any method defined in <tt>helper.rb</tt>.
+### Errors
 
 You should `fail` on fatal problems. The `-E` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
 
@@ -100,12 +123,16 @@ You should `fail` on fatal problems. The `-E` command line argument will open a 
 fail "my message"
 ```
 
+### Warnings
+
 You should `warn` on non-fatal problems. The `-W ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
 
 ```ruby
 warn("my message", context: binding)   # open Pry with binding context
 warn("my message", context: error)     # open Pry with error context
 ```
+
+### Informational Messages
 
 You may `info` any other useful information:
 

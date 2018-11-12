@@ -1,3 +1,4 @@
+require 'forwardable'
 require 'colorize'
 require 'pry'
 require 'pry-rescue'

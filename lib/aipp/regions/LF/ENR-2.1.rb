@@ -26,7 +26,7 @@ module AIPP
       }.freeze
 
       def parse
-        html.css('tbody').each do |tbody|
+        load_html.css('tbody').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)

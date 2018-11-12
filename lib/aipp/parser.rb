@@ -5,25 +5,26 @@ module AIPP
     using AIPP::Refinements
     include AIPP::Progress
 
-    # @return [AIXM::Document] target document
-    attr_reader :aixm
-
     # @return [Hash] passed command line arguments
     attr_reader :options
 
     # @return [Hash] configuration read from config.yml
     attr_reader :config
 
+    # @return [AIXM::Document] target document
+    attr_reader :aixm
+
     # @return [OpenStruct] object cache
     attr_reader :cache
 
     def initialize(options:)
       @options = options
+      @options[:storage] = options[:storage].join(options[:region])
+      @options[:storage].mkpath
       @config = {}
+      @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
       @cache = OpenStruct.new
-      options[:storage] = options[:storage].join(options[:region])
-      options[:storage].mkpath
-      @aixm = AIXM.document(region: options[:region], effective_at: options[:airac].date)
+      @dependencies = THash.new
     end
 
     # Read the configuration from config.yml.
@@ -39,41 +40,25 @@ module AIPP
       info("Reading region #{options[:region]}", force: true)
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
-      dependencies = THash.new
       dir.glob('*.rb').each do |file|
         info("Requiring #{file.basename}")
         require file
         if (aip = file.basename('.*').to_s) == 'helper'
           extend [:AIPP, options[:region], :Helper].constantize
         else
-          dependencies[aip] = [:AIPP, options[:region], aip.classify, :DEPENDS].constantize
-        end
-      end
-      @aips = dependencies.tsort(options[:aip])
-    end
-
-    # Download AIP for the current region and cache them locally.
-    def download_html
-      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", force: true, color: :green)
-      download_path.mkpath
-      @aips.each do |aip|
-        unless (file = download_path(aip: aip)).exist?
-          info("Downloading #{aip}", force: true)
-          IO.copy_stream(open(url(aip: aip)), file)
+          @dependencies[aip] = [:AIPP, options[:region], aip.classify, :DEPENDS].constantize
         end
       end
     end
 
     # Parse AIP by invoking the parser classes for the current region.
-    def parse_html
-      @aips.each do |aip|
+    def parse_aip
+      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", force: true, color: :green)
+      @dependencies.tsort(options[:aip]).each do |aip|
         info("Parsing #{aip}", force: true)
         [:AIPP, options[:region], aip.classify].constantize.new(
           aip: aip,
-          aixm: aixm,
-          html: Nokogiri::HTML5(download_path(aip: aip)),
-          config: config,
-          options: options
+          parser: self
         ).parse
       end
     end
@@ -103,12 +88,6 @@ module AIPP
     end
 
     private
-
-    def download_path(aip: nil)
-      options[:storage].
-        join(options[:airac].date.xmlschema).
-        join(("#{aip}.html" if aip).to_s)
-    end
 
     def config_file
       options[:storage].join('config.yml')
