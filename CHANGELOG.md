@@ -1,28 +1,37 @@
 ## 0.2.0
 
-* Complete rewrite of the framework in order to allow cross-AIP parsing made
-  necessary due to recent changes in LF AIP.
+#### Changes
+* Complete rewrite of the framework in order to allow cross-AIP parsing made necessary due to recent changes in LF AIP.
+
+#### Additions
+* LF/ENR-2.1
+* Handling of errors and warnings optimized for parser development
+
+#### Removals
+* LF/AD-1.5
 
 ## 0.1.3
 
-* Additons:
-  * LF/AD-1.5
-  * Source file line number evaluation
-* Minor changes:
-  * Summary at end of run
+#### Changes
+* Summary at end of run
+
+#### Additions
+* LF/AD-1.5
+* Source file line number evaluation
 
 ## 0.1.2
 
-* Additions:
-  * LF/ENR-4.3
+#### Additions:
+* LF/ENR-4.3
 
 ## 0.1.1
 
-* Additions:
-  * Helper modules
-  * LF/ENR-4.1
+#### Additions:
+* LF/ENR-4.1
+* Helper modules
 
 ## 0.1.0
 
-* Initial implementation of aip2aixm executable and infrastructure
+#### Initial Implementation
+* Framework and aip2aixm executable
 * LF/ENR-5.1
