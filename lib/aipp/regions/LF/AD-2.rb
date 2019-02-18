@@ -124,7 +124,7 @@ module AIPP
         end.uniq
         grouped_directions.map do |runway_name|
           AIXM.runway(name: runway_name).tap do |runway|
-            runway.send(:airport=, @airport)   # early assignment for callbacks
+            runway.send(:airport=, @airport)   # early assignment for patches
             %i(forth back).each do |direction_attr|
               if direction = runway.send(direction_attr)
                 tr = directions_map[direction.name]

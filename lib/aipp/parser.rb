@@ -55,13 +55,11 @@ module AIPP
       AIPP::Downloader.new(storage: options[:storage], archive: options[:airac].date.xmlschema) do |downloader|
         @dependencies.tsort(options[:aip]).each do |aip|
           info("Parsing #{aip}")
-          parser = ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
+          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
             aip: aip,
             downloader: downloader,
             parser: self
-          )
-          parser.parse
-          parser.class.remove_patches
+          ).attach_patches.tap(&:parse).detach_patches
         end
       end
     end

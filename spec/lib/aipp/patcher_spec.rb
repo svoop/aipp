@@ -1,7 +1,7 @@
 require_relative '../../spec_helper'
 
 class Shoe
-  extend AIPP::Patcher
+  include AIPP::Patcher
 
   attr_accessor :size
 
@@ -16,23 +16,31 @@ end
 
 describe AIPP::Patcher do
   subject do
-    Shoe.new
+    Shoe.new.attach_patches
   end
 
-  it "overwrites with non-nil values" do
-    subject.tap { |s| s.size = 'S' }.size.must_equal 36
+  context "with patches attached" do
+    after do
+      subject.detach_patches
+    end
+
+    it "overwrites with non-nil values" do
+      subject.tap { |s| s.size = 'S' }.size.must_equal 36
+    end
+
+    it "overwrite with nil values" do
+      subject.tap { |s| s.size = 'one-size-fits-all' }.size.must_be_nil
+    end
+
+    it "skips overwrite if abort is thrown" do
+      subject.tap { |s| s.size = 42 }.size.must_equal 42
+    end
   end
 
-  it "overwrite with nil values" do
-    subject.tap { |s| s.size = 'one-size-fits-all' }.size.must_be_nil
-  end
-
-  it "skips overwrite if abort is thrown" do
-    subject.tap { |s| s.size = 42 }.size.must_equal 42
-  end
-
-  it "removes patches" do
-    subject.class.remove_patches
-    subject.tap { |s| s.size = 'S' }.size.must_equal 'S'
+  context "with patches detached" do
+    it "removes patches" do
+      subject.detach_patches
+      subject.tap { |s| s.size = 'S' }.size.must_equal 'S'
+    end
   end
 end

@@ -3,7 +3,7 @@ module AIPP
   # @abstract
   class AIP
     extend Forwardable
-    extend AIPP::Patcher
+    include AIPP::Patcher
 
     DEPENDS = []
 
