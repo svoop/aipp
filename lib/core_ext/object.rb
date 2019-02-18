@@ -32,13 +32,6 @@ class Object
     puts message.send(color)
   end
 
-  # Issue a patch message.
-  #
-  # @param message [String] patch message
-  def patch(message)
-    info("PATCH: #{message}", color: :magenta)
-  end
-
   # Issue a debug message.
   #
   # @param message [String] debug message

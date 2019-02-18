@@ -71,8 +71,8 @@ module AIPP
               text = read("VAC.#{@id}")
               designated_points_from(text, airport).tap do |designated_points|
                 fix_designated_point_remarks(designated_points)
-debug(designated_points)
                 designated_points.each { |dp| write dp }
+#               debug(designated_points)
               end
             end
           rescue => error
@@ -283,43 +283,37 @@ debug(designated_points)
         end
       end
 
-      def debug(dp)
-        f = "/Users/sschwyn/Desktop/okay/#{@id}.txt"
-        result = "\n--- #{@id} ---\n\n".red
-        dp.each do |d|
-          result += d.id.red + "\t#{d.xy.lat} - #{d.xy.long}\n"
-          result += "#{d.remarks}\n\n".blue
-        end
-        result += "#{dp.count} point(s) for #{@id}".red
-        unless File.exist?(f) && result == File.read(f)
-          puts result
-          gets
-          puts "\e[H\e[2J"
-        end
-        File.write(f, result)
+#     def debug(dp)
+#       f = "/Users/sschwyn/Desktop/okay/#{@id}.txt"
+#       result = "\n--- #{@id} ---\n\n".red
+#       dp.each do |d|
+#         result += d.id.red + "\t#{d.xy.lat} - #{d.xy.long}\n"
+#         result += "#{d.remarks}\n\n".blue
+#       end
+#       result += "#{dp.count} point(s) for #{@id}".red
+#       unless File.exist?(f) && result == File.read(f)
+#         puts result
+#         gets
+#         puts "\e[H\e[2J"
+#       end
+#       File.write(f, result)
+#     end
+
+      patch AIXM::Component::Runway::Direction, :xy do |object, value|
+        throw :abort unless value.nil?
+        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
+        airport_id, direction_name = object.send(:runway).airport.id, object.name.to_s
+        throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
+        lat, long = xy.split(/\s+/)
+        AIXM.xy(lat: lat, long: long)
       end
-    end
-  end
-end
 
-AIXM::Component::Runway::Direction.extend AIPP::Callback
-AIXM::Component::Runway::Direction.before :xy= do |object, method, (value)|
-  if value.nil?
-    @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
-    airport_id, direction_name = object.send(:runway).airport.id, object.name.to_s
-    if xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')
-      patch "#{airport_id} #{direction_name}"
-      lat, long = xy.split(/\s+/)
-      [AIXM.xy(lat: lat, long: long)]
-    end
-  end
-end
+      patch AIXM::Feature::NavigationalAid, :remarks do |object, value|
+        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
+        airport_id, designated_point_id = object.airport.id, object.id
+        @fixtures.dig('designated_points', airport_id, designated_point_id, 'remarks') || throw(:abort)
+      end
 
-AIXM::Feature::NavigationalAid.extend AIPP::Callback
-AIXM::Feature::NavigationalAid.before :remarks= do |object, method, (value)|
-  @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
-  airport_id, designated_point_id = object.airport.id, object.id
-  if (value = @fixtures.dig('designated_points', airport_id, designated_point_id, 'remarks'))
-    [value]
+    end
   end
 end

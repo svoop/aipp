@@ -113,34 +113,30 @@ As well as the following objects:
 * `config` – configuration read from <tt>config.yml</tt>
 * `cache` – virgin `OStruct` instance to make objects available across AIPs
 
-### Callbacks
+### Patches
 
-A simple yet effective callback infrastructure allows for tapping into any method call. The following example adds a before callback to a method of the AIXM gem:
+When parsed data is faulty or missing, you might have to use a different data source instead such as static data from a fixture file. This is where patches come in. You can patch any AIXM attribute setter by defining a patch block inside the AIP parser:
 
 ```ruby
-AIXM::Component::Runway::Direction.extend AIPP::Callback
-AIXM::Component::Runway::Direction.before :xy= do |object, method, args|
-  if args.first.nil?
-    @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
-    airport_id = object.send(:runway).airport.id
-    direction_name = object.name.to_s
-    if xy = @fixtures.dig(airport_id, direction_name, 'xy')
-      patch "#{airport_id} #{direction_name}"
-      lat, long = xy.split(/\s+/)
-      [AIXM.xy(lat: lat, long: long)]
+module AIPP
+  module LF
+    class AD2 < AIP
+
+      patch AIXM::Component::Runway::Direction, :xy do |object, value|
+        throw :abort unless value.nil?
+        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
+        airport_id, direction_name = object.send(:runway).airport.id, object.name.to_s
+        throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
+        lat, long = xy.split(/\s+/)
+        AIXM.xy(lat: lat, long: long)
+      end
+
     end
   end
 end
 ```
 
-You don't have to consume `args` as an array, Ruby has a syntax to unsplat arrays on the fly:
-
-```ruby
-AIXM::Component::Runway::Direction.before :xy= do |object, method, (value)|
-  if value.nil?
-```
-
-This callback is executed right before the `xy` setter. If the callback returns anything but `nil`, this return value is is passed to the `xy` setter instead of the original arguments. This allows for fixture data to be used instead of missing input.
+The patch block receives the object and the current value. If this value is okay, `throw :abort` to leave the patch block without touching anything. Otherwise, have the patch block return a new value which will be used instead.
 
 ### Source File Line Numbers
 
@@ -186,14 +182,6 @@ Use `debug` for in-depth info messages which are only shown if the `--verbose` m
 
 ```ruby
 debug("my message")   # displays "my message" in blue
-```
-
-#### patch
-
-Use `patch` to inform about applied patches (e.g. in callbacks):
-
-```ruby
-patch("my message")   # displays "PATCH: my message" in magenta
 ```
 
 ### Pry

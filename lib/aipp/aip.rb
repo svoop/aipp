@@ -3,24 +3,25 @@ module AIPP
   # @abstract
   class AIP
     extend Forwardable
+    extend AIPP::Patcher
 
     DEPENDS = []
 
     # @return [String] AIP name (e.g. "ENR-2.1")
     attr_reader :aip
 
+    # @!method close
+    #   @see AIPP::Downloader#close
+    def_delegator :@downloader, :close
+
     # @!method config
-    #   @return (see AIPP::Parser#config)
+    #   @see AIPP::Parser#config
     # @!method options
-    #   @return (see AIPP::Parser#options)
+    #   @see AIPP::Parser#options
     # @!method cache
-    #   @return (see AIPP::Parser#cache)
+    #   @see AIPP::Parser#cache
     def_delegators :@parser, :aixm, :config, :options, :cache
     private :aixm
-
-    # @!method close
-    #   @return (see AIPP::Downloader#close)
-    def_delegators :@downloader, :close
 
     def initialize(aip:, downloader:, parser:)
       @aip, @downloader, @parser = aip, downloader, parser

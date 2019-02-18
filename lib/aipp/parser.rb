@@ -21,8 +21,8 @@ module AIPP
       @options[:storage].mkpath unless @options[:storage].exist?
       @config = {}
       @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
-      @cache = OpenStruct.new
       @dependencies = THash.new
+      @cache = OpenStruct.new
     end
 
     # Read the configuration from config.yml.
@@ -55,11 +55,13 @@ module AIPP
       AIPP::Downloader.new(storage: options[:storage], archive: options[:airac].date.xmlschema) do |downloader|
         @dependencies.tsort(options[:aip]).each do |aip|
           info("Parsing #{aip}")
-          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
+          parser = ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
             aip: aip,
             downloader: downloader,
             parser: self
-          ).parse
+          )
+          parser.parse
+          parser.class.remove_patches
         end
       end
     end

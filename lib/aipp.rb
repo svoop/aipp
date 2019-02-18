@@ -30,10 +30,10 @@ require_relative 'aipp/pdf'
 require_relative 'aipp/t_hash'
 require_relative 'aipp/executable'
 require_relative 'aipp/airac'
+require_relative 'aipp/patcher'
 require_relative 'aipp/aip'
 require_relative 'aipp/parser'
 require_relative 'aipp/downloader'
-require_relative 'aipp/callback'
 
 # Disable "did you mean?" suggestions
 module DidYouMean::Correctable
