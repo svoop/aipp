@@ -35,7 +35,8 @@ class String
   def cleanup
     gsub(/[#{AIXM::MIN}]{2}|[#{AIXM::SEC}]/, '"').   # unify quotes
       gsub(/[#{AIXM::MIN}]/, "'").   # unify apostrophes
-      gsub(/"[[:blank:]]*(.*?)[[:blank:]]*"/m, '"\1"')   # remove whitespace within quotes
+      gsub(/"[[:blank:]]*(.*?)[[:blank:]]*"/m, '"\1"').   # remove whitespace within quotes
+      split(/\r?\n/).map { |s| s.strip.blank_to_nil }.compact.join("\n")   # remove blank lines
   end
 
   # Add spaces between obviously glued words:
