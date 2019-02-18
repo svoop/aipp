@@ -21,7 +21,7 @@ module AIPP
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
         o.on('-v', '--[no-]verbose', 'verbose output and Ruby debug mode (default: false)') { |v| $DEBUG = v }
         o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { |v| $PRY_ON_WARN = v || true }
-        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| $PRY_ON_WARN = v }
+        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| $PRY_ON_ERROR = v }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
         o.on('-L', '--list', 'list implemented regions and AIPs') { list }
@@ -45,7 +45,7 @@ module AIPP
         end
       rescue => error
         puts "ERROR: #{error.message}"
-        Pry::rescued(error) if options[:pry_on_error]
+        Pry::rescued(error) if $PRY_ON_ERROR
       end
     end
 

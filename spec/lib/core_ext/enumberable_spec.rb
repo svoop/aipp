@@ -56,4 +56,21 @@ describe Enumerable do
     end
   end
 
+  describe :group_by_chunks do
+    it "fails to group if the first element does not meet the chunk condition" do
+      subject = [10, 11, 12, 2, 20, 21 ]
+      -> { subject.group_by_chunks { |i| i < 10 } }.must_raise ArgumentError
+    end
+
+    it "must map matching elements to array of subsequent non-matching elements" do
+      subject = [1, 10, 11, 12, 2, 20, 21, 3, 30, 31, 32]
+      subject.group_by_chunks { |i| i < 10 }.must_equal(1 => [10, 11, 12], 2 => [20, 21], 3 => [30, 31, 32])
+    end
+
+    it "must map matching elements to empty array if no subsequent non-matching elements exist" do
+      subject = [1, 10, 11, 12, 2, 3, 30]
+      subject.group_by_chunks { |i| i < 10 }.must_equal(1 => [10, 11, 12], 2 => [], 3 => [30])
+    end
+  end
+
 end

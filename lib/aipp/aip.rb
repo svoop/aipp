@@ -25,7 +25,7 @@ module AIPP
 
     def initialize(aip:, downloader:, parser:)
       @aip, @downloader, @parser = aip, downloader, parser
-      self.class.include ("AIPP::%s::Helper" % options[:region]).constantize
+      self.class.include ("AIPP::%s::Helpers::URL" % options[:region]).constantize
     end
 
     # Read an AIP source file
@@ -50,6 +50,28 @@ module AIPP
     # @param feature [AIXM::Feature] e.g. airport or airspace
     def write(feature)
       aixm.features << feature
+    end
+
+    # Search features previously written to AIXM and return those matching the
+    # given class and attribute values
+    #
+    # @example
+    #   select(:airport, id: "LFNT")
+    #
+    # @param klass [Class, Symbol] feature class like AIXM::Feature::Airport or
+    #   AIXM::Feature::NavigationalAid::VOR, shorthand notations as symbols
+    #   e.g. :airport or :vor as listed in AIXM::CLASSES are recognized as well
+    # @param attributes [Hash] filter by these attributes and their values
+    # @return [Array<AIXM::Feature>]
+    def select(klass, attributes={})
+      klass = AIXM::CLASSES.fetch(klass) if klass.is_a? Symbol
+      aixm.features.select do |feature|
+        if feature.is_a? klass
+          attributes.reduce(true) do |memo, (attribute, value)|
+            memo && feature.send(attribute) == value
+          end
+        end
+      end
     end
   end
 

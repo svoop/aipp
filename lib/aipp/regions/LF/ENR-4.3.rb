@@ -4,6 +4,8 @@ module AIPP
     # Designated Points
     class ENR43 < AIP
 
+      include AIPP::LF::Helpers::Common
+
       def parse
         prepare(html: read).css('tbody').each do |tbody|
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|

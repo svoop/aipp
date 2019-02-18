@@ -38,14 +38,12 @@ module AIPP
       info("Reading region #{options[:region]}")
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
+      dir.glob('helpers/*.rb').each { |f| require f }
       dir.glob('*.rb').each do |file|
         debug("Requiring #{file.basename}")
         require file
-        if (aip = file.basename('.*').to_s) == 'helper'
-          extend ("AIPP::%s::Helper" % options[:region]).constantize
-        else
-          @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
-        end
+        aip = file.basename('.*').to_s
+        @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
       end
     end
 

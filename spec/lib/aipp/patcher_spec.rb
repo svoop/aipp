@@ -5,7 +5,7 @@ class Shoe
 
   attr_accessor :size
 
-  patch Shoe, :size do |object, value|
+  patch Shoe, :size do |parser, object, value|
     case value
       when 'S' then 36
       when 'one-size-fits-all' then nil

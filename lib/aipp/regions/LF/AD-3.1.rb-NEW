@@ -4,6 +4,8 @@ module AIPP
     # Helipads
     class AD31 < AIP
 
+      include AIPP::LF::Helpers::Common
+
     end
   end
 end

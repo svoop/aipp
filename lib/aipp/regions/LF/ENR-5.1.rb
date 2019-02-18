@@ -4,6 +4,8 @@ module AIPP
     # D/P/R Zones
     class ENR51 < AIP
 
+      include AIPP::LF::Helpers::Common
+
       # Map source types to type and optional local type
       SOURCE_TYPES = {
         'D' => { type: 'D' },
@@ -16,9 +18,15 @@ module AIPP
         prepare(html: read).css('tbody:has(tr[id^=mid])').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
-            if tr.attr(:class) =~ /keep-with-next-row/
+            tds = tr.css('td')
+            case
+            when tr.attr(:id).match?(/TXT_NAME/)   # airspace
               airspace = airspace_from tr
-            else
+            when tds.count == 1   # big comment on separate row
+              airspace.layers.first.remarks.
+                concat("\n", tds.text.cleanup).
+                remove!(/\((\d)\)\s*\(\1\)\W*/)
+            else   # layer
               begin
                 tds = tr.css('td')
                 airspace.geometry = geometry_from tds[0].text
@@ -38,11 +46,11 @@ module AIPP
       private
 
       def airspace_from(tr)
-        spans = tr.css(:span)
-        source_type = spans[2].text.blank_to_nil
+        spans = tr.css('span:not([class*=strong])')
+        source_type = spans[1].text.blank_to_nil
         fail "unknown type `#{source_type}'" unless SOURCE_TYPES.has_key? source_type
         AIXM.airspace(
-          name: [spans[1], spans[2], spans[3], spans[5].text.blank_to_nil].compact.join(' '),
+          name: spans.map { |s| s.text.strip.blank_to_nil }.compact.join(' '),
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
@@ -56,7 +64,7 @@ module AIPP
           parts.each.with_index do |part, index|
             if part = part.text.gsub(/ +/, ' ').gsub(/(\n ?)+/, "\n").strip.blank_to_nil
               unless index.zero? && part == 'H24'
-                remarks << "#{part_titles[index]}:\n#{part}"
+                remarks << "**#{part_titles[index]}**\n#{part}"
               end
             end
           end

@@ -4,6 +4,8 @@ module AIPP
     # FIR, TMA etc
     class ENR21 < AIP
 
+      include AIPP::LF::Helpers::Common
+
       # Map source types to type and optional local type
       SOURCE_TYPES = {
         'FIR' => { type: 'FIR' },

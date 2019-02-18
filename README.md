@@ -37,25 +37,7 @@ AIPP uses a storage directory for configuration, caching and in order to keep th
 
 The reference implementation is region "LF" (France).
 
-To implement a region, you have to create a new directory <tt>lib/aipp/regions/{REGION}</tt> and place the following files there:
-
-### helper.rb
-
-Create the file <tt>helper.rb</tt> which defines the module `AIPP::LF::Helper` and usually contains the URL builder method `url_for` used by all AIP parsers:
-
-```ruby
-module AIPP
-  module LF
-    module Helper
-
-      def url_for(aip_file)
-        # build and return the download URL for the aip file
-      end
-
-    end
-  end
-end
-```
+To implement a region, you have to create a new directory <tt>lib/aipp/regions/{REGION}/</tt> and place the following files there:
 
 ### AIP Parsers
 
@@ -103,7 +85,7 @@ Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
 * [`write`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#write-instance_method) – write a [`AIXM::Feature`]([AIXM Rubygem](https://github.com/svoop/aixm)
-* any method defined in <tt>helper.rb</tt>
+* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s]([AIXM Rubygem](https://github.com/svoop/aixm)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
 * core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
 
@@ -112,6 +94,60 @@ As well as the following objects:
 * `options` – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
 * `config` – configuration read from <tt>config.yml</tt>
 * `cache` – virgin `OStruct` instance to make objects available across AIPs
+
+### Helpers
+
+Helpers are modules defined in the <tt>lib/aipp/regions/{REGION}/helpers/</tt> directory. All helper modules are required automatically.
+
+There is one mandatory helper called `URL.rb` which must define the following method to build URLs from which to download AIPs:
+
+```ruby
+module AIPP
+  module LF
+    module Helpers
+      module URL
+
+        def url_for(aip_file)
+          # build and return the download URL for the aip file
+        end
+
+      end
+    end
+  end
+end
+```
+
+Feel free to add more helpers to DRY code which is shared by multiple AIP parsers. Say you want to extract methods which are used by all AIP parsers:
+
+```ruby
+module AIPP
+  module LF
+    module Helpers
+      module Common
+
+        def source(position:, aip_file: nil)
+          (...)
+        end
+
+      end
+    end
+  end
+end
+```
+
+To use this `source` method, simply include the helper module in the AIP parser:
+
+```ruby
+module AIPP
+  module LF
+    class AD2 < AIP
+
+      include AIPP::LF::Helpers::Common
+
+    end
+  end
+end
+```
 
 ### Patches
 
@@ -122,10 +158,11 @@ module AIPP
   module LF
     class AD2 < AIP
 
-      patch AIXM::Component::Runway::Direction, :xy do |object, value|
+      patch AIXM::Component::Runway::Direction, :xy do |parser, object, value|
         throw :abort unless value.nil?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
-        airport_id, direction_name = object.send(:runway).airport.id, object.name.to_s
+        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
+        airport_id = parser.instance_variable_get(:@airport).id
+        direction_name = object.name.to_s
         throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
         lat, long = xy.split(/\s+/)
         AIXM.xy(lat: lat, long: long)

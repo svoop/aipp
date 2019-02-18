@@ -1,3 +1,13 @@
+## 0.2.2
+
+#### Changes
+* Helper modules instead of one monolythic `helper.rb`
+
+#### Additions
+* LF/AD-1.3
+* LF/AD-1.6
+* LF/AD-2
+
 ## 0.2.1
 
 #### Changes

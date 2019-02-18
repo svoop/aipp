@@ -35,8 +35,8 @@ class Object
   # Issue a debug message.
   #
   # @param message [String] debug message
-  def debug(message)
-    info(message, color: :blue) if $DEBUG
+  def debug(message, color: :blue)
+    info(message, color: color) if $DEBUG
   end
 
 end

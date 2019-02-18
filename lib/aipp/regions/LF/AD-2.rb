@@ -1,8 +1,11 @@
 module AIPP
   module LF
 
-    # Airports, CTR, AD navigational aids
+    # Airports (IFR capable) and their CTR, AD navigational aids etc
     class AD2 < AIP
+
+      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::ADRadio
       using AIXM::Refinements
 
       # Map source types to type and optional local type
@@ -11,14 +14,6 @@ module AIPP
         'RMZ' => { type: 'RAS', local_type: 'RMZ' },
         'TMZ' => { type: 'RAS', local_type: 'TMZ' },
         'RMZ-TMZ' => { type: 'RAS', local_type: 'RMZ-TMZ' }
-      }.freeze
-
-      # Map (or ignore if mapped to +nil+) unknown service types
-      SERVICE_TYPES = {
-        'A/A' => nil,   # TODO: map to ground services
-        'CEV' => { type: 'OTHER', remarks: "CEV (centre d'essais en vol / flight test center)" },
-        'D-ATIS' => nil,
-        'SRE' => { type: 'OTHER', remarks: "SRE (elément radar de surveillance du PAR / surveillance radar element of PAR)" }
       }.freeze
 
       # Airports without VAC (e.g. military installations)
@@ -42,13 +37,11 @@ module AIPP
       ].freeze
 
       def parse
-        cache.airport_ids = []
         index_html = prepare(html: read("AD-0.6"))   # index for AD-2.xxxx files
         index_html.css('#AD-0\.6\.eAIP > .toc-block:nth-of-type(3) .toc-block a').each do |a|
           @id = a.attribute('href').value[-4,4]
           begin
             aip_file = "AD-2.#{@id}"
-            cache.airport_ids << @id
             html = prepare(html: read(aip_file))
             # Airport
             @remarks = []
@@ -71,10 +64,12 @@ module AIPP
             write @airport
             # Airspaces
             airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each(&method(:write))
+            # Radio
+            trs = html.css('div[id*="-AD-2\.18"] tbody tr')
+            addresses_from(trs).each { |a| @airport.add_address(a) }
+            units_from(trs).each(&method(:write))
             # Landing aids
             # TODO: LOC/GP/DME as of section 2.19
-#           # Units, Services and Frequencies
-#           units_from(html.css('div[id*="-AD-2\.18"] tbody')).each(&method(:write))
             # Designated points
             unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
               pdf = read("VAC-#{@id}")
@@ -124,7 +119,6 @@ module AIPP
         end.uniq
         grouped_directions.map do |runway_name|
           AIXM.runway(name: runway_name).tap do |runway|
-            runway.send(:airport=, @airport)   # early assignment for patches
             %i(forth back).each do |direction_attr|
               if direction = runway.send(direction_attr)
                 tr = directions_map[direction.name]
@@ -301,16 +295,17 @@ module AIPP
 #       File.write(f, result)
 #     end
 
-      patch AIXM::Component::Runway::Direction, :xy do |object, value|
+      patch AIXM::Component::Runway::Direction, :xy do |parser, object, value|
         throw :abort unless value.nil?
         @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
-        airport_id, direction_name = object.send(:runway).airport.id, object.name.to_s
+        airport_id = parser.instance_variable_get(:@airport).id
+        direction_name = object.name.to_s
         throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
         lat, long = xy.split(/\s+/)
         AIXM.xy(lat: lat, long: long)
       end
 
-      patch AIXM::Feature::NavigationalAid, :remarks do |object, value|
+      patch AIXM::Feature::NavigationalAid, :remarks do |parser, object, value|
         @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
         airport_id, designated_point_id = object.airport.id, object.id
         @fixtures.dig('designated_points', airport_id, designated_point_id, 'remarks') || throw(:abort)

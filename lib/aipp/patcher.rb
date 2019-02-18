@@ -17,13 +17,14 @@ module AIPP
     end
 
     def attach_patches
+      parser = self
       self.class.patches[self.class]&.each do |(klass, attribute, block)|
         klass.instance_eval do
           alias_method :"original_#{attribute}=", :"#{attribute}="
           define_method(:"#{attribute}=") do |value|
             catch :abort do
-              value = block.call(self, value)
-              info("PATCH: #{self.inspect}", color: :magenta)
+              value = block.call(parser, self, value)
+              debug("PATCH: #{self.inspect}", color: :magenta)
             end
             send(:"original_#{attribute}=", value)
           end

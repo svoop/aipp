@@ -30,4 +30,23 @@ module Enumerable
     end
   end
 
+  # !method group_by_chunks(&block)
+  #   Build a hash which maps elements matching the chunk condition to
+  #   an array of subsequent elements which don't match the chunk condition.
+  #
+  #   @example
+  #     [1, 10, 11, 12, 2, 20, 21, 3, 30, 31, 32].group_by_chunks { |i| i < 10 }
+  #     # => { 1 => [10, 11, 12], 2 => [20, 21], 3 => [30, 31, 32] }
+  #
+  #   @note The first element must match the chunk condition.
+  #
+  #   @yield [Object]  object to analyze
+  #   @yieldreturn [Boolean] chunk condition: begin a new chunk with this
+  #     object as key if the condition returns true
+  #   @return [Hash]
+  def group_by_chunks
+    fail(ArgumentError, "first element must match chunk condition") unless yield(first)
+    slice_when { |_, e| yield(e) }.map { |e| [e.first, e[1..]] }.to_h
+  end
+
 end

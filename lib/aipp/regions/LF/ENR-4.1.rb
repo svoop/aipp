@@ -4,6 +4,8 @@ module AIPP
     # ENR Navaids
     class ENR41 < AIP
 
+      include AIPP::LF::Helpers::Common
+
       def parse
         prepare(html: read).css('tbody').each do |tbody|
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
@@ -91,7 +93,7 @@ module AIPP
             else
               part.text.strip.blank_to_nil
             end
-            remarks << "#{part_titles[index]}:\n#{text}" if text
+            remarks << "**#{part_titles[index]}**\n#{text}" if text
           end
         end.join("\n\n").blank_to_nil
       end
