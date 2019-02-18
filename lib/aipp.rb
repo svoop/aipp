@@ -13,6 +13,7 @@ require 'date'
 require 'nokogiri'
 require 'nokogumbo'
 require 'pdf-reader'
+require 'json'
 require 'zip'
 require 'aixm'
 
