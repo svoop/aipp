@@ -25,17 +25,17 @@ module AIPP
       }.freeze
 
       def parse
-        read.css('tbody').each do |tbody|
+        prepare(html: read).css('tbody').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)
               aixm.features << airspace if airspace
-              airspace = airspace_from cleanup(node: tr).css(:td).first
+              airspace = airspace_from tr.css(:td).first
               debug "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
               next
             end
             begin
-              tds = cleanup(node: tr).css('td')
+              tds = tr.css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
                 airspace = airspace_from tds[0]
                 debug "Parsing #{airspace.type} #{airspace.name}"
@@ -72,7 +72,7 @@ module AIPP
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
-          airspace.source = source_for(td)
+          airspace.source = source(position: td.line)
         end
       end
 

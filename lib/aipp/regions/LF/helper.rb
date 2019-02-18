@@ -32,14 +32,14 @@ module AIPP
 
       # Map surface compositions to OFMX composition and preparation
       COMPOSITIONS = {
-        'bituminous concrete' => { composition: :bitumen, preparation: :paved },
-        'paved' => { preparation: :paved },
-        'concrete' => { composition: :concrete, preparation: :paved },
-        'not paved' => { preparation: :natural },
-        'bituminous mix' => { composition: :bitumen },
-        'grass' => { composition: :grass },
-        'asphalt' => { composition: :asphalt, preparation: :paved },
-        'macadam' => { composition: :macadam }
+        'revêtue' => { preparation: :paved },
+        'non revêtue' => { preparation: :natural },
+        'macadam' => { composition: :macadam },
+        'béton' => { composition: :concrete, preparation: :paved },
+        'béton bitumineux' => { composition: :bitumen, preparation: :paved },
+        'enrobé bitumineux' => { composition: :bitumen },
+        'asphalte' => { composition: :asphalt, preparation: :paved },
+        'gazon' => { composition: :grass }
       }
 
       # Transform French text fragments to English
@@ -68,10 +68,10 @@ module AIPP
 
       # Download URL
 
-      # @param aip_file [String] e.g. ENR-5.1, AD-2.LFMV or VAC.LFMV
+      # @param aip_file [String] e.g. ENR-5.1, AD-2.LFMV or VAC-LFMV
       def url_for(aip_file)
         case aip_file
-        when /^VAC\.(\w+)/
+        when /^VAC\-(\w+)/
           "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_%s/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.%s.pdf" % [
             options[:airac].date.strftime('%d_%^b_%Y'),   # 04_JAN_2018
             $1
@@ -98,9 +98,9 @@ module AIPP
 
       # Transformations
 
-      def cleanup(node:)
-        node.tap do |root|
-          root.css('del').each { |n| n.remove }   # remove deleted entries
+      def prepare(html:)
+        html.tap do |node|
+          node.css('del').each { |n| n.remove }   # remove deleted entries
         end
       end
 
@@ -114,14 +114,14 @@ module AIPP
 
       # Parsers
 
-      def source_for(element, aip_file: nil)
+      def source(position:, aip_file: nil)
         aip_file ||= @aip
         [
           options[:region],
           aip_file.split('-').first,
           aip_file,
           options[:airac].date.xmlschema,
-          element.line
+          position
         ].join('|')
       end
 

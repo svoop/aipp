@@ -43,7 +43,7 @@ describe AIPP::Downloader do
         subject.send(:archives_path).children.count.must_equal 1
       end
 
-      it "downloads HTML documents to Nokogiri" do
+      it "downloads HTML documents to Nokogiri::HTML5::Document" do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
@@ -53,23 +53,12 @@ describe AIPP::Downloader do
         end
       end
 
-      it "downloads and caches PDF documents to String" do
+      it "downloads and caches PDF documents to AIPP::PDF" do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.pdf').tap do |content|
-            content.must_be_instance_of String
-            content.must_match /fixture-pdf-new/
-          end
-          downloader.send(:work_path).join('new.txt').must_be :exist?
-        end
-      end
-
-      it "downloads TXT documents to String" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.txt')))
-        AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
-          downloader.read(document: 'new', url: 'http://localhost/new.txt').tap do |content|
-            content.must_be_instance_of String
-            content.must_match /fixture-txt-new/
+            content.must_be_instance_of AIPP::PDF
+            content.text.must_match /fixture-pdf-new/
           end
         end
       end
@@ -78,8 +67,8 @@ describe AIPP::Downloader do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new', type: :pdf).tap do |content|
-            content.must_be_instance_of String
-            content.must_match /fixture-pdf-new/
+            content.must_be_instance_of AIPP::PDF
+            content.text.must_match /fixture-pdf-new/
           end
         end
       end

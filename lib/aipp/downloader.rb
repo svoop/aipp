@@ -5,15 +5,21 @@ module AIPP
   # The downloader operates in the +storage+ directory where it creates two
   # subdirectories "archive" and "work". The initializer looks for +archive+
   # in "archives" and (if found) unzips its contents into "work". When reading
-  # a +document+, the downloader looks for the +document+ in "work" and (unless
-  # unless found) downloads it from +url+. HTML documents are parsed to
-  # +Nokogiri::HTML5::Document+, PDF documents are converted to +String+
-  # containing the text only. Finally, the contents of "work" are written back
-  # to +archive+.
+  # a +document+, the downloader looks for the +document+ in "work" and
+  # (unless found) downloads it from +url+. HTML documents are parsed to
+  # +Nokogiri::HTML5::Document+, PDF documents are parsed to +AIPP::PDF+.
+  # Finally, the contents of "work" are written back to +archive+.
   #
   # @example
   #   AIPP::Downloader.new(storage: options[:storage], archive: "2018-11-08") do |downloader|
-  #     html = downloader.read(document: 'ENR-2.1.html', url: 'https://...')
+  #     html = downloader.read(
+  #       document: 'ENR-5.1',
+  #       url: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/FRANCE/AIRAC-2018-11-08/html/eAIP/FR-ENR-5.1-fr-FR.html'
+  #     )
+  #     pdf = downloader.read(
+  #       document: 'VAC-LFMV',
+  #       url: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.LFMV.pdf'
+  #     )
   #   end
   class Downloader
 
@@ -46,8 +52,7 @@ module AIPP
     # @param url [String] URL to download the document from
     # @param type [Symbol, nil] document type: +nil+ (default) to derive it from
     #   the URL, :html, or :pdf
-    # @return [Nokogiri::HTML5::Document, String] HTML as Nokogiri document,
-    #   PDF or TXT as String
+    # @return [Nokogiri::HTML5::Document, AIPP::PDF]
     def read(document:, url:, type: nil)
       type ||= Pathname(URI(url).path).extname[1..-1].to_sym
       file = work_path.join([document, type].join('.'))
@@ -100,24 +105,10 @@ module AIPP
 
     def convert(file)
       case file.extname
-      when '.txt'
-        IO.read(file)
-      when '.html'
-        Nokogiri.HTML5(file)
-      when '.pdf'
-        cache(file.sub_ext('.txt')) do
-          PDF::Reader.new(file).pages.map(&:text).join("\n\f\n")
-        end
+        when '.html' then Nokogiri.HTML5(file)
+        when '.pdf' then AIPP::PDF.new(file)
       else
         fail(ArgumentError, "invalid document type")
-      end
-    end
-
-    def cache(file)
-      if file.exist?
-        convert(file)
-      else
-        yield.tap { |c| File.write(file, c) }
       end
     end
   end

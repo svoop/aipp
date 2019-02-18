@@ -13,14 +13,14 @@ module AIPP
       }.freeze
 
       def parse
-        read.css('tbody:has(tr[id^=mid])').each do |tbody|
+        prepare(html: read).css('tbody:has(tr[id^=mid])').each do |tbody|
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:class) =~ /keep-with-next-row/
-              airspace = airspace_from cleanup(node: tr)
+              airspace = airspace_from tr
             else
               begin
-                tds = cleanup(node: tr).css('td')
+                tds = tr.css('td')
                 airspace.geometry = geometry_from tds[0].text
                 fail("geometry is not closed") unless airspace.geometry.closed?
                 airspace.layers << layer_from(tds[1].text)
@@ -46,7 +46,7 @@ module AIPP
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
-          airspace.source = source_for(tr)
+          airspace.source = source(position: tr.line)
         end
       end
 

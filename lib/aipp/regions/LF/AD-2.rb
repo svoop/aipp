@@ -13,6 +13,14 @@ module AIPP
         'RMZ-TMZ' => { type: 'RAS', local_type: 'RMZ-TMZ' }
       }.freeze
 
+      # Map (or ignore if mapped to +nil+) unknown service types
+      SERVICE_TYPES = {
+        'A/A' => nil,   # TODO: map to ground services
+        'CEV' => { type: 'OTHER', remarks: "CEV (centre d'essais en vol / flight test center)" },
+        'D-ATIS' => nil,
+        'SRE' => { type: 'OTHER', remarks: "SRE (elément radar de surveillance du PAR / surveillance radar element of PAR)" }
+      }.freeze
+
       # Airports without VAC (e.g. military installations)
       NO_VAC = %w(LFOA LFBC LFQE LFOE LFSX LFBM LFSO LFMO LFQP LFSI LFKS LFPV).freeze
 
@@ -35,17 +43,17 @@ module AIPP
 
       def parse
         cache.airport_ids = []
-        index = read("AD-0.6")   # index for AD-2.xxxx files
-        index.css('#AD-0\.6\.eAIP > .toc-block:nth-of-type(3) .toc-block a').each do |a|
+        index_html = prepare(html: read("AD-0.6"))   # index for AD-2.xxxx files
+        index_html.css('#AD-0\.6\.eAIP > .toc-block:nth-of-type(3) .toc-block a').each do |a|
           @id = a.attribute('href').value[-4,4]
           begin
             aip_file = "AD-2.#{@id}"
             cache.airport_ids << @id
-            html = read(aip_file)
+            html = prepare(html: read(aip_file))
             # Airport
             @remarks = []
-            airport = AIXM.airport(
-              source: source_for(html.css('tr[id*="CODE_ICAO"]').first, aip_file: aip_file),
+            @airport = AIXM.airport(
+              source: source(position: html.css('tr[id*="CODE_ICAO"]').first.line, aip_file: aip_file),
               organisation: organisation_lf,   # TODO: not yet implemented
               id: @id,
               name: html.css('tr[id*="CODE_ICAO"] td span:nth-of-type(2)').text.uptrans,
@@ -56,23 +64,24 @@ module AIPP
               airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
               airport.timetable = timetable_from(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
             end
-            runways_from(html.css('div[id*="-AD-2\.12"] tbody'), airport).each { |r| airport.add_runway(r) if r }
-            helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { |h| airport.add_helipad(h) if h }
-            # TODO: airport.add_usage_limitation(UsageLimitation::TYPES)
+            runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { |r| @airport.add_runway(r) if r }
+            helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { |h| @airport.add_helipad(h) if h }
             text = html.css('#AD-2\.2-Observations td:nth-of-type(3)').text
-            airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
-            write airport
+            @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
+            write @airport
             # Airspaces
-            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each { |a| write a }
-            # Navigational aids
-            # TODO
+            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each(&method(:write))
+            # Landing aids
+            # TODO: LOC/GP/DME as of section 2.19
+#           # Units, Services and Frequencies
+#           units_from(html.css('div[id*="-AD-2\.18"] tbody')).each(&method(:write))
             # Designated points
             unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
-              text = read("VAC.#{@id}")
-              designated_points_from(text, airport).tap do |designated_points|
+              pdf = read("VAC-#{@id}")
+              designated_points_from(pdf).tap do |designated_points|
                 fix_designated_point_remarks(designated_points)
-                designated_points.each { |dp| write dp }
 #               debug(designated_points)
+                designated_points.each(&method(:write))
               end
             end
           rescue => error
@@ -97,7 +106,7 @@ module AIPP
         text.sub(/NIL|\(\*\)\s+/, '').strip.gsub(/(\s)\s+/, '\1').blank_to_nil
       end
 
-      def runways_from(tbody, airport)
+      def runways_from(tbody)
         directions_map = tbody.css('tr[id*="TXT_DESIG"]').map do |tr|
           [AIXM.a(tr.css('td:first-of-type').text.strip), tr]
         end.to_h
@@ -115,7 +124,7 @@ module AIPP
         end.uniq
         grouped_directions.map do |runway_name|
           AIXM.runway(name: runway_name).tap do |runway|
-            runway.airport = airport   # early assignment for callbacks
+            runway.send(:airport=, @airport)   # early assignment for callbacks
             %i(forth back).each do |direction_attr|
               if direction = runway.send(direction_attr)
                 tr = directions_map[direction.name]
@@ -123,7 +132,7 @@ module AIPP
                   length, width = tr.css('td:nth-of-type(3)').text.strip.split('x')
                   runway.length = AIXM.d(length.strip.to_i, :m)
                   runway.width = AIXM.d(width.strip.to_i, :m)
-                  text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).last
+                  text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).first
                   runway.surface.composition = COMPOSITIONS.fetch(text)[:composition]
                   runway.surface.preparation = COMPOSITIONS.fetch(text)[:preparation]
                   if (text = tr.css('td:nth-of-type(4)').text).match?(AIXM::PCN_RE)
@@ -171,26 +180,14 @@ module AIPP
         end
       end
 
-=begin
-      def usage_limitations_from(text)
-        case text
-        when /interdit +aux +planeurs/i 2.22
-        when /ferme +a +la +cap/i   # 2.20
-          # MIL
-        when /vfr/   # 2.2-7
-        when /ifr/   # 2.2-7
-        when /???/   # not-scheduled (lfnt)
-      end
-=end
-
       def airspaces_from(tbody)
         return [] if tbody.text.blank?
         airspace = nil
         tbody.css('tr').to_enum.with_object([]) do |tr, array|
           if tr.attr(:class) =~ /keep-with-next-row/
-            airspace = airspace_from cleanup(node: tr)
+            airspace = airspace_from tr
           else
-            tds = cleanup(node: tr).css('td')
+            tds = tr.css('td')
             airspace.geometry = geometry_from tds[0].text
             fail("geometry is not closed") unless airspace.geometry.closed?
             airspace.layers << layer_from(tds[2].text, tds[1].text.strip)
@@ -210,47 +207,52 @@ module AIPP
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
-          airspace.source = source_for(tr)
+          airspace.source = source(position: tr.line)
         end
       end
 
-      def designated_points_from(text, airport, recursive=false)
-        from = (text =~ /^.*?coordinates.*?names?/i)
+      def designated_points_from(pdf, recursive=false)
+        from = (pdf.text =~ /^(.*?coordinates.*?names?)/i)
         return [] if recursive && !from
         warn("no designated points section begin found for #{@id}", pry: binding) unless from
-        to = from + (text.from(from) =~ /\n\s*\n\s*\n|^.*(?:ifr|vfr|ad\s*equipment|special\s*activities|training\s*flights)/i)
+        from += $1.length
+        to = from + (pdf.text.from(from) =~ /\n\s*\n\s*\n|^.*(?:ifr|vfr|ad\s*equipment|special\s*activities|training\s*flights|mto\s*minima)/i)
         warn("no designated points section end found for #{@id}", pry: binding) unless to
+        from, to = from + pdf.range.min, to + pdf.range.min   # offset when recursive
         buffer = {}
-        lines = text[from..to].gsub(/\u2190/, '').lines.drop(1)
-        lines.append("\e").each.with_object([]) do |line, designated_points|
+        pdf.from(from).to(to).each_line.with_object([]) do |(line, page, last), designated_points|
+          line.remove!(/\u2190/)   # remove arrow symbols
           has_id = $1 if line.sub!(/^\s{,20}([A-Z][A-Z\d ]{1,3})(?=\W)/, '')
           has_xy = line.match?(AIXM::DMS_RE)
-          if (line == "\e" || has_id || has_xy) && buffer[:id] && buffer[:xy]&.size == 2
-            designated_points << designated_point_from(buffer, airport)
-            buffer.clear
-          end
+          designated_points << designated_point_from(buffer, pdf) if has_id || has_xy
           if has_xy
             2.times { (buffer[:xy] ||= []) << $1 if line.sub!(AIXM::DMS_RE, '') }
             buffer[:xy]&.compact!
             line.remove!(/\d{3,4}\D.+?MTG/)   # remove extra columns (e.g. LFML)
             line.remove!(/[\s#{AIXM::MIN}#{AIXM::SEC}]*[-\u2013]/)   # remove dash between coordinates
           end
+          buffer[:page] = page
           buffer[:id] = has_id if has_id
           buffer[:remarks] = [buffer[:remarks], line].join("\n")
-        end + designated_points_from(text.from(to), airport, true)
+          designated_points << designated_point_from(buffer, pdf) if last
+        end.compact + designated_points_from(pdf.from(to).to(:end), true)
       end
 
-      def designated_point_from(buffer, airport)
-        buffer[:remarks].gsub!(/ {20}/, "\n")   # recognize empty column space
-        buffer[:remarks].remove!(/\(\d+\)/)   # remove footnotes
-        buffer[:remarks] = buffer[:remarks].unglue   # separate glued words
-        AIXM.designated_point(
-          type: :vfr_mandatory_reporting_point,
-          id: buffer[:id].remove(/\W/),
-          xy: AIXM.xy(lat: buffer[:xy].first, long: buffer[:xy].last)
-        ).tap do |designated_point|
-          designated_point.airport = airport
-          designated_point.remarks = buffer[:remarks].remove(/\e/).compact.blank_to_nil
+      def designated_point_from(buffer, pdf)
+        if buffer[:id] && buffer[:xy]&.size == 2
+          buffer[:remarks].gsub!(/ {20}/, "\n")   # recognize empty column space
+          buffer[:remarks].remove!(/\(\d+\)/)   # remove footnotes
+          buffer[:remarks] = buffer[:remarks].unglue   # separate glued words
+          AIXM.designated_point(
+            source: source(position: buffer[:page], aip_file: pdf.file.basename('.*').to_s),
+            type: :vfr_mandatory_reporting_point,
+            id: buffer[:id].remove(/\W/),
+            xy: AIXM.xy(lat: buffer[:xy].first, long: buffer[:xy].last)
+          ).tap do |designated_point|
+            designated_point.airport = @airport
+            designated_point.remarks = buffer[:remarks].compact.blank_to_nil
+            buffer.clear
+          end
         end
       end
 
