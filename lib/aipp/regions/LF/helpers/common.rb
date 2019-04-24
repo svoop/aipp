@@ -127,12 +127,11 @@ module AIPP
 
         def layer_from(text_for_limits, text_for_class=nil)
           above, below = text_for_limits.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
-          above.reverse!
           AIXM.layer(
             class: text_for_class,
             vertical_limits: AIXM.vertical_limits(
-              max_z: z_from(above[1]),
               upper_z: z_from(above[0]),
+              max_z: z_from(above[1]),
               lower_z: z_from(below[0]),
               min_z: z_from(below[1])
             )
