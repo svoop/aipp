@@ -15,10 +15,10 @@ module AIPP
           'franco-belge' => 'BELGIUM_FRANCE',
           'germano-suisse' => 'GERMANY_SWITZERLAND',
           'hispano-andorrane' => 'ANDORRA_SPAIN',
-          'la côte atlantique française' => 'FRANCE_ATLANTIC_COAST',   # TODO: handle internally
-          'côte méditérrannéenne' => 'FRANCE_MEDITERRANEAN_COAST',   # TODO: handle internally
-          'limite des eaux territoriales atlantique françaises' => 'FRANCE_ATLANTIC_TERRITORIAL_SEA',   # TODO: handle internally
-          'parc national des écrins' => 'FRANCE_ECRINS_NATIONAL_PARK'   # TODO: handle internally
+          'la côte atlantique française' => 'FRANCE_ATLANTIC_COAST',
+          'côte méditérrannéenne' => 'FRANCE_MEDITERRANEAN_COAST',
+          'limite des eaux territoriales atlantique françaises' => 'FRANCE_ATLANTIC_TERRITORIAL_SEA',
+          'parc national des écrins' => 'FRANCE_ECRINS_NATIONAL_PARK'
         }.freeze
 
         # Intersection points between three countries
