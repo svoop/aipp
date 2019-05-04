@@ -31,7 +31,7 @@ module AIPP
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)
-              aixm.features << airspace if airspace
+              add airspace if airspace
               airspace = airspace_from tr.css(:td).first
               verbose_info "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
               next
@@ -39,6 +39,7 @@ module AIPP
             begin
               tds = tr.css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
+                add airspace if airspace.layers.any?
                 airspace = airspace_from tds[0]
                 verbose_info "Parsing #{airspace.type} #{airspace.name}"
               end
@@ -59,7 +60,7 @@ module AIPP
               warn("error parsing #{airspace.type} `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
             end
           end
-          write airspace if airspace
+          add airspace if airspace
         end
       end
 

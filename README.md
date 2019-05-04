@@ -51,9 +51,9 @@ module AIPP
       DEPENDS = %w(ENR-2.1 ENR-2.2)   # declare dependencies to other AIPs
 
       def parse
-        html = read               # read the Nokogiri::HTML5 document
-        feature = (...)           # build the feature
-        write(feature: feature)   # write the feature to AIXM::Document
+        html = read             # read the Nokogiri::HTML5 document
+        feature = (...)         # build the feature
+        add(feature: feature)   # add the feature to AIXM::Document
       end
 
     end
@@ -84,7 +84,7 @@ end
 Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
-* [`write`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#write-instance_method) – write a [`AIXM::Feature`]([AIXM Rubygem](https://github.com/svoop/aixm)
+* [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`]([AIXM Rubygem](https://github.com/svoop/aixm)
 * [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s]([AIXM Rubygem](https://github.com/svoop/aixm)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
 * core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)

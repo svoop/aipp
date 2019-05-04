@@ -45,10 +45,11 @@ module AIPP
       @downloader.read(document: aip_file, url: url_for(aip_file))
     end
 
-    # Write feature to AIXM
+    # Add feature to AIXM
     #
     # @param feature [AIXM::Feature] e.g. airport or airspace
-    def write(feature)
+    def add(feature)
+      verbose_info("Adding #{feature.class}", color: :light_blue)
       aixm.features << feature
     end
 

@@ -16,7 +16,7 @@ module AIPP
             navaid.timetable = timetable_from(tds[4].text)
             navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
             navaid.send("associate_#{slave}", channel: channel_from(tds[3].text)) if slave
-            write navaid
+            add navaid
           rescue => error
             warn("error parsing navigational aid at ##{index}: #{error.message}", pry: error)
           end

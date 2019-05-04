@@ -61,13 +61,13 @@ module AIPP
             helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { |h| @airport.add_helipad(h) if h }
             text = html.css('#AD-2\.2-Observations td:nth-of-type(3)').text
             @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
-            write @airport
+            add @airport
             # Airspaces
-            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each(&method(:write))
+            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each(&method(:add))
             # Radio
             trs = html.css('div[id*="-AD-2\.18"] tbody tr')
             addresses_from(trs).each { |a| @airport.add_address(a) }
-            units_from(trs).each(&method(:write))
+            units_from(trs).each(&method(:add))
             # Landing aids
             # TODO: LOC/GP/DME as of section 2.19
             # Designated points
@@ -76,7 +76,7 @@ module AIPP
               designated_points_from(pdf).tap do |designated_points|
                 fix_designated_point_remarks(designated_points)
 #               debug(designated_points)
-                designated_points.each(&method(:write))
+                designated_points.each(&method(:add))
               end
             end
           rescue => error

@@ -34,7 +34,7 @@ module AIPP
                 airspace.layers << layer_from(tds[1].text)
                 airspace.layers.first.timetable = timetable_from tds[2].text
                 airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
-                write airspace
+                add airspace
               rescue => error
                 warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
               end

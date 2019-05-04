@@ -3,6 +3,9 @@
 #### Additons
 * LF/AD-5.5
 
+#### Breaking Changes
+* Renamed `AIPP::AIP#write` method to `AIPP::AIP#add`
+
 ## 0.2.2
 
 #### Changes

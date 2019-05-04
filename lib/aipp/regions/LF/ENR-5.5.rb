@@ -43,7 +43,7 @@ module AIPP
             rescue => error
               warn("error parsing #{airspace.type} `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
             end
-            write airspace
+            add airspace
           end
         end
       end

@@ -32,7 +32,7 @@ module AIPP
         tbody = prepare(html: read).css('tbody').first   # skip altiports
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           if tr.attr(:id).match?(/-TXT_NAME-/)
-            write @airport if @airport && !ad2_exists
+            add @airport if @airport && !ad2_exists
             @airport = airport_from tr
             verbose_info "Parsing #{@airport.id}"
             ad2_exists = false
@@ -47,7 +47,7 @@ module AIPP
         rescue => error
           warn("error parsing #{@airport.id} at ##{index}: #{error.message}", pry: error)
         end
-        write @airport if @airport && !ad2_exists
+        add @airport if @airport && !ad2_exists
       end
 
       private

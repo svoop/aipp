@@ -21,7 +21,7 @@ module AIPP
             next unless id = ID_FIXES.fetch(id, id)
             @airport = select(:airport, id: id).first
             addresses_from(trs).each { |a| @airport.add_address(a) }
-            units_from(trs).each(&method(:write))
+            units_from(trs).each(&method(:add))
           end
         end
       end

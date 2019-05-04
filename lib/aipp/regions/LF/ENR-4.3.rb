@@ -16,7 +16,7 @@ module AIPP
               xy: xy_from(tds[1].text)
             )
             designated_point.source = source(position: tr.line)
-            write designated_point
+            add designated_point
           rescue => error
             warn("error parsing designated point at ##{index}: #{error.message}", pry: error)
           end
