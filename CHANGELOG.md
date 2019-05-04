@@ -1,6 +1,7 @@
 ## 0.2.3 (unreleased)
 
 #### Additons
+* Borders defined as GeoJSON (used by LF/ENR-2.1)
 * LF/AD-5.5
 
 #### Breaking Changes

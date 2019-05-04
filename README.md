@@ -84,16 +84,50 @@ end
 Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
-* [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`]([AIXM Rubygem](https://github.com/svoop/aixm)
-* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s]([AIXM Rubygem](https://github.com/svoop/aixm)
+* [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
-* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
+* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
 
-As well as the following objects:
+As well as the following methods:
 
-* `options` – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
-* `config` – configuration read from <tt>config.yml</tt>
-* `cache` – virgin `OStruct` instance to make objects available across AIPs
+* [`options`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#options-instance_method) – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
+* [`config`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#config-instance_method) – configuration read from <tt>config.yml</tt>
+* [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) – borders defined as GeoJSON read from the region (see below)
+* [`cache`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#cache-instance_method) – virgin `OStruct` instance to make objects available across AIPs
+
+### Borders
+
+AIXM knows named borders for country boundaries. However, you might need additional borders which don't exist as named boarders.
+
+To define additional borders, create simple GeoJSON files in the <tt>lib/aipp/regions/{REGION}/borders/</tt> directory, for example this `custom_border.geojson`:
+
+```json
+{
+  "type": "GeometryCollection",
+  "geometries": [
+    {
+      "type": "LineString",
+      "coordinates": [
+        [6.009531650000042, 45.12013319700009],
+        [6.015747738000073, 45.12006702600007]
+      ]
+    }
+  ]
+}
+```
+
+⚠️ The GeoJSON file must consist of exactly one `GeometryCollection` which may contain any number of `LineString` geometries. Only `LineString` geometries are recognized! To define a closed polygon, the first coordinates of a `LineString` must be identical to the last coordinates.
+
+The [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) method gives you access to a map from the border name (upcased file name) to the corresponding [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) object:
+
+```ruby
+borders   # => { "CUSTOM_BORDER" => #<AIPP::Border file=custom_border.geojson> }
+```
+
+The border object implements simple nearest point and segment calculations to create arrays of [`AIXM::XY`](https://www.rubydoc.info/gems/aixm/AIXM/XY) which can be used with [`AIXM::Component::Geometry`](https://www.rubydoc.info/gems/aixm/AIXM/Component/Geometry). 
+
+See [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) for more on this.
 
 ### Helpers
 

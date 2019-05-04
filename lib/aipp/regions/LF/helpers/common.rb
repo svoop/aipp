@@ -157,17 +157,26 @@ module AIPP
               when /end|(\S+) , (\S+)/
                 geometry << AIXM.point(xy: buffer[:xy]) if buffer.has_key?(:xy)
                 buffer[:xy] = AIXM.xy(lat: $1, long: $2) if $1
+                if border = buffer.delete(:border)
+                  from = border.nearest(xy: geometry.segments.last.xy)
+                  to = border.nearest(xy: buffer[:xy], geometry_index: from.geometry_index)
+                  geometry.concat border.segment(from_position: from, to_position: to).map(&:to_point)
+                end
               when /^frontière ([\w-]+)/i, /^(\D[^(]+)/i
                 border_name = BORDERS.fetch($1.downcase.strip)
-                buffer[:xy] ||= INTERSECTIONS.fetch("#{buffer[:border_name]}|#{border_name}")
-                buffer[:border_name] = border_name
-                if border_name == 'FRANCE_SPAIN'   # specify which part of this split border
-                  border_name += buffer[:xy].lat < 42.55 ? '_EAST' : '_WEST'
+                if borders.has_key? border_name   # border from GeoJSON
+                  buffer[:border] = borders[border_name]
+                else   # named border
+                  buffer[:xy] ||= INTERSECTIONS.fetch("#{buffer[:border_name]}|#{border_name}")
+                  buffer[:border_name] = border_name
+                  if border_name == 'FRANCE_SPAIN'   # specify which part of this split border
+                    border_name += buffer[:xy].lat < 42.55 ? '_EAST' : '_WEST'
+                  end
+                  geometry << AIXM.border(
+                    xy: buffer.delete(:xy),
+                    name: border_name
+                  )
                 end
-                geometry << AIXM.border(
-                  xy: buffer.delete(:xy),
-                  name: border_name
-                )
               else
                 fail "geometry `#{element}' not recognized"
               end

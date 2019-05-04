@@ -12,6 +12,9 @@ module AIPP
     # @return [AIXM::Document] target document
     attr_reader :aixm
 
+    # @return [Hash] map from border names to border objects
+    attr_reader :borders
+
     # @return [OpenStruct] object cache
     attr_reader :cache
 
@@ -22,6 +25,7 @@ module AIPP
       @config = {}
       @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
       @dependencies = THash.new
+      @borders = {}
       @cache = OpenStruct.new
     end
 
@@ -38,7 +42,14 @@ module AIPP
       info("Reading region #{options[:region]}")
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
+      # Borders
+      dir.glob('borders/*.geojson').each do |file|
+        border = AIPP::Border.new(file)
+        @borders[border.name] = border
+      end
+      # Helpers
       dir.glob('helpers/*.rb').each { |f| require f }
+      # Parsers
       dir.glob('*.rb').each do |file|
         verbose_info "Requiring #{file.basename}"
         require file

@@ -20,7 +20,7 @@ module AIPP
     #   @see AIPP::Parser#options
     # @!method cache
     #   @see AIPP::Parser#cache
-    def_delegators :@parser, :aixm, :config, :options, :cache
+    def_delegators :@parser, :aixm, :config, :options, :borders, :cache
     private :aixm
 
     def initialize(aip:, downloader:, parser:)
