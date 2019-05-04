@@ -64,7 +64,7 @@ module AIPP
         ).tap do |airport|
           airport.z = AIXM.z(tds[4].text.strip.to_i, :qnh)
           airport.declination = tds[2].text.remove('°').strip.to_f
-          airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
+#         airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions exist
         end
       end
 
