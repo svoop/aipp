@@ -24,7 +24,7 @@ module AIPP
           define_method(:"#{attribute}=") do |value|
             catch :abort do
               value = block.call(parser, self, value)
-              debug("PATCH: #{self.inspect}", color: :magenta)
+              verbose_info("PATCH: #{self.inspect}", color: :magenta)
             end
             send(:"original_#{attribute}=", value)
           end

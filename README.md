@@ -213,12 +213,12 @@ info("my message")                  # displays "my message" in black
 info("my message", color: :green)   # displays "my message" in green
 ```
 
-#### debug
+#### verbose info
 
-Use `debug` for in-depth info messages which are only shown if the `--verbose` mode is set:
+Use `verbose_info` for in-depth info messages which are only shown if the `--verbose` mode is set:
 
 ```ruby
-debug("my message")   # displays "my message" in blue
+verbose_info("my message")   # displays "my message" in blue
 ```
 
 ### Pry

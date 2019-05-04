@@ -32,11 +32,11 @@ class Object
     puts message.send(color)
   end
 
-  # Issue a debug message.
+  # Issue a verbose informational message.
   #
-  # @param message [String] debug message
-  def debug(message, color: :blue)
-    info(message, color: color) if $DEBUG
+  # @param message [String] verbose informational message
+  def verbose_info(message, color: :blue)
+    info(message, color: color) if $VERBOSE_INFO
   end
 
 end

@@ -33,14 +33,14 @@ module AIPP
             if tr.attr(:id).match?(/--TXT_NAME/)
               aixm.features << airspace if airspace
               airspace = airspace_from tr.css(:td).first
-              debug "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
+              verbose_info "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
               next
             end
             begin
               tds = tr.css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
                 airspace = airspace_from tds[0]
-                debug "Parsing #{airspace.type} #{airspace.name}"
+                verbose_info "Parsing #{airspace.type} #{airspace.name}"
               end
               if airspace
                 if tds[0].text.blank_to_nil

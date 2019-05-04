@@ -57,7 +57,7 @@ module AIPP
       type ||= Pathname(URI(url).path).extname[1..-1].to_sym
       file = work_path.join([document, type].join('.'))
       unless file.exist?
-        debug "Downloading #{document}"
+        verbose_info "Downloading #{document}"
         IO.copy_stream(Kernel.open(url), file)
       end
       convert file

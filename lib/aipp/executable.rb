@@ -8,7 +8,7 @@ module AIPP
       @options = options
       @options[:airac] = AIPP::AIRAC.new
       @options[:storage] = Pathname(Dir.home).join('.aipp')
-      @options[:force] = $PRY_ON_WARN = $PRY_ON_ERROR = false
+      @options[:force] = $VERBOSE_INFO = $PRY_ON_WARN = $PRY_ON_ERROR = false
       OptionParser.new do |o|
         o.banner = <<~END
           Download online AIP and convert it to #{options[:schema].upcase}.
@@ -19,7 +19,7 @@ module AIPP
         o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { |v| @options[:aip] = v.upcase }
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { |v| @options[:storage] = Pathname(v) }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
-        o.on('-v', '--[no-]verbose', 'verbose output and Ruby debug mode (default: false)') { |v| $DEBUG = v }
+        o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { |v| $VERBOSE_INFO = v }
         o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { |v| $PRY_ON_WARN = v || true }
         o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| $PRY_ON_ERROR = v }
         o.on('-A', '--about', 'show author/license information and exit') { about }

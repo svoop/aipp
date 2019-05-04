@@ -40,7 +40,7 @@ module AIPP
       fail("unknown region `#{options[:region]}'") unless dir.exist?
       dir.glob('helpers/*.rb').each { |f| require f }
       dir.glob('*.rb').each do |file|
-        debug("Requiring #{file.basename}")
+        verbose_info "Requiring #{file.basename}"
         require file
         aip = file.basename('.*').to_s
         @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize

@@ -34,7 +34,7 @@ module AIPP
           if tr.attr(:id).match?(/-TXT_NAME-/)
             write @airport if @airport && !ad2_exists
             @airport = airport_from tr
-            debug "Parsing #{@airport.id}"
+            verbose_info "Parsing #{@airport.id}"
             ad2_exists = false
             if airport = select(:airport, id: @airport.id).first
               ad2_exists = true
