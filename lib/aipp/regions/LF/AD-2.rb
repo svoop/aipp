@@ -54,8 +54,8 @@ module AIPP
             ).tap do |airport|
               airport.z = elevation_from(html.css('#AD-2\.2-Altitude_Reference td:nth-of-type(3)').text)
               airport.declination = declination_from(html.css('#AD-2\.2-Declinaison_Magnetique td:nth-of-type(3)').text)
-              airport.timetable = timetable_from(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
   #           airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
+              airport.timetable = timetable_from!(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
             end
             runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { |r| @airport.add_runway(r) if r }
             helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { |h| @airport.add_helipad(h) if h }
@@ -185,7 +185,7 @@ module AIPP
             airspace.geometry = geometry_from tds[0].text
             fail("geometry is not closed") unless airspace.geometry.closed?
             airspace.layers << layer_from(tds[2].text, tds[1].text.strip)
-            airspace.layers.first.timetable = timetable_from tds[4].text
+            airspace.layers.first.timetable = timetable_from! tds[4].text
             airspace.layers.first.remarks = remarks_from(tds[4].text)
             array << airspace
           end

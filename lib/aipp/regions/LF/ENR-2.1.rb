@@ -51,9 +51,10 @@ module AIPP
                 layer = layer_from(tds[-3].text)
                 layer.class = class_from(tds[1].text) if tds.count == 5
                 layer.location_indicator = LOCATION_INDICATORS.fetch("#{airspace.type} #{airspace.name}", nil)
-                # TODO: unit, call sign and frequency from tds[-2]
-                layer.timetable = timetable_from(tds[-1].text)
-                layer.remarks = remarks_from(tds[-1].text)
+                # TODO: unit, call sign and frequency from tds[-2] and with extracted remarks such as (1), (2) etc
+                remarks = tds[-1].text
+                layer.timetable = timetable_from! remarks
+                layer.remarks = remarks_from remarks
                 airspace.layers << layer
               end
             rescue => error

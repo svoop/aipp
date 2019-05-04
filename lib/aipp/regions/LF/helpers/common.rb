@@ -175,8 +175,10 @@ module AIPP
           end
         end
 
-        def timetable_from(text)
-          AIXM::H24 if text.gsub(/\W/, '') == 'H24'
+        def timetable_from!(text)
+          if text.gsub!(/^\s*#{AIXM::H_RE}\s*$/, '')
+            AIXM.timetable(code: Regexp.last_match&.to_s&.strip)
+          end
         end
 
       end

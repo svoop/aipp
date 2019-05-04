@@ -13,7 +13,7 @@ module AIPP
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
             navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
             navaid.source = source(position: tr.line)
-            navaid.timetable = timetable_from(tds[4].text)
+            navaid.timetable = timetable_from! tds[4].text
             navaid.remarks = remarks_from(tds[5], tds[7], tds[9])
             navaid.send("associate_#{slave}", channel: channel_from(tds[3].text)) if slave
             add navaid
@@ -75,11 +75,6 @@ module AIPP
       def channel_from(text)
         parts = text.strip.split(/\s+/)
         parts.last if parts[-2].downcase == 'ch'
-      end
-
-      def timetable_from(text)
-        code = text.strip
-        AIXM.timetable(code: code) unless code.empty?
       end
 
       def remarks_from(*parts)
