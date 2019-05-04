@@ -97,13 +97,13 @@ module AIPP
     end
 
     def read_cache
-      cache_file = "#{@file}.json"
-      if File.exist?(cache_file) && (File.stat(@file).mtime - File.stat(cache_file).mtime).abs < 1
-        JSON.load File.read(cache_file)
+      cache_file = Pathname.new("#{@file}.json")
+      if cache_file.exist? && (@file.stat.mtime - cache_file.stat.mtime).abs < 1
+        JSON.load cache_file
       else
         read.tap do |data|
-          File.write(cache_file, data.to_json)
-          FileUtils.touch(cache_file, mtime: File.stat(@file).mtime)
+          cache_file.write data.to_json
+          FileUtils.touch(cache_file, mtime: @file.stat.mtime)
         end
       end
     end
