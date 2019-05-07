@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-minitest'
 
-  spec.add_runtime_dependency 'aixm', '>= 0.3.4'
+  spec.add_runtime_dependency 'aixm', '>= 0.3.5'
   spec.add_runtime_dependency 'activesupport', '~> 5'
   spec.add_runtime_dependency 'nokogiri', '~> 1'
   spec.add_runtime_dependency 'nokogumbo', '~> 2'

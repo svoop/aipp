@@ -1,4 +1,4 @@
-## 0.2.3 (unreleased)
+## 0.2.3
 
 #### Additons
 * Borders defined as GeoJSON (used by LF/ENR-2.1)
