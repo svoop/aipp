@@ -27,6 +27,7 @@ module AIPP
       @dependencies = THash.new
       @borders = {}
       @cache = OpenStruct.new
+      AIXM.send("#{options[:schema]}!")
     end
 
     # Read the configuration from config.yml.
@@ -79,7 +80,7 @@ module AIPP
     def validate_aixm
       info("Validating #{options[:schema].upcase}")
       unless aixm.valid?
-        message = "invalid AIXM document:\n" + aixm.errors.map(&:message).join("\n")
+        message = "invalid #{options[:schema].upcase} document:\n" + aixm.errors.map(&:message).join("\n")
         @options[:force] ? warn(message, pry: binding) : fail(message)
       end
     end
@@ -88,7 +89,6 @@ module AIPP
     def write_aixm
       file = "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
       info("Writing #{file}")
-      AIXM.send("#{options[:schema]}!")
       File.write(file, aixm.to_xml)
     end
 
