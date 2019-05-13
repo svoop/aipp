@@ -131,29 +131,26 @@ module AIPP
 
       patch AIXM::Component::Runway, :width do |parser, object, value|
         throw :abort unless value.zero?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
         airport_id = parser.instance_variable_get(:@airport).id
         runway_name = object.name.to_s
-        throw :abort if (width = @fixtures.dig('runways', airport_id, runway_name, 'width')).nil?
+        throw :abort if (width = parser.fixture.dig('runways', airport_id, runway_name, 'width')).nil?
         AIXM.d(width.to_i, :m)
       end
 
       patch AIXM::Component::Runway::Direction, :xy do |parser, object, value|
         throw :abort unless value.nil?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
         airport_id = parser.instance_variable_get(:@airport).id
         direction_name = object.name.to_s
-        throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
+        throw :abort if (xy = parser.fixture.dig('runways', airport_id, direction_name, 'xy')).nil?
         lat, long = xy.split(/\s+/)
         AIXM.xy(lat: lat, long: long)
       end
 
       patch AIXM::Component::Surface, :composition do |parser, object, value|
         throw :abort unless value.blank?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
         airport_id = parser.instance_variable_get(:@airport).id
         runway_name = parser.instance_variable_get(:@runway).name
-        throw :abort if (composition = @fixtures.dig('runways', airport_id, runway_name, 'composition')).nil?
+        throw :abort if (composition = parser.fixture.dig('runways', airport_id, runway_name, 'composition')).nil?
         composition
       end
 

@@ -181,9 +181,11 @@ module AIPP
 end
 ```
 
-### Patches
+### Fixtures and Patches
 
-When parsed data is faulty or missing, you might have to use a different data source instead such as static data from a fixture file. This is where patches come in. You can patch any AIXM attribute setter by defining a patch block inside the AIP parser:
+Fixtures is static data defined as YAML in the <tt>lib/aipp/regions/{REGION}/fixtures/</tt> directory. All fixtures are read automatically. Please note that the name of the AIP parser (e.g. `AD-1.3.rb`) must match the name of the corresponding fixture (e.g. `fixtures/AD-1.3.yml`).
+
+When parsed data is faulty or missing, you may fall back to such static data instead. This is where patches come in. You can patch any AIXM attribute setter by defining a patch block inside the AIP parser and accessing the static data via `parser.fixture`:
 
 ```ruby
 module AIPP
@@ -195,7 +197,7 @@ module AIPP
         @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
         airport_id = parser.instance_variable_get(:@airport).id
         direction_name = object.name.to_s
-        throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
+        throw :abort if (xy = parser.fixture.dig('runways', airport_id, direction_name, 'xy')).nil?
         lat, long = xy.split(/\s+/)
         AIXM.xy(lat: lat, long: long)
       end

@@ -12,6 +12,9 @@ module AIPP
     # @return [AIXM::Document] target document
     attr_reader :aixm
 
+    # @return [Hash] map from AIP name to fixtures
+    attr_reader :fixtures
+
     # @return [Hash] map from border names to border objects
     attr_reader :borders
 
@@ -25,6 +28,7 @@ module AIPP
       @config = {}
       @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
       @dependencies = THash.new
+      @fixtures = {}
       @borders = {}
       @cache = OpenStruct.new
       AIXM.send("#{options[:schema]}!")
@@ -43,13 +47,23 @@ module AIPP
       info("Reading region #{options[:region]}")
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
+      # Fixtures
+      dir.glob('fixtures/*.yml').each do |file|
+        verbose_info "Reading fixture fixtures/#{file.basename}"
+        fixture = YAML.load_file(file)
+        @fixtures[file.basename('.yml').to_s] = fixture
+      end
       # Borders
       dir.glob('borders/*.geojson').each do |file|
+        verbose_info "Reading border borders/#{file.basename}"
         border = AIPP::Border.new(file)
         @borders[border.name] = border
       end
       # Helpers
-      dir.glob('helpers/*.rb').each { |f| require f }
+      dir.glob('helpers/*.rb').each do |file|
+        verbose_info "Reading helper helpers/#{file.basename}"
+        require file
+      end
       # Parsers
       dir.glob('*.rb').each do |file|
         verbose_info "Requiring #{file.basename}"
@@ -68,6 +82,7 @@ module AIPP
           ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
             aip: aip,
             downloader: downloader,
+            fixture: @fixtures[aip],
             parser: self
           ).attach_patches.tap(&:parse).detach_patches
         end

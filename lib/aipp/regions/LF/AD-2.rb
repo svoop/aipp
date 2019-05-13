@@ -297,18 +297,16 @@ module AIPP
 
       patch AIXM::Component::Runway::Direction, :xy do |parser, object, value|
         throw :abort unless value.nil?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
         airport_id = parser.instance_variable_get(:@airport).id
         direction_name = object.name.to_s
-        throw :abort if (xy = @fixtures.dig('runways', airport_id, direction_name, 'xy')).nil?
+        throw :abort if (xy = parser.fixture.dig('runways', airport_id, direction_name, 'xy')).nil?
         lat, long = xy.split(/\s+/)
         AIXM.xy(lat: lat, long: long)
       end
 
       patch AIXM::Feature::NavigationalAid, :remarks do |parser, object, value|
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-2.yml'))
         airport_id, designated_point_id = object.airport.id, object.id
-        @fixtures.dig('designated_points', airport_id, designated_point_id, 'remarks') || throw(:abort)
+        parser.fixture.dig('designated_points', airport_id, designated_point_id, 'remarks') || throw(:abort)
       end
 
     end

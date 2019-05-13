@@ -10,6 +10,9 @@ module AIPP
     # @return [String] AIP name (e.g. "ENR-2.1")
     attr_reader :aip
 
+    # @return [Object] Fixture read from YAML file
+    attr_reader :fixture
+
     # @!method close
     #   @see AIPP::Downloader#close
     def_delegator :@downloader, :close
@@ -18,13 +21,15 @@ module AIPP
     #   @see AIPP::Parser#config
     # @!method options
     #   @see AIPP::Parser#options
+    # @!method borders
+    #   @see AIPP::Parser#borders
     # @!method cache
     #   @see AIPP::Parser#cache
     def_delegators :@parser, :aixm, :config, :options, :borders, :cache
     private :aixm
 
-    def initialize(aip:, downloader:, parser:)
-      @aip, @downloader, @parser = aip, downloader, parser
+    def initialize(aip:, downloader:, fixture:, parser:)
+      @aip, @downloader, @fixture, @parser = aip, downloader, fixture, parser
       self.class.include ("AIPP::%s::Helpers::URL" % options[:region]).constantize
     end
 

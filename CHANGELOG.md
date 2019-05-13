@@ -1,5 +1,7 @@
 ## 0.2.4 (unreleased)
-Nothing so far
+
+#### Additions
+* Automatically load fixtures for patches
 
 ## 0.2.3
 
