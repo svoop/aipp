@@ -54,7 +54,7 @@ module AIPP
     #
     # @param feature [AIXM::Feature] e.g. airport or airspace
     def add(feature)
-      verbose_info "Adding #{feature.class}"
+      verbose_info "Adding #{feature.inspect}"
       aixm.features << feature
     end
 
