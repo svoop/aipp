@@ -11,6 +11,7 @@ class Object
   #   end
   # @example with binding context
   #   warn("oops", pry: binding)
+  #
   # @param message [String] warning message
   # @param pry [Exception, Binding, nil] attach the Pry session to this error
   #   or binding

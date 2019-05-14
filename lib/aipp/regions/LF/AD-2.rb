@@ -87,11 +87,6 @@ module AIPP
 
       private
 
-      def elevation_from(text)
-        value, unit = text.strip.split
-        AIXM.z(AIXM.d(value.to_i, unit).to_ft.dist, :qnh)
-      end
-
       def declination_from(text)
         value, direction = text.strip.split('°')
         value = value.to_f * (direction == 'W' ? -1 : 1)
@@ -126,9 +121,12 @@ module AIPP
                   length, width = tr.css('td:nth-of-type(3)').text.strip.split('x')
                   runway.length = AIXM.d(length.strip.to_i, :m)
                   runway.width = AIXM.d(width.strip.to_i, :m)
-                  text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).first
-                  runway.surface.composition = COMPOSITIONS.fetch(text)[:composition]
-                  runway.surface.preparation = COMPOSITIONS.fetch(text)[:preparation]
+                  unless (text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).first).blank?
+                    surface = SURFACES.metch(text)
+                    runway.surface.composition = surface[:composition]
+                    runway.surface.preparation = surface[:preparation]
+                    runway.surface.remarks = surface[:remarks]
+                  end
                   if (text = tr.css('td:nth-of-type(4)').text).match?(AIXM::PCN_RE)
                     runway.surface.pcn = text
                   end
@@ -164,9 +162,10 @@ module AIPP
           []
         when AIXM::DMS_RE
           text_fr.scan(AIXM::DMS_RE).each_slice(2).with_index(1).map do |(lat, long), index|
-            AIXM.helipad(name: "H#{index}").tap do |helipad|
-              helipad.xy = AIXM.xy(lat: lat.first, long: long.first)
-            end
+            AIXM.helipad(
+              name: "H#{index}",
+              xy: AIXM.xy(lat: lat.first, long: long.first)
+            )
           end
         else
           @remarks << ['HELICOPTER:', text_fr.blank_to_nil, text_en.blank_to_nil].compact.join("\n")

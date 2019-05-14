@@ -30,19 +30,35 @@ module AIPP
           'FRANCE_LUXEMBOURG|FRANCE_GERMANY' => AIXM.xy(lat: 49.469438, long: 6.367516),
           'FRANCE_GERMANY|FRANCE_SWITZERLAND' => AIXM.xy(lat: 47.589831, long: 7.589049),
           'GERMANY_SWITZERLAND|FRANCE_GERMANY' => AIXM.xy(lat: 47.589831, long: 7.589049)
-        }
+        }.freeze
 
-        # Map surface compositions to OFMX composition and preparation
-        COMPOSITIONS = {
-          'revêtue' => { preparation: :paved },
-          'non revêtue' => { preparation: :natural },
+        # Map surface to OFMX composition, preparation and remarks
+        SURFACES = {
+          /^revêtue?$/ => { preparation: :paved },
+          /^non revêtue?$/ => { preparation: :natural },
           'macadam' => { composition: :macadam },
-          'béton' => { composition: :concrete, preparation: :paved },
-          'béton bitumineux' => { composition: :bitumen, preparation: :paved },
-          'enrobé bitumineux' => { composition: :bitumen },
-          'asphalte' => { composition: :asphalt, preparation: :paved },
-          'gazon' => { composition: :grass }
-        }
+          /^bitume ?(traité|psp)?$/ =>  { composition: :bitumen },
+          'ciment' => { composition: :concrete, preparation: :paved },
+          /^b[eé]ton ?(armé|bitume|bitumineux)?$/ => { composition: :concrete, preparation: :paved },
+          /^béton( de)? ciment$/ => { composition: :concrete, preparation: :paved },
+          'béton herbe' => { composition: :concrete_and_grass },
+          'béton avec résine' => { composition: :concrete, preparation: :paved, remarks: 'Avec résine / with resin' },
+          "béton + asphalte d'étanchéité sablé" => { composition: :concrete_and_asphalt, preparation: :paved, remarks: 'Étanchéité sablé / sandblasted waterproofing' },
+          'béton armé + support bitumastic' => { composition: :concrete, preparation: :paved, remarks: 'Support bitumastic / bitumen support' },
+          /résine (époxy )?su[er] béton/ => { composition: :concrete, preparation: :paved, remarks: 'Avec couche résine / with resin seal coat' },
+          /^(asphalte|tarmac)$/ => { composition: :asphalt, preparation: :paved },
+          'enrobé' => { preparation: :other, remarks: 'Enrobé / coated' },
+          'enrobé anti-kérozène' => { preparation: :other, remarks: 'Enrobé anti-kérozène / anti-kerosene coating' },
+          /^enrobé bitum(e|iné|ineux)$/ => { composition: :bitumen, preparation: :paved, remarks: 'Enrobé / coated' },
+          'enrobé béton' => { composition: :concrete, preparation: :paved, remarks: 'Enrobé / coated' },
+          /^résine( époxy)?$/ => { composition: :other, remarks: 'Résine / resin' },
+          'tole acier larmé' => { composition: :metal, preparation: :grooved },
+          /^(structure métallique|aluminium)$/ => { composition: :metal },
+          'matériaux composites ignifugés' => { composition: :other, remarks: 'Matériaux composites ignifugés / fire resistant mixed materials' },
+          /^(gazon|herbe)$/ => { composition: :grass },
+          'neige' => { composition: :snow },
+          'neige damée' => { composition: :snow, preparation: :rolled }
+        }.freeze
 
         # Transform French text fragments to English
         ANGLICISE_MAP = {
@@ -123,6 +139,11 @@ module AIPP
             when /FL(\d+)/ then AIXM.z($1.to_i, :qne)
             else fail "z `#{limit}' not recognized"
           end
+        end
+
+        def elevation_from(text)
+          value, unit = text.strip.split
+          AIXM.z(AIXM.d(value.to_i, unit).to_ft.dist, :qnh)
         end
 
         def layer_from(text_for_limits, text_for_class=nil)

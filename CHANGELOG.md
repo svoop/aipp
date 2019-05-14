@@ -1,6 +1,7 @@
 ## 0.2.4 (unreleased)
 
 #### Additions
+* LF/AD-3.1
 * Automatically load fixtures for patches
 
 ## 0.2.3

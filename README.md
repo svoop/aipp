@@ -85,7 +85,7 @@ Inside the `parse` method, you have access to the following methods:
 * [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
-* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
+* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`Hash`](https://www.rubydoc.info/gems/aipp/Hash) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
 
 As well as the following methods:
 
@@ -280,7 +280,7 @@ airac.next_id     # => 1801
   * [OpenData – public data files](https://www.data.gouv.fr)
   * [Protected Planet – protected area data files](https://www.protectedplanet.net)
 * [Geo Maps – programmatically generated GeoJSON maps](https://github.com/simonepri/geo-maps)
-* [Open Flightmaps – open-source aeronautical maps](https://openflightmaps.org)
+* [open flightmaps – open-source aeronautical maps](https://openflightmaps.org)
 * [AIXM Rubygem – AIXM/OFMX generator for Ruby](https://github.com/svoop/aixm)
 
 ## Development

@@ -13,19 +13,6 @@ class String
     self if present?
   end
 
-  # Strip and collapse unnecessary whitespace
-  #
-  # @note While similar to +String#squish+ from ActiveSupport, newlines +\n+
-  #   are preserved and not collapsed into one space.
-  #
-  # @example
-  #   "  foo\n\nbar \r".copact   # => "foo\nbar"
-  #
-  # @return [String] compacted string
-  def compact
-    split("\n").map { |s| s.squish.blank_to_nil }.compact.join("\n")
-  end
-
   # Fix messy oddities such as the use of two apostrophes instead of a quote
   #
   # @example
@@ -39,21 +26,17 @@ class String
       split(/\r?\n/).map { |s| s.strip.blank_to_nil }.compact.join("\n")   # remove blank lines
   end
 
-  # Add spaces between obviously glued words:
-  # * camel glued words
-  # * three-or-more-letter and number-only words
+  # Strip and collapse unnecessary whitespace
+  #
+  # @note While similar to +String#squish+ from ActiveSupport, newlines +\n+
+  #   are preserved and not collapsed into one space.
   #
   # @example
-  #   "thisString has spaceProblems".unglue   # => "this String has space problems"
-  #   "the first123meters of D25".unglue      # => "the first 123 meters of D25"
+  #   "  foo\n\nbar \r".copact   # => "foo\nbar"
   #
-  # @return [String] unglued string
-  def unglue
-    self.dup.tap do |string|
-      [/([[:lower:]])([[:upper:]])/, /([[:alpha:]]{3,})(\d)/, /(\d)([[:alpha:]]{3,})/].freeze.each do |regexp|
-        string.gsub!(regexp, '\1 \2')
-      end
-    end
+  # @return [String] compacted string
+  def compact
+    split("\n").map { |s| s.squish.blank_to_nil }.compact.join("\n")
   end
 
   # Calculate the correlation of two strings by counting mutual words
@@ -102,4 +85,40 @@ class String
     end
     (self_words & other_words).count
   end
+
+  # Similar to +strip+, but remove any leading or trailing non-letters/numbers
+  # which includes whitespace
+  def full_strip
+    remove(/\A[^\p{L}\p{N}]*|[^\p{L}\p{N}]*\z/)
+  end
+
+  # Same as +to_f+ but accept both dot and comma as decimal separator
+  #
+  # @example
+  #   "5.5".to_ff    # => 5.5
+  #   "5,6".to_ff    # => 5.6
+  #   "5,6".to_f     # => 5.0   (sic!)
+  #
+  # @return [Float] number parsed from text
+  def to_ff
+    sub(/,/, '.').to_f
+  end
+
+  # Add spaces between obviously glued words:
+  # * camel glued words
+  # * three-or-more-letter and number-only words
+  #
+  # @example
+  #   "thisString has spaceProblems".unglue   # => "this String has space problems"
+  #   "the first123meters of D25".unglue      # => "the first 123 meters of D25"
+  #
+  # @return [String] unglued string
+  def unglue
+    self.dup.tap do |string|
+      [/([[:lower:]])([[:upper:]])/, /([[:alpha:]]{3,})(\d)/, /(\d)([[:alpha:]]{3,})/].freeze.each do |regexp|
+        string.gsub!(regexp, '\1 \2')
+      end
+    end
+  end
+
 end

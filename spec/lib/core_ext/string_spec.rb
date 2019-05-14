@@ -16,16 +16,6 @@ describe String do
     end
   end
 
-  describe :compact do
-    it "must remove unneccessary whitespace" do
-      "  foo\n\nbar \r".compact.must_equal "foo\nbar"
-      "foo\n \nbar".compact.must_equal "foo\nbar"
-      "   ".compact.must_equal ""
-      "\n \r \v ".compact.must_equal ""
-      "okay".compact.must_equal "okay"
-    end
-  end
-
   describe :cleanup do
     it "must replace double apostrophes" do
       "the ''Terror'' was a fine ship".cleanup.must_equal 'the "Terror" was a fine ship'
@@ -37,17 +27,17 @@ describe String do
 
     it "must remove whitespace within quotes" do
       'the " best " way to fly'.cleanup.must_equal 'the "best" way to fly'
-      %Q(the " best\nway " to fly).cleanup.must_equal %Q(the "best\nway" to fly) 
+      %Q(the " best\nway " to fly).cleanup.must_equal %Q(the "best\nway" to fly)
     end
   end
 
-  describe :unglue do
-    it "must insert spaces between camel glued words" do
-      "thisString has spaceProblems".unglue.must_equal "this String has space Problems"
-    end
-
-    it "must insert spaces between three-or-more-letter and number-only words" do
-      "the first123meters of D25".unglue.must_equal "the first 123 meters of D25"
+  describe :compact do
+    it "must remove unneccessary whitespace" do
+      "  foo\n\nbar \r".compact.must_equal "foo\nbar"
+      "foo\n \nbar".compact.must_equal "foo\nbar"
+      "   ".compact.must_equal ""
+      "\n \r \v ".compact.must_equal ""
+      "okay".compact.must_equal "okay"
     end
   end
 
@@ -82,6 +72,40 @@ describe String do
 
     it "must ignore words with less than 5 characters" do
       subject.correlate("en on for").must_equal 0
+    end
+  end
+
+  describe :to_ff do
+    it "must convert normal float numbers as does to_f" do
+      "5".to_ff.must_equal "5".to_f
+      "5.1".to_ff.must_equal "5.1".to_f
+      " 5.2 ".to_ff.must_equal " 5.2 ".to_f
+    end
+
+    it "must convert comma float numbers as well" do
+      "5,1".to_ff.must_equal "5.1".to_f
+      " 5,2 ".to_ff.must_equal "5.2".to_f
+    end
+  end
+
+  describe :full_strip do
+    it "must behave like strip" do
+      subject = "  foobar\t\t"
+      subject.full_strip.must_equal subject.strip
+    end
+
+    it "must remove non-letterlike characters as well" do
+      " - foobar :.".full_strip.must_equal "foobar"
+    end
+  end
+
+  describe :unglue do
+    it "must insert spaces between camel glued words" do
+      "thisString has spaceProblems".unglue.must_equal "this String has space Problems"
+    end
+
+    it "must insert spaces between three-or-more-letter and number-only words" do
+      "the first123meters of D25".unglue.must_equal "the first 123 meters of D25"
     end
   end
 

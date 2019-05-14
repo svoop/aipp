@@ -93,15 +93,18 @@ module AIPP
 
       def runway_from(tr)
         tds = tr.css('td')
-        surface = tds[1].css('span[id*="SURFACE"]').text
         AIXM.runway(
           name: tds[0].text.strip.split.join('/')
         ).tap do |runway|
           @runway = runway   # TODO: needed for now for surface composition patches to work
           runway.length = AIXM.d(tds[1].css('span[id$="VAL_LEN"]').text.to_i, :m)
           runway.width = AIXM.d(tds[1].css('span[id$="VAL_WID"]').text.to_i, :m)
-          runway.surface.composition = (COMPOSITIONS.fetch(surface)[:composition] unless surface.blank?)
-          runway.surface.preparation = (COMPOSITIONS.fetch(surface)[:preparation] unless surface.blank?)
+          unless (text = tds[1].css('span[id*="SURFACE"]').text).blank?
+            surface = SURFACES.metch(text)
+            runway.surface.composition = surface[:composition]
+            runway.surface.preparation = surface[:preparation]
+            runway.surface.remarks = surface[:remarks]
+          end
           runway.remarks = tds[7].text.cleanup.blank_to_nil
           values = tds[2].text.remove('°').strip.split
           runway.forth.geographic_orientation = AIXM.a(values.first.to_i)
