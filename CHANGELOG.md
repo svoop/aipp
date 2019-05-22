@@ -1,4 +1,4 @@
-## 0.2.4 (unreleased)
+## 0.2.4
 
 #### Additions
 * LF/AD-3.1
