@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'minitest-sound'
+  spec.add_development_dependency 'minitest-focus'
   spec.add_development_dependency 'minitest-matchers'
   spec.add_development_dependency 'spy'
   spec.add_development_dependency 'guard'
