@@ -6,6 +6,16 @@ module AIPP
 
       include AIPP::LF::Helpers::Common
 
+      # Map sections to whether to parse them
+      SECTIONS = {
+        '5.1-1':   true,
+        '5.1-2':   false,
+        '5.1-3':   true,
+        '5.1-4':   true,
+        '5.1-5-1': false,
+        '5.1-5-2': true
+      }
+
       # Map source types to type and optional local type
       SOURCE_TYPES = {
         'D' => { type: 'D' },
@@ -15,28 +25,37 @@ module AIPP
       }.freeze
 
       def parse
-        prepare(html: read).css('tbody:has(tr[id^=mid])').each do |tbody|
-          airspace = nil
-          tbody.css('tr').to_enum.with_index(1).each do |tr, index|
-            tds = tr.css('td')
-            case
-            when tr.attr(:id).match?(/TXT_NAME/)   # airspace
-              airspace = airspace_from tr
-            when tds.count == 1   # big comment on separate row
-              airspace.layers.first.remarks.
-                concat("\n", tds.text.cleanup).
-                remove!(/\((\d)\)\s*\(\1\)\W*/)
-            else   # layer
-              begin
-                tds = tr.css('td')
-                airspace.geometry = geometry_from tds[0].text
-                fail("geometry is not closed") unless airspace.geometry.closed?
-                airspace.layers << layer_from(tds[1].text)
-                airspace.layers.first.timetable = timetable_from! tds[2].text
-                airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
-                add airspace
-              rescue => error
-                warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
+        skip = false
+        prepare(html: read).css('h4, thead ~ tbody').each do |tag|
+          case tag.name
+          when 'h4'
+            section = tag.text.match(/^ENR ([\d.-]+)/).captures.first
+            skip = !SECTIONS.fetch(section.to_sym)
+            verbose_info "#{skip ? :Skipping : :Parsing} section #{section}"
+          when 'tbody'
+            next if skip
+            airspace = nil
+            tag.css('tr').to_enum.with_index(1).each do |tr, index|
+              tds = tr.css('td')
+              case
+              when tr.attr(:id).match?(/TXT_NAME/)   # airspace
+                airspace = airspace_from tr
+              when tds.count == 1   # big comment on separate row
+                airspace.layers.first.remarks.
+                  concat("\n", tds.text.cleanup).
+                  remove!(/\((\d)\)\s*\(\1\)\W*/)
+              else   # layer
+                begin
+                  tds = tr.css('td')
+                  airspace.geometry = geometry_from tds[0].text
+                  fail("geometry is not closed") unless airspace.geometry.closed?
+                  airspace.layers << layer_from(tds[1].text)
+                  airspace.layers.first.timetable = timetable_from! tds[2].text
+                  airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
+                  add airspace
+                rescue => error
+                  warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
+                end
               end
             end
           end
@@ -46,11 +65,10 @@ module AIPP
       private
 
       def airspace_from(tr)
-        spans = tr.css('span:not([class*=strong])')
-        source_type = spans[1].text.blank_to_nil
+        region, source_type, name = tr.text.cleanup.gsub(/\s/, ' ').split(nil, 3)
         fail "unknown type `#{source_type}'" unless SOURCE_TYPES.has_key? source_type
         AIXM.airspace(
-          name: spans.map { |s| s.text.strip.blank_to_nil }.compact.join(' '),
+          name: [region, source_type, name].join(' '),
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|

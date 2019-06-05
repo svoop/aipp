@@ -25,6 +25,7 @@ module AIPP
         end
 
         def addresses_from(trs)
+          return [] if trs.text.blank?
           trs.map do |tr|
             tds = tr.css('td')
             type = tds[0].text.strip
@@ -43,6 +44,7 @@ module AIPP
         end
 
         def units_from(trs)
+          return [] if trs.text.blank?
           trs.each_with_object({}) do |tr, services|
             tds = tr.css('td')
             type = tds[0].text.strip

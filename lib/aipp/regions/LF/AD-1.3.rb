@@ -109,7 +109,7 @@ module AIPP
           values = tds[2].text.remove('°').strip.split
           runway.forth.geographic_orientation = AIXM.a(values.first.to_i)
           runway.back.geographic_orientation = AIXM.a(values.last.to_i)
-          parts = tds[3].text.strip.split(/\n\s+\n\s+/)
+          parts = tds[3].text.strip.split(/\n\s+\n\s+/, 2)
           runway.forth.xy = (xy_from(parts[0]) unless parts[0].blank?)
           runway.back.xy = (xy_from(parts[1]) unless parts[1].blank?)
           values = tds[4].text.strip.split
