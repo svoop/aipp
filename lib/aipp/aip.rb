@@ -69,15 +69,8 @@ module AIPP
     #   e.g. :airport or :vor as listed in AIXM::CLASSES are recognized as well
     # @param attributes [Hash] filter by these attributes and their values
     # @return [Array<AIXM::Feature>]
-    def select(klass, attributes={})
-      klass = AIXM::CLASSES.fetch(klass) if klass.is_a? Symbol
-      aixm.features.select do |feature|
-        if feature.is_a? klass
-          attributes.reduce(true) do |memo, (attribute, value)|
-            memo && feature.send(attribute) == value
-          end
-        end
-      end
+    def select(*args)
+      aixm.select_features(*args)
     end
   end
 
