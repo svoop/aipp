@@ -25,22 +25,22 @@ describe AIPP::Patcher do
     end
 
     it "overwrites with non-nil values" do
-      subject.tap { |s| s.size = 'S' }.size.must_equal 36
+      _(subject.tap { |s| s.size = 'S' }.size).must_equal 36
     end
 
     it "overwrite with nil values" do
-      subject.tap { |s| s.size = 'one-size-fits-all' }.size.must_be_nil
+      _(subject.tap { |s| s.size = 'one-size-fits-all' }.size).must_be_nil
     end
 
     it "skips overwrite if abort is thrown" do
-      subject.tap { |s| s.size = 42 }.size.must_equal 42
+      _(subject.tap { |s| s.size = 42 }.size).must_equal 42
     end
   end
 
   context "with patches detached" do
     it "removes patches" do
       subject.detach_patches
-      subject.tap { |s| s.size = 'S' }.size.must_equal 'S'
+      _(subject.tap { |s| s.size = 'S' }.size).must_equal 'S'
     end
   end
 end

@@ -21,11 +21,11 @@ describe AIPP::Downloader do
       it "creates the archive" do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
         subject = AIPP::Downloader.new(storage: tmp_dir, archive: 'new-archive') do |downloader|
-          File.exist?(tmp_dir.join('work')).must_equal true
+          _(File.exist?(tmp_dir.join('work'))).must_equal true
           downloader.read(document: 'new', url: 'http://localhost/new.html')
         end
-        zip_entries(subject.archive_file).must_equal %w(new.html)
-        subject.send(:archives_path).children.count.must_equal 2
+        _(zip_entries(subject.archive_file)).must_equal %w(new.html)
+        _(subject.send(:archives_path).children.count).must_equal 2
       end
     end
 
@@ -33,22 +33,22 @@ describe AIPP::Downloader do
       it "unzips and uses the archive" do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
         subject = AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
-          File.exist?(tmp_dir.join('work')).must_equal true
+          _(File.exist?(tmp_dir.join('work'))).must_equal true
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
-            content.must_be_instance_of Nokogiri::HTML5::Document
-            content.text.must_match /fixture-html-new/
+            _(content).must_be_instance_of Nokogiri::HTML5::Document
+            _(content.text).must_match /fixture-html-new/
           end
         end
-        zip_entries(subject.archive_file).must_equal %w(new.html one.html two.html)
-        subject.send(:archives_path).children.count.must_equal 1
+        _(zip_entries(subject.archive_file)).must_equal %w(new.html one.html two.html)
+        _(subject.send(:archives_path).children.count).must_equal 1
       end
 
       it "downloads HTML documents to Nokogiri::HTML5::Document" do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
-            content.must_be_instance_of Nokogiri::HTML5::Document
-            content.text.must_match /fixture-html-new/
+            _(content).must_be_instance_of Nokogiri::HTML5::Document
+            _(content.text).must_match /fixture-html-new/
           end
         end
       end
@@ -57,8 +57,8 @@ describe AIPP::Downloader do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.pdf').tap do |content|
-            content.must_be_instance_of AIPP::PDF
-            content.text.must_match /fixture-pdf-new/
+            _(content).must_be_instance_of AIPP::PDF
+            _(content.text).must_match /fixture-pdf-new/
           end
         end
       end
@@ -67,8 +67,8 @@ describe AIPP::Downloader do
         Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, archive: 'archive') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new', type: :pdf).tap do |content|
-            content.must_be_instance_of AIPP::PDF
-            content.text.must_match /fixture-pdf-new/
+            _(content).must_be_instance_of AIPP::PDF
+            _(content.text).must_match /fixture-pdf-new/
           end
         end
       end

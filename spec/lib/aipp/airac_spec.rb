@@ -3,8 +3,8 @@ require_relative '../../spec_helper'
 describe AIPP::AIRAC do
   describe :initialize do
     it "won't accept invalid arguments" do
-      -> { AIPP::AIRAC.new(0) }.must_raise ArgumentError
-      -> { AIPP::AIRAC.new(AIPP::AIRAC::ROOT_DATE - 1) }.must_raise ArgumentError
+      _{ AIPP::AIRAC.new(0) }.must_raise ArgumentError
+      _{ AIPP::AIRAC.new(AIPP::AIRAC::ROOT_DATE - 1) }.must_raise ArgumentError
     end
   end
 
@@ -14,19 +14,19 @@ describe AIPP::AIRAC do
     end
 
     it "must calculate correct #date" do
-      subject.date.must_equal Date.parse('2018-01-04')
+      _(subject.date).must_equal Date.parse('2018-01-04')
     end
 
     it "must calculate correct #id" do
-      subject.id.must_equal 1801
+      _(subject.id).must_equal 1801
     end
 
     it "must calculate correct #next_date" do
-      subject.next_date.must_equal Date.parse('2018-02-01')
+      _(subject.next_date).must_equal Date.parse('2018-02-01')
     end
 
     it "must calculate correct #next_id" do
-      subject.next_id.must_equal 1802
+      _(subject.next_id).must_equal 1802
     end
   end
 
@@ -36,19 +36,19 @@ describe AIPP::AIRAC do
     end
 
     it "must calculate correct #date" do
-      subject.date.must_equal Date.parse('2017-12-07')
+      _(subject.date).must_equal Date.parse('2017-12-07')
     end
 
     it "must calculate correct #id" do
-      subject.id.must_equal 1713
+      _(subject.id).must_equal 1713
     end
 
     it "must calculate correct #next_date" do
-      subject.next_date.must_equal Date.parse('2018-01-04')
+      _(subject.next_date).must_equal Date.parse('2018-01-04')
     end
 
     it "must calculate correct #next_id" do
-      subject.next_id.must_equal 1801
+      _(subject.next_id).must_equal 1801
     end
   end
 
@@ -58,19 +58,19 @@ describe AIPP::AIRAC do
     end
 
     it "must calculate correct #date" do
-      subject.date.must_equal Date.parse('2018-01-04')
+      _(subject.date).must_equal Date.parse('2018-01-04')
     end
 
     it "must calculate correct #id" do
-      subject.id.must_equal 1801
+      _(subject.id).must_equal 1801
     end
 
     it "must calculate correct #next_date" do
-      subject.next_date.must_equal Date.parse('2018-02-01')
+      _(subject.next_date).must_equal Date.parse('2018-02-01')
     end
 
     it "must calculate correct #next_id" do
-      subject.next_id.must_equal 1802
+      _(subject.next_id).must_equal 1802
     end
   end
 
@@ -80,19 +80,19 @@ describe AIPP::AIRAC do
     end
 
     it "must calculate correct #date" do
-      subject.date.must_equal Date.parse('2020-12-31')
+      _(subject.date).must_equal Date.parse('2020-12-31')
     end
 
     it "must calculate correct #id" do
-      subject.id.must_equal 2014
+      _(subject.id).must_equal 2014
     end
 
     it "must calculate correct #next_date" do
-      subject.next_date.must_equal Date.parse('2021-01-28')
+      _(subject.next_date).must_equal Date.parse('2021-01-28')
     end
 
     it "must calculate correct #next_id" do
-      subject.next_id.must_equal 2101
+      _(subject.next_id).must_equal 2101
     end
   end
 end

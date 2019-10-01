@@ -14,15 +14,15 @@ describe AIPP::Border::Position do
 
   describe :xy do
     it "returns the coordinates" do
-      subject.xy.must_equal AIXM.xy(long: 0, lat: 0)
+      _(subject.xy).must_equal AIXM.xy(long: 0, lat: 0)
     end
 
     it "returns nil if the geometry index is out of bounds" do
-      subject.tap { |s| s.geometry_index = 2 }.xy.must_be_nil
+      _(subject.tap { |s| s.geometry_index = 2 }.xy).must_be_nil
     end
 
     it "returns nil if the coordinates index is out of bounds" do
-      subject.tap { |s| s.coordinates_index = 3 }.xy.must_be_nil
+      _(subject.tap { |s| s.coordinates_index = 3 }.xy).must_be_nil
     end
   end
 end
@@ -43,25 +43,25 @@ describe AIPP::Border do
 
   describe :initialize do
     it "fails for files unless the extension is .geojson" do
-      -> { AIPP::Border.new("/path/to/another.txt") }.must_raise ArgumentError
+      _{ AIPP::Border.new("/path/to/another.txt") }.must_raise ArgumentError
     end
   end
 
   describe :name do
     it "returns the upcased file name" do
-      subject.name.must_equal 'BORDER'
+      _(subject.name).must_equal 'BORDER'
     end
   end
 
   describe :closed? do
     it "returns true for closed geometries" do
-      subject.closed?(geometry_index: 0).must_equal true
-      subject.closed?(geometry_index: 1).must_equal true
+      _(subject.closed?(geometry_index: 0)).must_equal true
+      _(subject.closed?(geometry_index: 1)).must_equal true
     end
 
     it "returns false for unclosed geometries" do
-      subject.closed?(geometry_index: 2).must_equal false
-      subject.closed?(geometry_index: 3).must_equal false
+      _(subject.closed?(geometry_index: 2)).must_equal false
+      _(subject.closed?(geometry_index: 3)).must_equal false
     end
   end
 
@@ -72,16 +72,16 @@ describe AIPP::Border do
 
     it "finds the nearest position on any geometry" do
       position = subject.nearest(xy: point)
-      position.geometry_index.must_equal 1
-      position.coordinates_index.must_equal 12
-      position.xy.must_equal AIXM.xy(lat: 44.01065725159039, long: 4.760427474975586)
+      _(position.geometry_index).must_equal 1
+      _(position.coordinates_index).must_equal 12
+      _(position.xy).must_equal AIXM.xy(lat: 44.01065725159039, long: 4.760427474975586)
     end
 
     it "finds the nearest postition on a given geometry" do
       position = subject.nearest(xy: point, geometry_index: 0)
-      position.geometry_index.must_equal 0
-      position.coordinates_index.must_equal 2
-      position.xy.must_equal AIXM.xy(lat: 44.00269350325321, long: 4.7519731521606445)
+      _(position.geometry_index).must_equal 0
+      _(position.coordinates_index).must_equal 2
+      _(position.xy).must_equal AIXM.xy(lat: 44.00269350325321, long: 4.7519731521606445)
     end
   end
 
@@ -89,13 +89,13 @@ describe AIPP::Border do
     it "fails if positions are not on the same geometry" do
       from_position = AIPP::Border::Position.new(geometries: subject.geometries, geometry_index: 0, coordinates_index: 0)
       to_position = AIPP::Border::Position.new(geometries: subject.geometries, geometry_index: 1, coordinates_index: 0)
-      -> { subject.segment(from_position: from_position, to_position: to_position) }.must_raise ArgumentError
+      _{ subject.segment(from_position: from_position, to_position: to_position) }.must_raise ArgumentError
     end
 
     it "returns shortest segment on an unclosed I-shaped geometry" do
       from_position = subject.nearest(xy: AIXM.xy(lat: 44.002940457248556, long: 4.734249114990234))
       to_position = subject.nearest(xy: AIXM.xy(lat: 44.07155380033749, long: 4.7687530517578125), geometry_index: from_position.geometry_index)
-      subject.segment(from_position: from_position, to_position: to_position).must_equal [
+      _(subject.segment(from_position: from_position, to_position: to_position)).must_equal [
         AIXM.xy(lat: 44.00516299694704, long: 4.7371673583984375),
         AIXM.xy(lat: 44.02195282780904, long: 4.743347167968749),
         AIXM.xy(lat: 44.037503870182896, long: 4.749870300292969),
@@ -107,7 +107,7 @@ describe AIPP::Border do
     it "returns shortest segment on an unclosed U-shaped geometry" do
       from_position = subject.nearest(xy: AIXM.xy(lat: 43.96563876212758, long: 4.8126983642578125))
       to_position = subject.nearest(xy: AIXM.xy(lat: 43.956989327857265, long: 4.83123779296875), geometry_index: from_position.geometry_index)
-      subject.segment(from_position: from_position, to_position: to_position).must_equal [
+      _(subject.segment(from_position: from_position, to_position: to_position)).must_equal [
         AIXM.xy(lat: 43.9646503190861, long: 4.815788269042969),
         AIXM.xy(lat: 43.98614524381678, long: 4.82025146484375),
         AIXM.xy(lat: 43.98491011404692, long: 4.840850830078125),
@@ -122,7 +122,7 @@ describe AIPP::Border do
     it "returns shortest segment ignoring endings on a closed geometry" do
       from_position = subject.nearest(xy: AIXM.xy(lat: 44.00022390676026, long: 4.789009094238281))
       to_position = subject.nearest(xy: AIXM.xy(lat: 43.99800118202362, long: 4.765834808349609), geometry_index: from_position.geometry_index)
-      subject.segment(from_position: from_position, to_position: to_position).must_equal [
+      _(subject.segment(from_position: from_position, to_position: to_position)).must_equal [
         AIXM.xy(lat: 44.00077957493397, long: 4.787635803222656),
         AIXM.xy(lat: 43.99818641226534, long: 4.784030914306641),
         AIXM.xy(lat: 43.994111213373934, long: 4.78205680847168),

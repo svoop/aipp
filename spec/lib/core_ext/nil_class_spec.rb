@@ -4,7 +4,7 @@ describe NilClass do
 
   describe :blank_to_nil do
     it "must return nil" do
-      nil.blank_to_nil.must_be :nil?
+      _(nil.blank_to_nil).must_be :nil?
     end
   end
 
