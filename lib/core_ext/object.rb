@@ -15,7 +15,7 @@ class Object
   # @param message [String] warning message
   # @param pry [Exception, Binding, nil] attach the Pry session to this error
   #   or binding
-  def warn(message, pry:)
+  def warn(message, pry: nil)
     $WARN_COUNTER = $WARN_COUNTER.to_i + 1
     Kernel.warn "WARNING #{$WARN_COUNTER}: #{message}".red
     if $PRY_ON_WARN == true || $PRY_ON_WARN == $WARN_COUNTER
