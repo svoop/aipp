@@ -49,7 +49,15 @@ module AIPP
             tds = tr.css('td')
             type = tds[0].text.strip
             next if IGNORED_TYPES.include?(type) || ADDRESS_TYPES.include?(type)
-            f, callsign, timetable, remarks = parts_from(tds).values
+            f, callsigns, timetable, remarks = parts_from(tds).values
+            callsigns = if callsigns.match?(/\(\w{2}\)/)
+              callsigns.cleanup.split("\n").each_with_object({}) do |callsign, hash|
+                callsign =~ /^(.*)\s+\((\w{2})\)/
+                hash[$2.downcase.to_sym] = $1
+              end
+            else
+              { fr: callsigns }
+            end
             if SERVICE_TYPES.include? type
               type = SERVICE_TYPES.dig(type, :type)
               remarks = [SERVICE_TYPES.dig(type, :remarks), remarks.blank_to_nil].compact.join("\n")
@@ -64,7 +72,7 @@ module AIPP
             services[type].add_frequency(
               AIXM.frequency(
                 transmission_f: f,
-                callsigns: { fr: callsign }
+                callsigns: callsigns
               ).tap do |frequency|
                 frequency.type = :standard
                 frequency.type = :alternative if remarks.sub!(%r{fréquence supplétive/auxiliary frequency\S*}i, '')

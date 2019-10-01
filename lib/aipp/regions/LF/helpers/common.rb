@@ -39,7 +39,7 @@ module AIPP
           'macadam' => { composition: :macadam },
           /^bitume ?(traité|psp)?$/ =>  { composition: :bitumen },
           'ciment' => { composition: :concrete, preparation: :paved },
-          /^b[eé]ton ?(armé|bitume|bitumineux)?$/ => { composition: :concrete, preparation: :paved },
+          /^b[eéè]ton ?(armé|bitume|bitumineux)?$/ => { composition: :concrete, preparation: :paved },
           /^béton( de)? ciment$/ => { composition: :concrete, preparation: :paved },
           'béton herbe' => { composition: :concrete_and_grass },
           'béton avec résine' => { composition: :concrete, preparation: :paved, remarks: 'Avec résine / with resin' },

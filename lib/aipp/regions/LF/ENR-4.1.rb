@@ -6,11 +6,18 @@ module AIPP
 
       include AIPP::LF::Helpers::Common
 
+      # Map atypical navaid denominations
+      ATYPICAL_NAVAIDS = {
+        'l' => 'ndb'   # L denominates a NDB of class locator
+      }.freeze
+
       def parse
         prepare(html: read).css('tbody').each do |tbody|
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             tds = tr.css('td')
             master, slave = tds[1].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
+            master = ATYPICAL_NAVAIDS.fetch(master, master)
+            slave = ATYPICAL_NAVAIDS.fetch(slave, slave)
             navaid = AIXM.send(master, base_from(tds).merge(send("#{master}_from", tds)))
             navaid.source = source(position: tr.line)
             navaid.timetable = timetable_from! tds[4].text
@@ -51,7 +58,7 @@ module AIPP
 
       def ndb_from(tds)
         {
-          type: :en_route,
+          type: tds[1].text.strip == 'L' ? :locator : :en_route,
           f: f_from(tds[3].text)
         }
       end
