@@ -37,7 +37,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'nokogumbo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
   spec.add_runtime_dependency 'json', '~> 2'
-  spec.add_runtime_dependency 'rubyzip', '~> 1'
+  spec.add_runtime_dependency 'rubyzip', '~> 2'
   spec.add_runtime_dependency 'colorize', '~> 0'
   spec.add_runtime_dependency 'pry', '~> 0'
   spec.add_runtime_dependency 'pry-rescue', '~> 1'
