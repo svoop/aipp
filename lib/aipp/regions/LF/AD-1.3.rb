@@ -99,7 +99,7 @@ module AIPP
           @runway = runway   # TODO: needed for now for surface composition patches to work
           runway.length = AIXM.d(tds[1].css('span[id$="VAL_LEN"]').text.to_i, :m)
           runway.width = AIXM.d(tds[1].css('span[id$="VAL_WID"]').text.to_i, :m)
-          unless (text = tds[1].css('span[id*="SURFACE"]').text).blank?
+          unless (text = tds[1].css('span[id*="SURFACE"]').text.compact).blank?
             surface = SURFACES.metch(text)
             runway.surface.composition = surface[:composition]
             runway.surface.preparation = surface[:preparation]

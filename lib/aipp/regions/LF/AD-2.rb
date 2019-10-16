@@ -121,7 +121,7 @@ module AIPP
                   length, width = tr.css('td:nth-of-type(3)').text.strip.split('x')
                   runway.length = AIXM.d(length.strip.to_i, :m)
                   runway.width = AIXM.d(width.strip.to_i, :m)
-                  unless (text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).first).blank?
+                  unless (text = tr.css('td:nth-of-type(5)').text.strip.split(%r<\W+/\W+>).first.compact).blank?
                     surface = SURFACES.metch(text)
                     runway.surface.composition = surface[:composition]
                     runway.surface.preparation = surface[:preparation]

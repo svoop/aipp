@@ -52,7 +52,7 @@ module AIPP
               end
             end
             # FATOs and helipads
-            text = trs[2].css('span[id*="ADHP.REVETEMENT"]').text.remove(/tlof\s*|\s*\(.*?\)/i).downcase
+            text = trs[2].css('span[id*="ADHP.REVETEMENT"]').text.remove(/tlof\s*|\s*\(.*?\)/i).downcase.compact
             surface = text.blank? ? {} : SURFACES.metch(text)
             lighting = lighting_from(trs[1].css('span[id*="ADHP.BALISAGE"]').text.cleanup)
             fatos_from(trs[1].css('span[id*="ADHP.DIM_FATO"]').text).each { |f| @airport.add_fato f }
