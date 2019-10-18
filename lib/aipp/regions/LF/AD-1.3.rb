@@ -25,7 +25,13 @@ module AIPP
         "SAINT CYR LA CAMPAGNE" => 'LF9013',
         "SEPTFONDS" => 'LF9014',
         "TALMONT VENDEE AIR PARK" => 'LF9015'
-      }
+      }.freeze
+
+      PURPOSES = {
+        "s" => :scheduled,
+        "ns" => :not_scheduled,
+        "p" =>  :private
+      }.freeze
 
       def parse
         ad2_exists = false
@@ -76,15 +82,23 @@ module AIPP
           when /usa.+restr|priv/ then :reservation_required
         end
         @airport.add_usage_limitation(limitation) do |l|
-          l.add_condition do |c|
-            c.realm = :military if raw_limitation.match?(/milit/)
-            c.origin = :national if raw_conditions.include?('ntl')
-            c.origin = :international if raw_conditions.include?('intl')
-            c.rule = :ifr if raw_conditions.include?('ifr')
-            c.rule = :vfr if raw_conditions.include?('vfr')
-            c.purpose = :scheduled if raw_conditions.include?('s')
-            c.purpose = :not_scheduled if raw_conditions.include?('ns')
-            c.purpose = :private if raw_conditions.include?('p')
+          (%w(s ns p) & raw_conditions).each do |raw_purpose|
+            l.add_condition do |c|
+              c.realm = raw_limitation.match?(/milit/) ? :military : :civilian
+              if (%w(intl ntl) - raw_conditions).empty?
+                c.origin = :any
+              else
+                c.origin = :national if raw_conditions.include?('ntl')
+                c.origin = :international if raw_conditions.include?('intl')
+              end
+              if (%w(ifr vfr) - raw_conditions).empty?
+                c.rule = :ifr_and_vfr
+              else
+                c.rule = :ifr if raw_conditions.include?('ifr')
+                c.rule = :vfr if raw_conditions.include?('vfr')
+              end
+              c.purpose = PURPOSES[raw_purpose]
+            end
           end
           l.remarks = "Usage restreint (voir VAC) / restricted use (see VAC)" if raw_limitation.match?(/usa.+restr/)
           l.remarks = "Propriété privée / privately owned" if raw_limitation.match?(/priv/)
