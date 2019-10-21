@@ -4,8 +4,9 @@ module AIPP
     # Airports (IFR capable) and their CTR, AD navigational aids etc
     class AD2 < AIP
 
-      include AIPP::LF::Helpers::Common
-      include AIPP::LF::Helpers::ADRadio
+      include AIPP::LF::Helpers::Base
+      include AIPP::LF::Helpers::NavigationalAid
+      include AIPP::LF::Helpers::RadioAD
       using AIXM::Refinements
 
       # Map source types to type and optional local type
@@ -68,8 +69,8 @@ module AIPP
             trs = html.css('div[id*="-AD-2\.18"] tbody tr')
             addresses_from(trs).each { |a| @airport.add_address(a) }
             units_from(trs).each(&method(:add))
-            # Landing aids
-            # TODO: LOC/GP/DME as of section 2.19
+            # Navigational aids
+            navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).each(&method(:add))
             # Designated points
             unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
               pdf = read("VAC-#{@id}")
@@ -204,6 +205,28 @@ module AIPP
         end
       end
 
+      def navigational_aids_from(tbody)
+        tbody.css('tr').to_enum.with_object([]) do |tr, array|
+          tds = tr.css('td')
+          array << navigational_aid_from(
+            {
+              name: OpenStruct.new(text: @airport.name),   # simulate td
+              type: tds[0],
+              id: tds[1],
+              f: tds[2],
+              schedule: tds[3],
+              xy: tds[4],
+              z: tds[5]
+            },
+            source: source(position: tr.line),
+            sections: {
+              range: tds[6],
+              situation: tds[8]
+            }
+          )
+        end.compact
+      end
+
       def designated_points_from(pdf, recursive=false)
         from = (pdf.text =~ /^(.*?coordinates.*?names?)/i)
         return [] if recursive && !from
@@ -304,6 +327,7 @@ module AIPP
       end
 
       patch AIXM::Feature::NavigationalAid, :remarks do |parser, object, value|
+        throw :abort unless object.is_a? AIXM::Feature::NavigationalAid::DesignatedPoint
         airport_id, designated_point_id = object.airport.id, object.id
         parser.fixture.dig('designated_points', airport_id, designated_point_id, 'remarks') || throw(:abort)
       end

@@ -4,7 +4,7 @@ module AIPP
     # Designated Points
     class ENR43 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
 
       def parse
         prepare(html: read).css('tbody').each do |tbody|

@@ -1,7 +1,7 @@
 module AIPP
   module LF
     module Helpers
-      module ADRadio
+      module RadioAD
 
         # Service types to be ignored
         IGNORED_TYPES = %w(D-ATIS).freeze
@@ -14,15 +14,6 @@ module AIPP
           'CEV' => { type: :other, remarks: "CEV (centre d'essais en vol / flight test center)" },
           'SRE' => { type: :other, remarks: "SRE (elément radar de surveillance du PAR / surveillance radar element of PAR)" }
         }.freeze
-
-        def parts_from(tds)
-          {
-            f: AIXM.f(tds[2].css('span').first.text.to_f, tds[2].css('span').last.text),
-            callsign: tds[1].text.strip,
-            timetable: tds[3].text.strip,
-            remarks: tds[4].text.strip.sub(/Canal (8.33|25)/i, '')   # TEMP: ignore canal spacing warnings
-          }
-        end
 
         def addresses_from(trs)
           return [] if trs.text.blank?
@@ -92,6 +83,17 @@ module AIPP
               unit.add_service(service)
             end
           end
+        end
+
+        private
+
+        def parts_from(tds)
+          {
+            f: AIXM.f(tds[2].css('span').first.text.to_f, tds[2].css('span').last.text),
+            callsign: tds[1].text.strip,
+            timetable: tds[3].text.strip,
+            remarks: tds[4].text.strip.sub(/Canal (8.33|25)/i, '')   # TEMP: ignore canal spacing warnings
+          }
         end
 
       end

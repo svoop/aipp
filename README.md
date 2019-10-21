@@ -129,7 +129,7 @@ See [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) for more on
 
 ### Helpers
 
-Helpers are modules defined in the <tt>lib/aipp/regions/{REGION}/helpers/</tt> directory. All helper modules are required automatically.
+Helpers are modules defined in the <tt>lib/aipp/regions/{REGION}/helpers/</tt> directory. All helper modules are required automatically in alphabetic order.
 
 There is one mandatory helper called `URL.rb` which must define the following method to build URLs from which to download AIPs:
 
@@ -155,7 +155,7 @@ Feel free to add more helpers to DRY code which is shared by multiple AIP parser
 module AIPP
   module LF
     module Helpers
-      module Common
+      module Base
 
         def source(position:, aip_file: nil)
           (...)
@@ -174,7 +174,7 @@ module AIPP
   module LF
     class AD2 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
 
     end
   end

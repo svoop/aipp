@@ -4,7 +4,7 @@ module AIPP
     # Helipads
     class AD31 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
       using AIXM::Refinements
 
       DEPENDS = %w(AD-2)

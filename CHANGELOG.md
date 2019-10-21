@@ -1,5 +1,7 @@
 ## 0.2.5 (unreleased)
-Nothing so far
+
+#### Additions
+* LF/AD-2>2.19 (AD navigational aids relevant to VFR)
 
 ## 0.2.4
 

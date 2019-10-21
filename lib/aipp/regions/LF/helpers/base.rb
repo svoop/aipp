@@ -1,7 +1,7 @@
 module AIPP
   module LF
     module Helpers
-      module Common
+      module Base
 
         using AIXM::Refinements
 

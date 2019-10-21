@@ -4,7 +4,7 @@ module AIPP
     # Aerodromes
     class AD13 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
 
       DEPENDS = %w(AD-2)
 

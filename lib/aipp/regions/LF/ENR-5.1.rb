@@ -4,7 +4,7 @@ module AIPP
     # D/P/R Zones
     class ENR51 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
 
       # Map sections to whether to parse them
       SECTIONS = {

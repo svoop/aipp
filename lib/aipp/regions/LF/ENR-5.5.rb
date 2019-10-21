@@ -4,7 +4,7 @@ module AIPP
     # Sporting and Recreational Activities
     class ENR55 < AIP
 
-      include AIPP::LF::Helpers::Common
+      include AIPP::LF::Helpers::Base
 
       # Map raw activities to activity and airspace type
       ACTIVITIES = {

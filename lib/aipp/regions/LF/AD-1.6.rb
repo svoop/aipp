@@ -4,8 +4,8 @@ module AIPP
     # Aerodromes radiocommunication facilities (VFR only)
     class AD16 < AIP
 
-      include AIPP::LF::Helpers::Common
-      include AIPP::LF::Helpers::ADRadio
+      include AIPP::LF::Helpers::Base
+      include AIPP::LF::Helpers::RadioAD
 
       DEPENDS = %w(AD-1.3)
 
