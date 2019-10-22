@@ -1,5 +1,5 @@
 [![Version](https://img.shields.io/gem/v/aipp.svg?style=flat)](https://rubygems.org/gems/aipp)
-[![Continuous Integration](https://img.shields.io/travis/svoop/aipp/master.svg?style=flat)](https://travis-ci.org/svoop/aipp)
+[![Tests](https://github.com/svoop/aipp/workflows/Test/badge.svg)](https://github.com/svoop/aipp/actions?workflow=Test)
 [![Donorbox](https://img.shields.io/badge/donate-on_donorbox-yellow.svg)](https://donorbox.org/bitcetera)
 
 # AIPP
