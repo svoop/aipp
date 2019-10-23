@@ -24,7 +24,7 @@ module AIPP
     def initialize(options:)
       @options = options
       @options[:storage] = options[:storage].join(options[:region])
-      @options[:storage].mkpath unless @options[:storage].exist?
+      @options[:storage].mkpath
       @config = {}
       @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
       @dependencies = THash.new
@@ -102,9 +102,32 @@ module AIPP
 
     # Write the AIXM document.
     def write_aixm
-      file = "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
-      info("Writing #{file}")
-      File.write(file, aixm.to_xml)
+      info("Writing #{aixm_file}")
+      File.write(aixm_file, aixm.to_xml)
+    end
+
+    # Write the AIXM document and context information.
+    def write_build
+      info("Writing build")
+      builds_path.mkpath
+      build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
+      build_file.delete if build_file.exist?
+      Dir.mktmpdir do |tmp_dir|
+        tmp_dir = Pathname(tmp_dir)
+        File.write(tmp_dir.join(aixm_file), aixm.to_xml)
+        File.write(
+          tmp_dir.join('build.yaml'), {
+            version: AIPP::VERSION,
+            config: @config,
+            options: @options
+          }.to_yaml
+        )
+        Zip::File.open(build_file, Zip::File::CREATE) do |zip|
+          tmp_dir.children.each do |entry|
+            zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
+          end
+        end
+      end
     end
 
     # Write the configuration to config.yml.
@@ -114,6 +137,14 @@ module AIPP
     end
 
     private
+
+    def aixm_file
+      "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
+    end
+
+    def builds_path
+      options[:storage].join('builds')
+    end
 
     def config_file
       options[:storage].join('config.yml')

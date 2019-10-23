@@ -6,11 +6,22 @@
 
 Parser for Aeronautical Information Publication (AIP) available online.
 
-This gem incluces two executables to download and parse aeronautical data as HTML or PDF, then export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
+This gem incluces two executables to download and parse aeronautical data as HTML or PDF, then build and export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
 
 * [Homepage](https://github.com/svoop/aipp)
 * [Rubydoc](https://www.rubydoc.info/gems/aipp/AIPP)
 * Author: [Sven Schwyn - Bitcetera](http://www.bitcetera.com)
+
+## Table of Contents
+
+[Install](#install)<br>
+[Usage](#usage)<br>
+[Storage](#storage)<br>
+[Regions](#regions)<br>
+[AIP Parsers](#aip-parsers)<br>
+[References](#references)<br>
+[AIRAC Date Calculations](#airac-date-calculations)<br>
+[Development](#development)
 
 ## Install
 
@@ -22,14 +33,30 @@ gem aipp
 
 ## Usage
 
+See the built-in help for all options:
+
 ```
 aip2aixm --help
 aip2ofmx --help
 ```
 
+Say, you with to build the complete OFMX file for the current AIRAC cycle of the region LF:
+
+```
+aip2ofmx -r LF
+```
+
+You'll find the OFMX file in the current directory if the binary exits successfully.
+
 ## Storage
 
 AIPP uses a storage directory for configuration, caching and in order to keep the results of previous runs. The default location is `~/.aipp`, however, you can pass a different directory with the `--storage` argument.
+
+You'll find a directory for each region which contains the following items:
+
+* `sources/`<br>This directory contains one ZIP archive per AIRAC cycle. This archive incrementially caches all source files used to build the AIXM/OFMX file. To make sure it contains all source files for a region, you have to build at least one complete AIXM/OFMX file for that region.
+* `builds/`<br>This directory contains one ZIP archive per AIRAC cycle. This archive contains the built AIXM/OFMX file along with other build details (most notably a diffable manifest) and is overwritten on every run. To make sure it contains the complete AIXM/OFMX for a region, you have to make sure that your last run builds the complete AIXM/OFMX for that region.
+* `config.yml`<br>This file contains configuration which will be read on subsequent runs, most notably the namespace UUID used to identify the creator of OFMX files.
 
 ## Regions
 
@@ -83,7 +110,7 @@ Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
 * [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
-* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
 * core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`Hash`](https://www.rubydoc.info/gems/aipp/Hash) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
 

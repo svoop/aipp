@@ -41,6 +41,7 @@ module AIPP
           parser.parse_aip
           parser.validate_aixm
           parser.write_aixm
+          parser.write_build
           parser.write_config
         end
       rescue => error
