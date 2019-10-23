@@ -76,7 +76,7 @@ module AIPP
     # Parse AIP by invoking the parser classes for the current region.
     def parse_aip
       info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", color: :green)
-      AIPP::Downloader.new(storage: options[:storage], archive: options[:airac].date.xmlschema) do |downloader|
+      AIPP::Downloader.new(storage: options[:storage], source: options[:airac].date.xmlschema) do |downloader|
         @dependencies.tsort(options[:aip]).each do |aip|
           info("Parsing #{aip}")
           ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(

@@ -35,9 +35,8 @@ module AIPP
 
     # Read an AIP source file
     #
-    # Depending on whether a local copy of the file exists, either:
-    # * download from URL to local storage and read from local archive
-    # * read from local archive
+    # Read the cached source file if it exists in the source archive. Otherwise,
+    # download it from URL and cache it.
     #
     # An URL builder method +url_for(aip_file)+ must be defined either in
     # +helper.rb+ or in the AIP parser definition (e.g. +ENR-2.1.rb+).

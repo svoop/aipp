@@ -3,15 +3,15 @@ module AIPP
   # AIP downloader infrastructure
   #
   # The downloader operates in the +storage+ directory where it creates two
-  # subdirectories "archive" and "work". The initializer looks for +archive+
-  # in "archives" and (if found) unzips its contents into "work". When reading
-  # a +document+, the downloader looks for the +document+ in "work" and
+  # subdirectories "sources" and "work". The initializer looks for the +source+
+  # archive in "sources" and (if found) unzips its contents into "work". When
+  # reading a +document+, the downloader looks for the +document+ in "work" and
   # (unless found) downloads it from +url+. HTML documents are parsed to
   # +Nokogiri::HTML5::Document+, PDF documents are parsed to +AIPP::PDF+.
-  # Finally, the contents of "work" are written back to +archive+.
+  # Finally, the contents of "work" are written back to the +source+ archive.
   #
   # @example
-  #   AIPP::Downloader.new(storage: options[:storage], archive: "2018-11-08") do |downloader|
+  #   AIPP::Downloader.new(storage: options[:storage], source: "2018-11-08") do |downloader|
   #     html = downloader.read(
   #       document: 'ENR-5.1',
   #       url: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/FRANCE/AIRAC-2018-11-08/html/eAIP/FR-ENR-5.1-fr-FR.html'
@@ -26,20 +26,20 @@ module AIPP
     # @return [Pathname] directory to operate within
     attr_reader :storage
 
-    # @return [String] name of the archive (without extension ".zip")
-    attr_reader :archive
+    # @return [String] name of the source archive (without extension ".zip")
+    attr_reader :source
 
-    # @return [Pathname] full path to the archive
-    attr_reader :archive_file
+    # @return [Pathname] full path to the source archive
+    attr_reader :source_file
 
     # @param storage [Pathname] directory to operate within
-    # @param archive [String] name of the archive (without extension ".zip")
-    def initialize(storage:, archive:)
-      @storage, @archive = storage, archive
+    # @param source [String] name of the source archive (without extension ".zip")
+    def initialize(storage:, source:)
+      @storage, @source = storage, source
       fail(ArgumentError, 'bad storage directory') unless Dir.exist? storage
-      @archive_file = archives_path.join("#{@archive}.zip")
+      @source_file = sources_path.join("#{@source}.zip")
       prepare
-      unzip if @archive_file.exist?
+      unzip if @source_file.exist?
       yield self
       zip
     ensure
@@ -65,8 +65,8 @@ module AIPP
 
     private
 
-    def archives_path
-      @storage.join('archives')
+    def sources_path
+      @storage.join('sources')
     end
 
     def work_path
@@ -75,7 +75,7 @@ module AIPP
 
     def prepare
       teardown
-      archives_path.mkpath
+      sources_path.mkpath
       work_path.mkpath
     end
 
@@ -87,15 +87,15 @@ module AIPP
     end
 
     def unzip
-      Zip::File.open(archive_file).each do |entry|
+      Zip::File.open(source_file).each do |entry|
         entry.extract(work_path.join(entry.name))
       end
     end
 
     def zip
-      backup_file = archive_file.sub(/$/, '.old') if archive_file.exist?
-      archive_file.rename(backup_file) if backup_file
-      Zip::File.open(archive_file, Zip::File::CREATE) do |zip|
+      backup_file = source_file.sub(/$/, '.old') if source_file.exist?
+      source_file.rename(backup_file) if backup_file
+      Zip::File.open(source_file, Zip::File::CREATE) do |zip|
         work_path.children.each do |entry|
           zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
         end
