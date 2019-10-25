@@ -103,6 +103,7 @@ module AIPP
     # Write the AIXM document.
     def write_aixm
       info("Writing #{aixm_file}")
+      AIXM.config.mid_region = options[:region] if options[:mid]
       File.write(aixm_file, aixm.to_xml)
     end
 
@@ -114,6 +115,7 @@ module AIPP
       build_file.delete if build_file.exist?
       Dir.mktmpdir do |tmp_dir|
         tmp_dir = Pathname(tmp_dir)
+        AIXM.config.mid_region = options[:region]
         File.write(tmp_dir.join(aixm_file), aixm.to_xml)
         File.write(
           tmp_dir.join('build.yaml'), {
