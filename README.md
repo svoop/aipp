@@ -54,9 +54,34 @@ AIPP uses a storage directory for configuration, caching and in order to keep th
 
 You'll find a directory for each region which contains the following items:
 
-* `sources/`<br>This directory contains one ZIP archive per AIRAC cycle. This archive incrementially caches all source files used to build the AIXM/OFMX file. To make sure it contains all source files for a region, you have to build at least one complete AIXM/OFMX file for that region.
-* `builds/`<br>This directory contains one ZIP archive per AIRAC cycle. This archive contains the built AIXM/OFMX file along with other build details (most notably a diffable manifest) and is overwritten on every run. To make sure it contains the complete AIXM/OFMX for a region, you have to make sure that your last run builds the complete AIXM/OFMX for that region.
+* `sources/`<br>This directory contains one ZIP archive per AIRAC cycle which incrementially caches all source files used to build the AIXM/OFMX file. Therefore, to make sure it contains all source files for a region, you have to build at least one complete AIXM/OFMX file for that region.
+* `builds/`<br>This directory contains one ZIP archive per AIRAC cycle which is overwritten on every run. Therefore, to make sure it contains the complete build for a region, you have to make sure that your last run builds the complete AIXM/OFMX for that region. This archive contains:
+  * the built AIXM/OFMX file
+  * `build.yaml` – context of the build process
+  * `manifest.csv` – diffable manifest (see below)
 * `config.yml`<br>This file contains configuration which will be read on subsequent runs, most notably the namespace UUID used to identify the creator of OFMX files.
+
+The manifest is a CSV which lists every feature on a separate line along with its hashes and comment. You can `diff` or `git diff` two manifests:
+
+```diff
+$ git diff -U0 2019-09-12/manifest.csv 2019-10-10/manifest.csv
+
+--- a/2019-09-12/manifest.csv
++++ b/2019-10-10/manifest.csv
+@@ -89,0 +90 @@ Aha,449f4791,d6d4bff8,Address: PHONE for LFF958FC61
++Aha,44b9a044,cf55a3cf,Address: PHONE for LF49929DD6
+@@ -134 +135 @@ Aha,6acfbcc5,c4f57e3f,Address: FAX for LF897E1A6F
+-Aha,6b381b32,fb947716,Address: RADIO for LFPO
++Aha,6b381b32,b9723b7e,Address: RADIO for LFPO
+@@ -253,0 +255 @@ Aha,d01c4282,7cc8db7f,Address: PHONE for LF0C413AE2
++Aha,d05cfbff,74fb76bc,Address: FAX for LF49929DD6
+@@ -327 +329 @@ Ahp,068f4f01,1dc2fb5c,Airport: LFEA BELLE ILE
+-Ahp,06d04910,e18af958,Airport: LFFDE9077D TONNERRE CENTRE HOSPITALIER
++Ahp,06d04910,cc522711,Airport: LFFDE9077D TONNERRE CENTRE HOSPITALIER
+(...)
+```
+
+The advantage of `git diff` is it's ability to hightlight exactly which part of a line has changed. [Check out this post to learn how](https://www.viget.com/articles/dress-up-your-git-diffs-with-word-level-highlights/).
 
 ## Regions
 

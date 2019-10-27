@@ -3,6 +3,8 @@ module AIPP
   # AIP parser infrastructure
   class Parser
 
+    using AIXM::Refinements
+
     # @return [Hash] passed command line arguments
     attr_reader :options
 
@@ -116,7 +118,9 @@ module AIPP
       Dir.mktmpdir do |tmp_dir|
         tmp_dir = Pathname(tmp_dir)
         AIXM.config.mid_region = options[:region]
+        # AIXM/OFMX file
         File.write(tmp_dir.join(aixm_file), aixm.to_xml)
+        # Build details
         File.write(
           tmp_dir.join('build.yaml'), {
             version: AIPP::VERSION,
@@ -124,6 +128,22 @@ module AIPP
             options: @options
           }.to_yaml
         )
+        # Manifest
+        manifest, buffer, feature, uid, comment = [], '', '', '', ''
+        File.open(tmp_dir.join(aixm_file)).each do |line|
+          buffer << line
+          case line
+          when /^ {2}<(\w{3}) / then buffer, feature = line, $1
+          when /^ {4}<#{feature}Uid mid="(.*?)"/ then uid = $1
+          when /^ {2}<!-- (.*) -->/ then comment = $1
+          when /^ {2}<\/#{feature}>/
+            manifest << [feature, uid[0,8], buffer.payload_hash(region: options[:region])[0,8], comment].to_csv
+            feature, uid = '', ''
+          end
+        end
+        manifest = manifest.sort.prepend "Feature,Short Uid Hash,Short Feature Hash,Comment\n"
+        File.write(tmp_dir.join('manifest.csv'), manifest.join)
+        # Zip it
         Zip::File.open(build_file, Zip::File::CREATE) do |zip|
           tmp_dir.children.each do |entry|
             zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'

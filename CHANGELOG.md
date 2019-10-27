@@ -2,6 +2,7 @@
 
 #### Additions
 * LF/AD-2>2.19 (AD navigational aids relevant to VFR)
+* Write build and manifest to `~/.aipp/<region>/builds`
 
 #### Changes
 * Renamed `~/.aipp/<region>/archive` to `~/.aipp/<region>/sources`
