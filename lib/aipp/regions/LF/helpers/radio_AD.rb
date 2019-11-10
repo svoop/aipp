@@ -75,8 +75,8 @@ module AIPP
             AIXM.unit(
               source: service.source,
               organisation: organisation_lf,   # TODO: not yet implemented
-              type: (type = service.guessed_unit_type),
-              name: "#{@id} #{AIXM::Feature::Unit::TYPES.key(type)}",
+              type: service.guessed_unit_type,
+              name: @id,
               class: :icao   # TODO: verify whether all units are ICAO
             ).tap do |unit|
               unit.airport = @airport
