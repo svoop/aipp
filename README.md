@@ -61,23 +61,23 @@ You'll find a directory for each region which contains the following items:
   * `manifest.csv` – diffable manifest (see below)
 * `config.yml`<br>This file contains configuration which will be read on subsequent runs, most notably the namespace UUID used to identify the creator of OFMX files.
 
-The manifest is a CSV which lists every feature on a separate line along with its hashes and comment. You can `diff` or `git diff` two manifests:
+The manifest is a CSV which lists every feature on a separate line along with its hashes, AIP and comment. You can `diff` or `git diff` two manifests:
 
 ```diff
 $ git diff -U0 2019-09-12/manifest.csv 2019-10-10/manifest.csv
 
 --- a/2019-09-12/manifest.csv
 +++ b/2019-10-10/manifest.csv
-@@ -89,0 +90 @@ Aha,449f4791,d6d4bff8,Address: PHONE for LFF958FC61
-+Aha,44b9a044,cf55a3cf,Address: PHONE for LF49929DD6
-@@ -134 +135 @@ Aha,6acfbcc5,c4f57e3f,Address: FAX for LF897E1A6F
--Aha,6b381b32,fb947716,Address: RADIO for LFPO
-+Aha,6b381b32,b9723b7e,Address: RADIO for LFPO
-@@ -253,0 +255 @@ Aha,d01c4282,7cc8db7f,Address: PHONE for LF0C413AE2
-+Aha,d05cfbff,74fb76bc,Address: FAX for LF49929DD6
-@@ -327 +329 @@ Ahp,068f4f01,1dc2fb5c,Airport: LFEA BELLE ILE
--Ahp,06d04910,e18af958,Airport: LFFDE9077D TONNERRE CENTRE HOSPITALIER
-+Ahp,06d04910,cc522711,Airport: LFFDE9077D TONNERRE CENTRE HOSPITALIER
+@@ -204 +204 @@ AD-1.3,Ahp,9e9f031e,d6f22057,Airport: LFLJ COURCHEVEL
+-AD-1.3,Ahp,9f1eed18,37ddbbde,Airport: LFQD ARRAS ROCLINCOURT
++AD-1.3,Ahp,9f1eed18,f0e60105,Airport: LFQD ARRAS ROCLINCOURT
+@@ -312 +312 @@ AD-2,Aha,4250c9ee,04d49dc7,Address: RADIO for LFHV
+-AD-2,Aha,6b381b32,fb947716,Address: RADIO for LFPO
++AD-2,Aha,6b381b32,b9723b7e,Address: RADIO for LFPO
+@@ -664 +663,0 @@ AD-2,Ser,3920a7fd,4545c5eb,Service: AFIS by LFGA TWR
+-AD-2,Ser,39215774,1f13f2cf,Service: APP by LFCR APP
+@@ -878 +876,0 @@ AD-2,Ser,bb5228d7,7cfb4572,Service: TWR by LFMH TWR
+-AD-2,Ser,bc72caf2,0a15b39c,Service: FIS by LFCR FIC
 (...)
 ```
 

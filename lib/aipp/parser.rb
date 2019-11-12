@@ -129,19 +129,19 @@ module AIPP
           }.to_yaml
         )
         # Manifest
-        manifest, buffer, feature, uid, comment = [], '', '', '', ''
+        manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
         File.open(tmp_dir.join(aixm_file)).each do |line|
           buffer << line
           case line
-          when /^ {2}<(\w{3}) / then buffer, feature = line, $1
+          when /^ {2}<(\w{3}).*source=".*?\|.*?\|(.*?)\|/ then buffer, feature, aip = line, $1, $2
           when /^ {4}<#{feature}Uid mid="(.*?)"/ then uid = $1
           when /^ {2}<!-- (.*) -->/ then comment = $1
           when /^ {2}<\/#{feature}>/
-            manifest << [feature, uid[0,8], buffer.payload_hash(region: options[:region])[0,8], comment].to_csv
-            feature, uid = '', ''
+            manifest << [aip, feature, uid[0,8], buffer.payload_hash(region: options[:region])[0,8], comment].to_csv
+            feature, aip, uid = '', '', ''
           end
         end
-        manifest = manifest.sort.prepend "Feature,Short Uid Hash,Short Feature Hash,Comment\n"
+        manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
         File.write(tmp_dir.join('manifest.csv'), manifest.join)
         # Zip it
         Zip::File.open(build_file, Zip::File::CREATE) do |zip|
