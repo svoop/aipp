@@ -111,6 +111,7 @@ module AIPP
           name: tds[0].text.strip.split.join('/')
         ).tap do |runway|
           @runway = runway   # TODO: needed for now for surface composition patches to work
+          bidirectional = runway.name.include? '/'
           runway.length = AIXM.d(tds[1].css('span[id$="VAL_LEN"]').text.to_i, :m)
           runway.width = AIXM.d(tds[1].css('span[id$="VAL_WID"]').text.to_i, :m)
           unless (text = tds[1].css('span[id*="SURFACE"]').text.compact).blank?
@@ -122,16 +123,16 @@ module AIPP
           runway.remarks = tds[7].text.cleanup.blank_to_nil
           values = tds[2].text.remove('°').strip.split
           runway.forth.geographic_orientation = AIXM.a(values.first.to_i)
-          runway.back.geographic_orientation = AIXM.a(values.last.to_i)
+          runway.back.geographic_orientation = AIXM.a(values.last.to_i) if bidirectional
           parts = tds[3].text.strip.split(/\n\s+\n\s+/, 2)
           runway.forth.xy = (xy_from(parts[0]) unless parts[0].blank?)
-          runway.back.xy = (xy_from(parts[1]) unless parts[1].blank?)
+          runway.back.xy = (xy_from(parts[1]) unless parts[1].blank?) if bidirectional
           values = tds[4].text.strip.split
           runway.forth.z = AIXM.z(values.first.to_i, :qnh)
-          runway.back.z = AIXM.z(values.last.to_i, :qnh)
+          runway.back.z = AIXM.z(values.last.to_i, :qnh) if bidirectional
           displaced_thresholds = displaced_thresholds_from(tds[5])
           runway.forth.displaced_threshold = displaced_thresholds.first
-          runway.back.displaced_threshold = displaced_thresholds.last
+          runway.back.displaced_threshold = displaced_thresholds.last if bidirectional
         end
       end
 
