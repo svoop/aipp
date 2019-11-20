@@ -18,7 +18,7 @@ module AIPP
         o.on('-d', '--airac DATE', String, %Q[AIRAC date (default: "#{@options[:airac].date.xmlschema}")]) { |v| @options[:airac] = AIPP::AIRAC.new(v) }
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { |v| @options[:region] = v.upcase }
         o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { |v| @options[:aip] = v.upcase }
-        o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { |v| @options[:mid] = v } 
+        o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { |v| @options[:mid] = v }
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { |v| @options[:storage] = Pathname(v) }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
         o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { |v| $VERBOSE_INFO = v }
@@ -42,12 +42,12 @@ module AIPP
           parser.read_region
           parser.parse_aip
           parser.validate_aixm
-          parser.write_aixm
           parser.write_build
+          parser.write_aixm
           parser.write_config
         end
       rescue => error
-        puts "ERROR: #{error.message}"
+        puts "ERROR: #{error.message}".magenta
         Pry::rescued(error) if $PRY_ON_ERROR
       end
     end

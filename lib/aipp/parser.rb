@@ -102,19 +102,11 @@ module AIPP
       end
     end
 
-    # Write the AIXM document.
-    def write_aixm
-      info("Writing #{aixm_file}")
-      AIXM.config.mid_region = options[:region] if options[:mid]
-      File.write(aixm_file, aixm.to_xml)
-    end
-
     # Write the AIXM document and context information.
     def write_build
       info("Writing build")
       builds_path.mkpath
       build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
-      build_file.delete if build_file.exist?
       Dir.mktmpdir do |tmp_dir|
         tmp_dir = Pathname(tmp_dir)
         AIXM.config.mid_region = options[:region]
@@ -129,7 +121,7 @@ module AIPP
           }.to_yaml
         )
         # Manifest
-        manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
+        uids, manifest, buffer, feature, aip, uid, comment = [], [], '', '', '', '', ''
         File.open(tmp_dir.join(aixm_file)).each do |line|
           buffer << line
           case line
@@ -137,19 +129,32 @@ module AIPP
           when /^ {4}<#{feature}Uid mid="(.*?)"/ then uid = $1
           when /^ {2}<!-- (.*) -->/ then comment = $1
           when /^ {2}<\/#{feature}>/
+            uids << [aip, feature, uid[0,8]].to_csv
             manifest << [aip, feature, uid[0,8], buffer.payload_hash(region: options[:region])[0,8], comment].to_csv
             feature, aip, uid = '', '', ''
           end
         end
         manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
         File.write(tmp_dir.join('manifest.csv'), manifest.join)
+        # Detect duplicates
+        if dupes = uids.group_by(&:itself).select { |_, v| v.size > 1 }.keys.join
+          fail("duplicate UIDs found:\n#{dupes}")
+        end
         # Zip it
+        build_file.delete if build_file.exist?
         Zip::File.open(build_file, Zip::File::CREATE) do |zip|
           tmp_dir.children.each do |entry|
             zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
           end
         end
       end
+    end
+
+    # Write the AIXM document.
+    def write_aixm
+      info("Writing #{aixm_file}")
+      AIXM.config.mid_region = options[:region] if options[:mid]
+      File.write(aixm_file, aixm.to_xml)
     end
 
     # Write the configuration to config.yml.
