@@ -1,5 +1,5 @@
 [![Version](https://img.shields.io/gem/v/aipp.svg?style=flat)](https://rubygems.org/gems/aipp)
-[![Tests](https://github.com/svoop/aipp/workflows/Test/badge.svg)](https://github.com/svoop/aipp/actions?workflow=Test)
+[![Tests](https://img.shields.io/github/workflow/status/svoop/aipp/Test.svg?style=flat&label=tests)](https://github.com/svoop/aipp/actions?workflow=Test)
 [![Donorbox](https://img.shields.io/badge/donate-on_donorbox-yellow.svg)](https://donorbox.org/bitcetera)
 
 # AIPP
@@ -135,7 +135,8 @@ Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
 * [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
-* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+* [`select`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#select-instance_method) – search previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+* [`unique`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#unique-instance_method) – prevent duplicate [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
 * core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`Hash`](https://www.rubydoc.info/gems/aipp/Hash) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
 
