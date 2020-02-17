@@ -28,12 +28,13 @@ module AIPP
       @options[:storage] = options[:storage].join(options[:region])
       @options[:storage].mkpath
       @config = {}
-      @aixm = AIXM.document(region: @options[:region], effective_at: @options[:airac].date)
+      @aixm = AIXM.document(effective_at: @options[:airac].date)
       @dependencies = THash.new
       @fixtures = {}
       @borders = {}
       @cache = OpenStruct.new
       AIXM.send("#{options[:schema]}!")
+      AIXM.config.region = options[:region]
     end
 
     # Read the configuration from config.yml.
@@ -109,8 +110,8 @@ module AIPP
       build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
       Dir.mktmpdir do |tmp_dir|
         tmp_dir = Pathname(tmp_dir)
-        AIXM.config.mid_region = options[:region]
         # AIXM/OFMX file
+        AIXM.config.mid = true
         File.write(tmp_dir.join(aixm_file), aixm.to_xml)
         # Build details
         File.write(
@@ -126,11 +127,11 @@ module AIPP
           buffer << line
           case line
           when /^ {2}<(\w{3}).*source=".*?\|.*?\|(.*?)\|/ then buffer, feature, aip = line, $1, $2
-          when /^ {4}<#{feature}Uid mid="(.*?)"/ then uid = $1
+          when /^ {4}<#{feature}Uid[^>]+?mid="(.*?)"/ then uid = $1
           when /^ {2}<!-- (.*) -->/ then comment = $1
           when /^ {2}<\/#{feature}>/
             uids << [aip, feature, uid[0,8]].to_csv
-            manifest << [aip, feature, uid[0,8], buffer.payload_hash(region: options[:region])[0,8], comment].to_csv
+            manifest << [aip, feature, uid[0,8], AIXM::PayloadHash.new(buffer).to_uuid[0,8], comment].to_csv
             feature, aip, uid = '', '', ''
           end
         end
@@ -153,7 +154,7 @@ module AIPP
     # Write the AIXM document.
     def write_aixm
       info("Writing #{aixm_file}")
-      AIXM.config.mid_region = options[:region] if options[:mid]
+      AIXM.config.mid = options[:mid]
       File.write(aixm_file, aixm.to_xml)
     end
 

@@ -42,7 +42,7 @@ module AIPP
             @airport = airport_from tr
             verbose_info "Parsing #{@airport.id}"
             ad2_exists = false
-            if airport = select(:airport, id: @airport.id).first
+            if airport = find(:airport, id: @airport.id).first
               ad2_exists = true
               @airport = airport
             end
@@ -81,7 +81,7 @@ module AIPP
           when /ouv.+cap|milit/ then :permitted
           when /usa.+restr|priv/ then :reservation_required
         end
-        @airport.add_usage_limitation(limitation) do |l|
+        @airport.add_usage_limitation(type: limitation) do |l|
           (%w(s ns p) & raw_conditions).each do |raw_purpose|
             l.add_condition do |c|
               c.realm = raw_limitation.match?(/milit/) ? :military : :civilian

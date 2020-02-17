@@ -146,11 +146,11 @@ module AIPP
           AIXM.z(AIXM.d(value.to_i, unit).to_ft.dist, :qnh)
         end
 
-        def layer_from(text_for_limits, text_for_class=nil)
-          above, below = text_for_limits.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
+        def layer_from(text_for_limit, text_for_class=nil)
+          above, below = text_for_limit.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
           AIXM.layer(
             class: text_for_class,
-            vertical_limits: AIXM.vertical_limits(
+            vertical_limit: AIXM.vertical_limit(
               upper_z: z_from(above[0]),
               max_z: z_from(above[1]),
               lower_z: z_from(below[0]),
@@ -165,23 +165,23 @@ module AIPP
             text.gsub(/\s+/, ' ').strip.split(/ - /).append('end').each do |element|
               case element
               when /arc (anti-)?horaire .+ sur (\S+) , (\S+)/i
-                geometry << AIXM.arc(
+                geometry.add_segment AIXM.arc(
                   xy: buffer.delete(:xy),
                   center_xy: AIXM.xy(lat: $2, long: $3),
                   clockwise: $1.nil?
                 )
               when /cercle de ([\d\.]+) (NM|km|m) .+ sur (\S+) , (\S+)/i
-                geometry << AIXM.circle(
+                geometry.add_segment AIXM.circle(
                   center_xy: AIXM.xy(lat: $3, long: $4),
                   radius: AIXM.d($1.to_f, $2)
                 )
               when /end|(\S+) , (\S+)/
-                geometry << AIXM.point(xy: buffer[:xy]) if buffer.has_key?(:xy)
+                geometry.add_segment AIXM.point(xy: buffer[:xy]) if buffer.has_key?(:xy)
                 buffer[:xy] = AIXM.xy(lat: $1, long: $2) if $1
                 if border = buffer.delete(:border)
                   from = border.nearest(xy: geometry.segments.last.xy)
                   to = border.nearest(xy: buffer[:xy], geometry_index: from.geometry_index)
-                  geometry.concat border.segment(from_position: from, to_position: to).map(&:to_point)
+                  geometry.add_segments border.segment(from_position: from, to_position: to).map(&:to_point)
                 end
               when /^frontière ([\w-]+)/i, /^(\D[^(]+)/i
                 border_name = BORDERS.fetch($1.downcase.strip)
@@ -193,7 +193,7 @@ module AIPP
                   if border_name == 'FRANCE_SPAIN'   # specify which part of this split border
                     border_name += buffer[:xy].lat < 42.55 ? '_EAST' : '_WEST'
                   end
-                  geometry << AIXM.border(
+                  geometry.add_segment AIXM.border(
                     xy: buffer.delete(:xy),
                     name: border_name
                   )

@@ -26,7 +26,7 @@ module AIPP
         prepare(html: read).css('tbody').each do |tbody|
           tbody.css('tr').to_enum.each_slice(3).with_index(1) do |trs, index|
             name = trs[0].css('span[id*="ADHP.TXT_NAME"]').text.cleanup.remove(/[^\w' ]/)
-            if select(:airport, name: name).any?
+            if find(:airport, name: name).any?
               verbose_info "Skipping #{name} in favor of AD-2"
               next
             end
@@ -42,12 +42,12 @@ module AIPP
             end
             # Usage restrictions
             if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/usage\s+restreint/i)
-              @airport.add_usage_limitation(:reservation_required) do |reservation_required|
+              @airport.add_usage_limitation(type: :reservation_required) do |reservation_required|
                 reservation_required.remarks = "Usage restreint / restricted use"
               end
             end
             if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/r.serv.\s+aux\s+administrations/i)
-              @airport.add_usage_limitation(:other) do |other|
+              @airport.add_usage_limitation(type: :other) do |other|
                 other.remarks = "Réservé aux administrations de l'État / reserved for State administrations"
               end
             end

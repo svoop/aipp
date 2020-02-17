@@ -49,7 +49,7 @@ module AIPP
                   tds = tr.css('td')
                   airspace.geometry = geometry_from tds[0].text
                   fail("geometry is not closed") unless airspace.geometry.closed?
-                  airspace.layers << layer_from(tds[1].text)
+                  airspace.add_layer layer_from(tds[1].text)
                   airspace.layers.first.timetable = timetable_from! tds[2].text
                   airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
                   add airspace

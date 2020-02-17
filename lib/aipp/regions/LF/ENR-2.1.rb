@@ -55,7 +55,7 @@ module AIPP
                 remarks = tds[-1].text
                 layer.timetable = timetable_from! remarks
                 layer.remarks = remarks_from remarks
-                airspace.layers << layer
+                airspace.add_layer layer
               end
             rescue => error
               warn("error parsing #{airspace.type} `#{airspace.name}' at ##{index}: #{error.message}", pry: error)

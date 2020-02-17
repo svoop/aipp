@@ -54,22 +54,22 @@ module AIPP
     # @param feature [AIXM::Feature] e.g. airport or airspace
     def add(feature)
       verbose_info "Adding #{feature.inspect}"
-      aixm.features << feature
+      aixm.add_feature feature
     end
 
     # Search features previously written to AIXM and return those matching the
     # given class and attribute values
     #
     # @example
-    #   select(:airport, id: "LFNT")
+    #   find(:airport, id: "LFNT")
     #
     # @param klass [Class, Symbol] feature class like AIXM::Feature::Airport or
     #   AIXM::Feature::NavigationalAid::VOR, shorthand notations as symbols
     #   e.g. :airport or :vor as listed in AIXM::CLASSES are recognized as well
     # @param attributes [Hash] filter by these attributes and their values
     # @return [Array<AIXM::Feature>]
-    def select(*args)
-      aixm.select_features(*args)
+    def find(*args)
+      aixm.features.find(*args)
     end
   end
 
