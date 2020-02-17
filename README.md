@@ -25,7 +25,13 @@ This gem incluces two executables to download and parse aeronautical data as HTM
 
 ## Install
 
-Add this to your <tt>Gemfile</tt> or <tt>gems.rb</tt>:
+Make sure to have the [latest version of Ruby](https://www.ruby-lang.org/en/documentation/installation/) and then install this gem:
+
+```
+gem install aipp
+```
+
+However, if you're familiar with [Bundler](https://bundler.io) powered Ruby projects, you might prefer to add the following to your <tt>Gemfile</tt> or <tt>gems.rb</tt>:
 
 ```ruby
 gem aipp
