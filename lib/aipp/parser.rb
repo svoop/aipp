@@ -96,6 +96,11 @@ module AIPP
     #
     # @raise [RuntimeError] if the document is not valid
     def validate_aixm
+      info("Detecting duplicates")
+      if (duplicates = aixm.features.duplicates).any?
+        message = "duplicates found:\n" + duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
+        @options[:force] ? warn(message, pry: binding) : fail(message)
+      end
       info("Validating #{options[:schema].upcase}")
       unless aixm.valid?
         message = "invalid #{options[:schema].upcase} document:\n" + aixm.errors.map(&:message).join("\n")
@@ -122,7 +127,7 @@ module AIPP
           }.to_yaml
         )
         # Manifest
-        uids, manifest, buffer, feature, aip, uid, comment = [], [], '', '', '', '', ''
+        manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
         File.open(tmp_dir.join(aixm_file)).each do |line|
           buffer << line
           case line
@@ -130,17 +135,12 @@ module AIPP
           when /^ {4}<#{feature}Uid[^>]+?mid="(.*?)"/ then uid = $1
           when /^ {2}<!-- (.*) -->/ then comment = $1
           when /^ {2}<\/#{feature}>/
-            uids << [aip, feature, uid[0,8]].to_csv
             manifest << [aip, feature, uid[0,8], AIXM::PayloadHash.new(buffer).to_uuid[0,8], comment].to_csv
             feature, aip, uid = '', '', ''
           end
         end
         manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
         File.write(tmp_dir.join('manifest.csv'), manifest.join)
-        # Detect duplicates
-        if dupes = uids.group_by(&:itself).select { |_, v| v.size > 1 }.keys.join
-          fail("duplicate UIDs found:\n#{dupes}")
-        end
         # Zip it
         build_file.delete if build_file.exist?
         Zip::File.open(build_file, Zip::File::CREATE) do |zip|
