@@ -90,6 +90,7 @@ module AIPP
           ).attach_patches.tap(&:parse).detach_patches
         end
       end
+      info("Counting #{aixm.features.count} features")
     end
 
     # Validate the AIXM document.
