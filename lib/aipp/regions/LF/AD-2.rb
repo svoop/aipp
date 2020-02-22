@@ -50,7 +50,7 @@ module AIPP
               source: source(position: html.css('tr[id*="CODE_ICAO"]').first.line, aip_file: aip_file),
               organisation: organisation_lf,   # TODO: not yet implemented
               id: @id,
-              name: html.css('tr[id*="CODE_ICAO"] td span:nth-of-type(2)').text.uptrans,
+              name: html.css('tr[id*="CODE_ICAO"] td span:nth-of-type(2)').text.strip.uptrans,
               xy: xy_from(html.css('#AD-2\.2-Position_Geo_Arp td:nth-of-type(3)').text)
             ).tap do |airport|
               airport.z = elevation_from(html.css('#AD-2\.2-Altitude_Reference td:nth-of-type(3)').text)

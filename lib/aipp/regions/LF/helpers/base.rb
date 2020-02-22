@@ -99,7 +99,7 @@ module AIPP
 
         def prepare(html:)
           html.tap do |node|
-            node.css('del, tr[class*="AmdtDeletedAIRAC"]').each(&:remove)   # remove deleted entries
+            node.css('del, *[class*="AmdtDeletedAIRAC"]').each(&:remove)   # remove deleted entries
           end
         end
 
