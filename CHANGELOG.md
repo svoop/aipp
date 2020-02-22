@@ -1,5 +1,6 @@
 ## 0.2.6 (unreleased)
-Nothing so far
+* Require Ruby 2.7
+* Detect duplicate features
 
 ## 0.2.5
 
