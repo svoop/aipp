@@ -19,7 +19,7 @@ describe AIPP::Downloader do
   describe :read do
     context "source archive does not exist" do
       it "creates the source archive" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
+        Spy.on(URI, open: File.open(fixtures_dir.join('new.html')))
         subject = AIPP::Downloader.new(storage: tmp_dir, source: 'new-source') do |downloader|
           _(File.exist?(tmp_dir.join('work'))).must_equal true
           downloader.read(document: 'new', url: 'http://localhost/new.html')
@@ -31,7 +31,7 @@ describe AIPP::Downloader do
 
     context "source archive does exist" do
       it "unzips and uses the source archive" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
+        Spy.on(URI, open: File.open(fixtures_dir.join('new.html')))
         subject = AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           _(File.exist?(tmp_dir.join('work'))).must_equal true
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
@@ -44,7 +44,7 @@ describe AIPP::Downloader do
       end
 
       it "downloads HTML documents to Nokogiri::HTML5::Document" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.html')))
+        Spy.on(URI, open: File.open(fixtures_dir.join('new.html')))
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
             _(content).must_be_instance_of Nokogiri::HTML5::Document
@@ -54,7 +54,7 @@ describe AIPP::Downloader do
       end
 
       it "downloads and caches PDF documents to AIPP::PDF" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
+        Spy.on(URI, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.pdf').tap do |content|
             _(content).must_be_instance_of AIPP::PDF
@@ -64,7 +64,7 @@ describe AIPP::Downloader do
       end
 
       it "downloads explicitly specified type" do
-        Spy.on(Kernel, open: File.open(fixtures_dir.join('new.pdf')))
+        Spy.on(URI, open: File.open(fixtures_dir.join('new.pdf')))
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new', type: :pdf).tap do |content|
             _(content).must_be_instance_of AIPP::PDF

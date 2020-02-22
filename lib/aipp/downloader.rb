@@ -58,7 +58,7 @@ module AIPP
       file = work_path.join([document, type].join('.'))
       unless file.exist?
         verbose_info "Downloading #{document}"
-        IO.copy_stream(Kernel.open(url), file)
+        IO.copy_stream(URI.open(url), file)
       end
       convert file
     end
