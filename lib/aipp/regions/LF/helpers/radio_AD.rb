@@ -71,17 +71,22 @@ module AIPP
                 frequency.remarks = [remarks, timetable.blank_to_nil].compact.join("\n").cleanup.blank_to_nil
               end
             )
-          end.values.map do |service|
-            AIXM.unit(
-              source: service.source,
-              organisation: organisation_lf,   # TODO: not yet implemented
-              type: service.guessed_unit_type,
-              name: @id,
-              class: :icao   # TODO: verify whether all units are ICAO
-            ).tap do |unit|
-              unit.airport = @airport
-              unit.add_service(service)
+          end.values.each_with_object(AIXM::Association::Array.new) do |service, units|
+            type = service.guessed_unit_type
+            unit = units.find(:unit, name: @id, type: type).first
+            unless unit
+              unit = AIXM.unit(
+                source: service.source,
+                organisation: organisation_lf,   # TODO: not yet implemented
+                type: type,
+                name: @id,
+                class: :icao   # TODO: verify whether all units are ICAO
+              ).tap do |unit|
+                unit.airport = @airport
+              end
+              units.send(:push, unit)
             end
+            unit.add_service(service)
           end
         end
 
