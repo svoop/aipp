@@ -52,7 +52,9 @@ module AIPP
                   airspace.add_layer layer_from(tds[1].text)
                   airspace.layers.first.timetable = timetable_from! tds[2].text
                   airspace.layers.first.remarks = remarks_from(tds[2], tds[3], tds[4])
-                  add airspace
+                  if aixm.features.find(:airspace, type: airspace.type, id: airspace.id).none?
+                    add airspace
+                  end
                 rescue => error
                   warn("error parsing airspace `#{airspace.name}' at ##{index}: #{error.message}", pry: error)
                 end
