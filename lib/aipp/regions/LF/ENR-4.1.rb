@@ -28,7 +28,9 @@ module AIPP
                 observations: tds[9]
               }
             )
-            add navigational_aid if navigational_aid
+            if navigational_aid && aixm.features.find(navigational_aid.class, id: navigational_aid.id, xy: navigational_aid.xy).none?
+              add navigational_aid
+            end
           rescue => error
             warn("error parsing navigational aid at ##{index}: #{error.message}", pry: error)
           end

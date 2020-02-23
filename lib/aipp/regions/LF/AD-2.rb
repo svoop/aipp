@@ -70,7 +70,9 @@ module AIPP
             addresses_from(trs).each { |a| @airport.add_address(a) }
             units_from(trs).each(&method(:add))
             # Navigational aids
-            navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).each(&method(:add))
+            navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).
+              reject { aixm.features.find(_1.class, id: _1.id, xy: _1.xy).any? }.
+              each(&method(:add))
             # Designated points
             unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
               pdf = read("VAC-#{@id}")
