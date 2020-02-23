@@ -77,7 +77,10 @@ module AIPP
               designated_points_from(pdf).tap do |designated_points|
                 fix_designated_point_remarks(designated_points)
 #               debug(designated_points)
-                designated_points.each(&method(:add))
+                designated_points.
+                  uniq(&:to_uid).
+                  reject { aixm.features.find(_1.class, id: _1.id, xy: _1.xy).any? }.
+                  each(&method(:add))
               end
             end
           rescue => error
