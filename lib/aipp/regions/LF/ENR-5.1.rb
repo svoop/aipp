@@ -24,6 +24,9 @@ module AIPP
         'ZIT' => { type: 'P', local_type: 'ZIT' }
       }.freeze
 
+      # Radius to use for zones consisting of one point only
+      POINT_RADIUS = AIXM.d(1, :km).freeze
+
       def parse
         skip = false
         prepare(html: read).css('h4, thead ~ tbody').each do |tag|
@@ -48,6 +51,14 @@ module AIPP
                 begin
                   tds = tr.css('td')
                   airspace.geometry = geometry_from tds[0].text
+                  if airspace.geometry.point?   # convert point to circle
+                    airspace.geometry = AIXM.geometry(
+                      AIXM.circle(
+                        center_xy: airspace.geometry.segments.first.xy,
+                        radius: POINT_RADIUS
+                      )
+                    )
+                  end
                   fail("geometry is not closed") unless airspace.geometry.closed?
                   airspace.add_layer layer_from(tds[1].text)
                   airspace.layers.first.timetable = timetable_from! tds[2].text
