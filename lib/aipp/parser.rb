@@ -111,42 +111,46 @@ module AIPP
 
     # Write the AIXM document and context information.
     def write_build
-      info("Writing build")
-      builds_path.mkpath
-      build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
-      Dir.mktmpdir do |tmp_dir|
-        tmp_dir = Pathname(tmp_dir)
-        # AIXM/OFMX file
-        AIXM.config.mid = true
-        File.write(tmp_dir.join(aixm_file), aixm.to_xml)
-        # Build details
-        File.write(
-          tmp_dir.join('build.yaml'), {
-            version: AIPP::VERSION,
-            config: @config,
-            options: @options
-          }.to_yaml
-        )
-        # Manifest
-        manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
-        File.open(tmp_dir.join(aixm_file)).each do |line|
-          buffer << line
-          case line
-          when /^ {2}<(\w{3}).*source=".*?\|.*?\|(.*?)\|/ then buffer, feature, aip = line, $1, $2
-          when /^ {4}<#{feature}Uid[^>]+?mid="(.*?)"/ then uid = $1
-          when /^ {2}<!-- (.*) -->/ then comment = $1
-          when /^ {2}<\/#{feature}>/
-            manifest << [aip, feature, uid[0,8], AIXM::PayloadHash.new(buffer).to_uuid[0,8], comment].to_csv
-            feature, aip, uid = '', '', ''
+      if @options[:aip]
+        info ("Skipping build")
+      else
+        info("Writing build")
+        builds_path.mkpath
+        build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
+        Dir.mktmpdir do |tmp_dir|
+          tmp_dir = Pathname(tmp_dir)
+          # AIXM/OFMX file
+          AIXM.config.mid = true
+          File.write(tmp_dir.join(aixm_file), aixm.to_xml)
+          # Build details
+          File.write(
+            tmp_dir.join('build.yaml'), {
+              version: AIPP::VERSION,
+              config: @config,
+              options: @options
+            }.to_yaml
+          )
+          # Manifest
+          manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
+          File.open(tmp_dir.join(aixm_file)).each do |line|
+            buffer << line
+            case line
+            when /^ {2}<(\w{3}).*source=".*?\|.*?\|(.*?)\|/ then buffer, feature, aip = line, $1, $2
+            when /^ {4}<#{feature}Uid[^>]+?mid="(.*?)"/ then uid = $1
+            when /^ {2}<!-- (.*) -->/ then comment = $1
+            when /^ {2}<\/#{feature}>/
+              manifest << [aip, feature, uid[0,8], AIXM::PayloadHash.new(buffer).to_uuid[0,8], comment].to_csv
+              feature, aip, uid = '', '', ''
+            end
           end
-        end
-        manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
-        File.write(tmp_dir.join('manifest.csv'), manifest.join)
-        # Zip it
-        build_file.delete if build_file.exist?
-        Zip::File.open(build_file, Zip::File::CREATE) do |zip|
-          tmp_dir.children.each do |entry|
-            zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
+          manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
+          File.write(tmp_dir.join('manifest.csv'), manifest.join)
+          # Zip it
+          build_file.delete if build_file.exist?
+          Zip::File.open(build_file, Zip::File::CREATE) do |zip|
+            tmp_dir.children.each do |entry|
+              zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
+            end
           end
         end
       end
