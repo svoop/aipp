@@ -22,11 +22,12 @@ module AIPP
             type = tds[0].text.strip
             next if IGNORED_TYPES.include? type
             f, callsign, _, remarks = parts_from(tds).values
+            callsign = callsign.split(/\n\s*/).join('/')
             if ADDRESS_TYPES.include?(type)
               AIXM.address(
                 source: source(position: tr.line),
                 type: :radio_frequency,
-                address: f.to_s
+                address: f.freq.to_s
               ).tap do |address|
                 address.remarks = ["#{type} - indicatif/callsign #{callsign}", remarks.blank_to_nil].compact.join("\n")
               end
@@ -34,7 +35,7 @@ module AIPP
           end.compact
         end
 
-        def units_from(trs)
+        def units_from(trs, airport:)
           return [] if trs.text.blank?
           trs.each_with_object({}) do |tr, services|
             tds = tr.css('td')
@@ -73,16 +74,16 @@ module AIPP
             )
           end.values.each_with_object(AIXM::Association::Array.new) do |service, units|
             type = service.guessed_unit_type
-            unit = units.find(:unit, name: @id, type: type).first
+            unit = units.find(:unit, name: airport.id, type: type).first
             unless unit
               unit = AIXM.unit(
                 source: service.source,
                 organisation: organisation_lf,   # TODO: not yet implemented
                 type: type,
-                name: @id,
+                name: airport.id,
                 class: :icao   # TODO: verify whether all units are ICAO
               ).tap do |unit|
-                unit.airport = @airport
+                unit.airport = airport
               end
               units.send(:push, unit)
             end
