@@ -64,7 +64,9 @@ module AIPP
             @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
             add @airport
             # Airspaces
-            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).each(&method(:add))
+            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).
+              reject { aixm.features.find(_1.class, type: _1.type, id: _1.id).any? }.
+              each(&method(:add))
             # Radio
             trs = html.css('div[id*="-AD-2\.18"] tbody tr')
             addresses_from(trs).each { |a| @airport.add_address(a) }
