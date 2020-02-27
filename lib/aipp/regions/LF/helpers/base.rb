@@ -141,6 +141,14 @@ module AIPP
           end
         end
 
+        def d_from(text)
+          case text
+            when nil then nil
+            when /(\d+)(\w+)/ then AIXM.d($1.to_i, $2.to_sym)
+            else fail "d `#{text}' not recognized"
+          end
+        end
+
         def elevation_from(text)
           value, unit = text.strip.split
           AIXM.z(AIXM.d(value.to_i, unit).to_ft.dist, :qnh)
