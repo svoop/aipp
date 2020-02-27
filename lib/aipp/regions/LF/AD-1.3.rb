@@ -42,7 +42,7 @@ module AIPP
             @airport = airport_from tr
             verbose_info "Parsing #{@airport.id}"
             ad2_exists = false
-            if airport = find(:airport, id: @airport.id).first
+            if airport = find_by(:airport, id: @airport.id).first
               ad2_exists = true
               @airport = airport
             end

@@ -65,7 +65,7 @@ module AIPP
             add @airport
             # Airspaces
             airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).
-              reject { aixm.features.find(_1.class, type: _1.type, id: _1.id).any? }.
+              reject { aixm.features.find_by(_1.class, type: _1.type, id: _1.id).any? }.
               each(&method(:add))
             # Radio
             trs = html.css('div[id*="-AD-2\.18"] tbody tr')
@@ -73,7 +73,7 @@ module AIPP
             units_from(trs, airport: @airport).each(&method(:add))
             # Navigational aids
             navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).
-              reject { aixm.features.find(_1.class, id: _1.id, xy: _1.xy).any? }.
+              reject { aixm.features.find_by(_1.class, id: _1.id, xy: _1.xy).any? }.
               each(&method(:add))
             # Designated points
             unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
@@ -83,7 +83,7 @@ module AIPP
 #               debug(designated_points)
                 designated_points.
                   uniq(&:to_uid).
-                  reject { aixm.features.find(_1.class, id: _1.id, xy: _1.xy).any? }.
+                  reject { aixm.features.find_by(_1.class, id: _1.id, xy: _1.xy).any? }.
                   each(&method(:add))
               end
             end

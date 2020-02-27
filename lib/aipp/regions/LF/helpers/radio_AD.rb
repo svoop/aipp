@@ -74,10 +74,10 @@ module AIPP
             )
           end.values.each_with_object(AIXM::Association::Array.new) do |service, units|
             type = service.guessed_unit_type
-            unit = units.find(:unit, name: airport.id, type: type).first
+            unit = units.find_by(:unit, name: airport.id, type: type).first
             unless unit
               unit = AIXM.unit(
-                source: service.source,
+                source: @source,   # TODO
                 organisation: organisation_lf,   # TODO: not yet implemented
                 type: type,
                 name: airport.id,

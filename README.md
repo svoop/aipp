@@ -141,7 +141,8 @@ Inside the `parse` method, you have access to the following methods:
 
 * [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
 * [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
-* [`find`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) – find previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+* [`find`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) – find previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature) by object
+* [`find_by`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find_by-instance_method) – find previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature) by class and attribute values
 * [`unique`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#unique-instance_method) – prevent duplicate [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
 * some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
 * core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`Hash`](https://www.rubydoc.info/gems/aipp/Hash) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)

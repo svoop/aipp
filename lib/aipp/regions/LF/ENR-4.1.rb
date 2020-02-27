@@ -28,7 +28,7 @@ module AIPP
                 observations: tds[9]
               }
             )
-            if navigational_aid && aixm.features.find(navigational_aid.class, id: navigational_aid.id, xy: navigational_aid.xy).none?
+            if navigational_aid && aixm.features.find_by(navigational_aid.class, id: navigational_aid.id, xy: navigational_aid.xy).none?
               add navigational_aid
             end
           rescue => error

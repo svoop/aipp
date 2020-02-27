@@ -21,7 +21,7 @@ module AIPP
             trs = Nokogiri::XML::NodeSet.new(document, trs)   # convert array to node set
             id = tr.css('span[id*="CODE_ICAO"]').text.cleanup
             next unless id = ID_FIXES.fetch(id, id)
-            @airport = find(:airport, id: id).first
+            @airport = find_by(:airport, id: id).first
             addresses_from(trs).each { |a| @airport.add_address(a) }
             units_from(trs, airport: @airport).each(&method(:add))
           end

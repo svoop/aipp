@@ -57,19 +57,22 @@ module AIPP
       aixm.add_feature feature
     end
 
-    # Search features previously written to AIXM and return those matching the
-    # given class and attribute values
+    # @!method find_by(klass, attributes={})
+    #   Find objects of the given class and optionally with the given attribute
+    #   values previously written to AIXM.
     #
-    # @example
-    #   find(:airport, id: "LFNT")
+    #   @note This method is delegated to +AIXM::Association::Array+.
+    #   @see https://www.rubydoc.info/gems/aixm/AIXM/Association/Array#find_by-instance_method
     #
-    # @param klass [Class, Symbol] feature class like AIXM::Feature::Airport or
-    #   AIXM::Feature::NavigationalAid::VOR, shorthand notations as symbols
-    #   e.g. :airport or :vor as listed in AIXM::CLASSES are recognized as well
-    # @param attributes [Hash] filter by these attributes and their values
-    # @return [Array<AIXM::Feature>]
-    def find(*args)
-      aixm.features.find(*args)
+    # @!method find(object)
+    #   Find equal objects previously written to AIXM.
+    #
+    #   @note This method is delegated to +AIXM::Association::Array+.
+    #   @see https://www.rubydoc.info/gems/aixm/AIXM/Association/Array#find-instance_method
+    %i(find_by find).each do |method|
+      define_method method do |*args|
+        aixm.features.send(method, *args)
+      end
     end
   end
 

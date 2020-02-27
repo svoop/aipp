@@ -26,7 +26,7 @@ module AIPP
         prepare(html: read).css('tbody').each do |tbody|
           tbody.css('tr').to_enum.each_slice(3).with_index(1) do |trs, index|
             name = trs[0].css('span[id*="ADHP.TXT_NAME"]').text.cleanup.remove(/[^\w' ]/)
-            if find(:airport, name: name).any?
+            if find_by(:airport, name: name).any?
               verbose_info "Skipping #{name} in favor of AD-2"
               next
             end
