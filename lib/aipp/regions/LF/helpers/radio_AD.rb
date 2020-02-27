@@ -55,8 +55,10 @@ module AIPP
               remarks = [SERVICE_TYPES.dig(type, :remarks), remarks.blank_to_nil].compact.join("\n")
             end
             unless services.include? type
+@source = source(position: tr.line)   # TODO
               services[type] = AIXM.service(
-                source: source(position: tr.line),
+# TODO: add source as soon as it is supported by components
+#               source: source(position: tr.line),
                 type: type
               )
             end

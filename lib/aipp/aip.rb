@@ -52,9 +52,11 @@ module AIPP
     # Add feature to AIXM
     #
     # @param feature [AIXM::Feature] e.g. airport or airspace
+    # @return [AIXM::Feature] added feature
     def add(feature)
       verbose_info "Adding #{feature.inspect}"
       aixm.add_feature feature
+      feature
     end
 
     # @!method find_by(klass, attributes={})
