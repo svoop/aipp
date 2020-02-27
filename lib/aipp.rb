@@ -41,6 +41,8 @@ require_relative 'aipp/parser'
 require_relative 'aipp/downloader'
 
 # Disable "did you mean?" suggestions
+#
+# @!visibility private
 module DidYouMean::Correctable
   remove_method :to_s
 end
