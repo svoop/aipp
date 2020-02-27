@@ -92,6 +92,11 @@ class String
     remove(/\A[^\p{L}\p{N}]*|[^\p{L}\p{N}]*\z/)
   end
 
+  # Similar to +scan+, but remove matches from the string
+  def extract(pattern)
+    scan(pattern).tap { remove! pattern }
+  end
+
   # Same as +to_f+ but accept both dot and comma as decimal separator
   #
   # @example

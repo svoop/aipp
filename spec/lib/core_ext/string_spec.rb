@@ -99,6 +99,21 @@ describe String do
     end
   end
 
+  describe :extract do
+    subject do
+      "This is #first# a test #second# of extract."
+    end
+
+    it "must return array of matches" do
+      _(subject.extract(/#.+?#/)).must_equal ['#first#', '#second#']
+    end
+
+    it "removes matches from the string" do
+      subject.extract(/#.+?#/)
+      _(subject).must_equal "This is  a test  of extract."
+    end
+  end
+
   describe :unglue do
     it "must insert spaces between camel glued words" do
       _("thisString has spaceProblems".unglue).must_equal "this String has space Problems"
