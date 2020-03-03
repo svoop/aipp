@@ -69,7 +69,7 @@ module AIPP
       regions_path = Pathname($0).dirname.join('..', 'gems', "aipp-#{AIPP::VERSION}", 'lib', 'aipp', 'regions')
       hash = Dir.each_child(regions_path).each.with_object({}) do |region, hash|
         hash[region] = Dir.children(regions_path.join(region)).sort.map do |aip|
-          File.basename(aip, '.rb') unless aip == 'helper.rb'
+          File.basename(aip, '.rb') if File.file?(regions_path.join(region, aip))
         end.compact
       end
       puts hash.to_yaml.sub(/\A\W*/, '')
