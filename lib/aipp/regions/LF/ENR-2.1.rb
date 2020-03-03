@@ -6,6 +6,9 @@ module AIPP
 
       include AIPP::LF::Helpers::Base
 
+      # Airspaces to be ignored
+      NAME_BLACKLIST_RE = /deleg/i.freeze
+
       # Map source types to type and optional local type
       SOURCE_TYPES = {
         'FIR' => { type: 'FIR' },
@@ -27,7 +30,7 @@ module AIPP
       }.freeze
 
       # Fix incomplete SIV service columns
-      FIX_SERVICES = {
+      SERVICE_FIXES = {
         "IROISE INFO 135.825 / 119.575 (1)" => "APP IROISE\nIROISE INFO 135.825 / 119.575 (1)",
         "APP TOULOUSE\nTOULOUSE INFO" => "APP TOULOUSE\nTOULOUSE INFO 121.250"
       }.freeze
@@ -37,7 +40,13 @@ module AIPP
           airspace = nil
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)
-              add airspace if airspace
+              if airspace
+                if airspace.name.match? NAME_BLACKLIST_RE
+                  verbose_info "Ignoring #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
+                else
+                  add airspace
+                end
+              end
               airspace = airspace_from tr.css(:td).first
               verbose_info "Parsing #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
               next
@@ -45,7 +54,13 @@ module AIPP
             begin
               tds = tr.css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
-                add airspace if airspace.layers.any?
+                if airspace.layers.any?
+                  if airspace.name.match? NAME_BLACKLIST_RE
+                    verbose_info "Ignoring #{airspace.type} #{airspace.name}"
+                  else
+                    add airspace
+                  end
+                end
                 airspace = airspace_from tds[0]
                 verbose_info "Parsing #{airspace.type} #{airspace.name}"
               end
@@ -94,7 +109,7 @@ module AIPP
 
       def services_from(td, remarks)
         text = td.text.cleanup
-        text = FIX_SERVICES.fetch(text, text)   # fix incomplete service columns
+        text = SERVICE_FIXES.fetch(text, text)   # fix incomplete service columns
         text.gsub!(/(info|app)\s+([\d.]{3,})/i, "\\1\n\\2")   # put frequencies on separate line
         text.gsub!(/(\d)\s*\/\s*(\d)/, "\\1\n\\2")   # split frequencies onto separate lines
         units, services = [], []
