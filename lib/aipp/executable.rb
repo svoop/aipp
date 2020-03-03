@@ -18,7 +18,10 @@ module AIPP
         o.on('-d', '--airac DATE', String, %Q[AIRAC date (default: "#{@options[:airac].date.xmlschema}")]) { |v| @options[:airac] = AIPP::AIRAC.new(v) }
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { |v| @options[:region] = v.upcase }
         o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { |v| @options[:aip] = v.upcase }
-        o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { |v| @options[:mid] = v }
+        if options[:schema] == :ofmx
+          o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (time-consuming!)') { |v| @options[:grouped_obstacles] = v }
+          o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { |v| @options[:mid] = v }
+        end
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { |v| @options[:storage] = Pathname(v) }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
         o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { |v| $VERBOSE_INFO = v }

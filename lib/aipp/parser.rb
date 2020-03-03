@@ -90,6 +90,10 @@ module AIPP
           ).attach_patches.tap(&:parse).detach_patches
         end
       end
+      if options[:grouped_obstacles]
+        info("Grouping obstacles")
+        aixm.group_obstacles!
+      end
       info("Counting #{aixm.features.count} features")
     end
 
