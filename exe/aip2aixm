@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-# TODO: hide deprecations unless in gem root until fully complying with Ruby 2.7
-Warning[:deprecated] = Dir.pwd.match? /aipp$/
-
 require 'bundler/inline'
 
 gemfile do
