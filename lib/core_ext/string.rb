@@ -23,7 +23,7 @@ class String
     gsub(/[#{AIXM::MIN}]{2}|[#{AIXM::SEC}]/, '"').   # unify quotes
       gsub(/[#{AIXM::MIN}]/, "'").   # unify apostrophes
       gsub(/"[[:blank:]]*(.*?)[[:blank:]]*"/m, '"\1"').   # remove whitespace within quotes
-      split(/\r?\n/).map { |s| s.strip.blank_to_nil }.compact.join("\n")   # remove blank lines
+      split(/\r?\n/).map { _1.strip.blank_to_nil }.compact.join("\n")   # remove blank lines
   end
 
   # Strip and collapse unnecessary whitespace
@@ -36,7 +36,7 @@ class String
   #
   # @return [String] compacted string
   def compact
-    split("\n").map { |s| s.squish.blank_to_nil }.compact.join("\n")
+    split("\n").map { _1.squish.blank_to_nil }.compact.join("\n")
   end
 
   # Calculate the correlation of two strings by counting mutual words
@@ -79,8 +79,8 @@ class String
         gsub(/\b(\w)\s?(\d+)\b/, '\1\2').
         compact.
         split(/\W+/).
-        map { |w| (i = synonyms.index(w)).nil? ? w : (i.odd? ? w : synonyms[i + 1]).upcase }.
-        keep_if { |w| w.match?(/\w{5,}|\w\d+|[[:upper:]]/) }.
+        map { (i = synonyms.index(_1)).nil? ? _1 : (i.odd? ? _1 : synonyms[i + 1]).upcase }.
+        keep_if { _1.match?(/\w{5,}|\w\d+|[[:upper:]]/) }.
         uniq
     end
     (self_words & other_words).count

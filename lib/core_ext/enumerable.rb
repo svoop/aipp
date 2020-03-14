@@ -5,11 +5,11 @@ module Enumerable
   #   returning an array of these sub-enumerables.
   #
   #   @example
-  #     [1, 2, 0, 3, 4].split { |e| e == 0 }   # => [[1, 2], [3, 4]]
-  #     [1, 2, 0, 3, 4].split(0)               # => [[1, 2], [3, 4]]
-  #     [0, 0, 1, 0, 2].split(0)               # => [[], [] [1], [2]]
-  #     [1, 0, 0, 2, 3].split(0)               # => [[1], [], [2], [3]]
-  #     [1, 0, 2, 0, 0].split(0)               # => [[1], [2]]
+  #     [1, 2, 0, 3, 4].split { _1 == 0 }   # => [[1, 2], [3, 4]]
+  #     [1, 2, 0, 3, 4].split(0)            # => [[1, 2], [3, 4]]
+  #     [0, 0, 1, 0, 2].split(0)            # => [[], [] [1], [2]]
+  #     [1, 0, 0, 2, 3].split(0)            # => [[1], [], [2], [3]]
+  #     [1, 0, 2, 0, 0].split(0)            # => [[1], [2]]
   #
   #   @note While similar to +Array#split+ from ActiveSupport, this core
   #     extension works for all enumerables and therefore works fine with.
@@ -35,7 +35,7 @@ module Enumerable
   #   an array of subsequent elements which don't match the chunk condition.
   #
   #   @example
-  #     [1, 10, 11, 12, 2, 20, 21, 3, 30, 31, 32].group_by_chunks { |i| i < 10 }
+  #     [1, 10, 11, 12, 2, 20, 21, 3, 30, 31, 32].group_by_chunks { _1 < 10 }
   #     # => { 1 => [10, 11, 12], 2 => [20, 21], 3 => [30, 31, 32] }
   #
   #   @note The first element must match the chunk condition.
@@ -46,7 +46,7 @@ module Enumerable
   #   @return [Hash]
   def group_by_chunks
     fail(ArgumentError, "first element must match chunk condition") unless yield(first)
-    slice_when { |_, e| yield(e) }.map { |e| [e.first, e[1..]] }.to_h
+    slice_when { yield(_2) }.map { [_1.first, _1[1..]] }.to_h
   end
 
 end

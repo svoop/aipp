@@ -25,7 +25,7 @@ module AIPP
     def tsort(node=nil)
       if node
         subhash = subhash_for node
-        super().select { |n| subhash.include? n }
+        super().select { subhash.include? _1 }
       else
         super()
       end
@@ -37,7 +37,7 @@ module AIPP
       memo.tap do |m|
         fail TSort::Cyclic if m.include? node
         m << node
-        fetch(node).each { |n| subhash_for(n, m) }
+        fetch(node).each { subhash_for(_1, m) }
       end
     end
 

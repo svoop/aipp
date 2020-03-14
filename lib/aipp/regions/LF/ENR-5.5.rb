@@ -22,7 +22,7 @@ module AIPP
               id, activity_and_name, upper_limit, timetable = trs.first.css('td')
               activity, name = activity_and_name.css('span')
               lateral_limit, lower_limit, remarks = trs.last.css('td')
-              lateral_limit.search('br').each { |br| br.replace("|||") }
+              lateral_limit.search('br').each { _1.replace("|||") }
               geometry, lateral_limit = lateral_limit.text.split('|||', 2)
               lateral_limit&.gsub!('|||', "\n")
               remarks = [remarks&.text&.cleanup&.blank_to_nil]

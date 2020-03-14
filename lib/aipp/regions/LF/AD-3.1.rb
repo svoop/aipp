@@ -55,7 +55,7 @@ module AIPP
             text = trs[2].css('span[id*="ADHP.REVETEMENT"]').text.remove(/tlof\s*|\s*\(.*?\)/i).downcase.compact
             surface = text.blank? ? {} : SURFACES.metch(text)
             lighting = lighting_from(trs[1].css('span[id*="ADHP.BALISAGE"]').text.cleanup)
-            fatos_from(trs[1].css('span[id*="ADHP.DIM_FATO"]').text).each { |f| @airport.add_fato f }
+            fatos_from(trs[1].css('span[id*="ADHP.DIM_FATO"]').text).each { @airport.add_fato(_1) }
             helipads_from(trs[1].css('span[id*="ADHP.DIM_TLOF"]').text).each do |helipad|
               helipad.surface.composition = surface[:composition]
               helipad.surface.preparation = surface[:preparation]
@@ -69,7 +69,7 @@ module AIPP
             splitted = operator.text.split(/( (?<!\p{L})t[ée]l | fax | standard | [\d\s]{10,} | \.\s | \( )/ix, 2)
             @airport.operator = splitted[0].full_strip.truncate(60, omission: '…').blank_to_nil
             raw_addresses = splitted[1..].join.cleanup.full_strip
-            addresses_from(splitted[1..].join, source(position: operator.first.line)).each { |a| @airport.add_address(a) }
+            addresses_from(splitted[1..].join, source(position: operator.first.line)).each { @airport.add_address(_1) }
             # Remarks
             @airport.remarks = [].tap do |remarks|
               hostility = trs[2].css('span[id*="ADHP.ZONE_HABITEE"]').text.cleanup.downcase.blank_to_nil
@@ -109,7 +109,7 @@ module AIPP
       end
 
       def dimensions_from(text)
-        dims = text.remove(/[^x\d.,]/i).split(/x/i).map { |s| s.to_ff.floor }
+        dims = text.remove(/[^x\d.,]/i).split(/x/i).map { _1.to_ff.floor }
         case dims.size
         when 1
           [dim = AIXM.d(dims[0], :m), dim]

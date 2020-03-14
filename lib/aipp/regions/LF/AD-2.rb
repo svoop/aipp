@@ -58,8 +58,8 @@ module AIPP
   #           airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
               airport.timetable = timetable_from!(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
             end
-            runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { |r| @airport.add_runway(r) if r }
-            helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { |h| @airport.add_helipad(h) if h }
+            runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { @airport.add_runway(_1) if _1 }
+            helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { @airport.add_helipad(_1) if _1 }
             text = html.css('#AD-2\.2-Observations td:nth-of-type(3)').text
             @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
             add @airport
@@ -69,7 +69,7 @@ module AIPP
               each(&method(:add))
             # Radio
             trs = html.css('div[id*="-AD-2\.18"] tbody tr')
-            addresses_from(trs).each { |a| @airport.add_address(a) }
+            addresses_from(trs).each { @airport.add_address(_1) }
             units_from(trs, airport: @airport).each(&method(:add))
             # Navigational aids
             navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).

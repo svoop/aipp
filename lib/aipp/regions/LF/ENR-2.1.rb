@@ -91,7 +91,7 @@ module AIPP
       private
 
       def airspace_from(td)
-        spans = td.children.split { |e| e.name == 'br' }.first.css(:span).drop_while { |e| e.text.match? '\s' }
+        spans = td.children.split { _1.name == 'br' }.first.css(:span).drop_while { _1.text.match? '\s' }
         source_type = spans[0].text.blank_to_nil
         fail "unknown type `#{source_type}'" unless SOURCE_TYPES.has_key? source_type
         AIXM.airspace(

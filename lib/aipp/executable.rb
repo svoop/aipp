@@ -15,18 +15,18 @@ module AIPP
           Download online AIP and convert it to #{options[:schema].upcase}.
           Usage: #{File.basename($0)} [options]
         END
-        o.on('-d', '--airac DATE', String, %Q[AIRAC date (default: "#{@options[:airac].date.xmlschema}")]) { |v| @options[:airac] = AIPP::AIRAC.new(v) }
-        o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { |v| @options[:region] = v.upcase }
-        o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { |v| @options[:aip] = v.upcase }
+        o.on('-d', '--airac DATE', String, %Q[AIRAC date (default: "#{@options[:airac].date.xmlschema}")]) { @options[:airac] = AIPP::AIRAC.new(_1) }
+        o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { @options[:region] = _1.upcase }
+        o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { @options[:aip] = _1.upcase }
         if options[:schema] == :ofmx
-          o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (time-consuming!)') { |v| @options[:grouped_obstacles] = v }
-          o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { |v| @options[:mid] = v }
+          o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (time-consuming!)') { @options[:grouped_obstacles] = _1 }
+          o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { @options[:mid] = _1 }
         end
-        o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { |v| @options[:storage] = Pathname(v) }
-        o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { |v| @options[:force] = v }
-        o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { |v| $VERBOSE_INFO = v }
-        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { |v| $PRY_ON_WARN = v || true }
-        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { |v| $PRY_ON_ERROR = v }
+        o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { @options[:storage] = Pathname(_1) }
+        o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { @options[:force] = _1 }
+        o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { $VERBOSE_INFO = _1 }
+        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { $PRY_ON_WARN = _1 || true }
+        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { $PRY_ON_ERROR = _1 }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
         o.on('-L', '--list', 'list implemented regions and AIPs') { list }

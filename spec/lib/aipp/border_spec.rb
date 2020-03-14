@@ -18,11 +18,11 @@ describe AIPP::Border::Position do
     end
 
     it "returns nil if the geometry index is out of bounds" do
-      _(subject.tap { |s| s.geometry_index = 2 }.xy).must_be_nil
+      _(subject.tap { _1.geometry_index = 2 }.xy).must_be_nil
     end
 
     it "returns nil if the coordinates index is out of bounds" do
-      _(subject.tap { |s| s.coordinates_index = 3 }.xy).must_be_nil
+      _(subject.tap { _1.coordinates_index = 3 }.xy).must_be_nil
     end
   end
 end

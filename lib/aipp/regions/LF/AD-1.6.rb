@@ -17,12 +17,12 @@ module AIPP
       def parse
         document = prepare(html: read)
         document.css('tbody').each do |tbody|
-          tbody.css('tr').group_by_chunks { |e| e.attr(:id).match?(/-TXT_NAME-/) }.each do |tr, trs|
+          tbody.css('tr').group_by_chunks { _1.attr(:id).match?(/-TXT_NAME-/) }.each do |tr, trs|
             trs = Nokogiri::XML::NodeSet.new(document, trs)   # convert array to node set
             id = tr.css('span[id*="CODE_ICAO"]').text.cleanup
             next unless id = ID_FIXES.fetch(id, id)
             @airport = find_by(:airport, id: id).first
-            addresses_from(trs).each { |a| @airport.add_address(a) }
+            addresses_from(trs).each { @airport.add_address(_1) }
             units_from(trs, airport: @airport).each(&method(:add))
           end
         end

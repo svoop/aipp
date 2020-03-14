@@ -117,7 +117,7 @@ module AIPP
     end
 
     def page_for(index:)
-      @page_ranges.index(@page_ranges.bsearch { |i| i >= index }) + 1
+      @page_ranges.index(@page_ranges.bsearch { _1 >= index }) + 1
     end
   end
 end

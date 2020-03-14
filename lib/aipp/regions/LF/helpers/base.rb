@@ -155,7 +155,7 @@ module AIPP
         end
 
         def layer_from(text_for_limit, text_for_class=nil)
-          above, below = text_for_limit.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { |e| e.match? '---+' }
+          above, below = text_for_limit.gsub(/ /, '').split(/\n+/).select(&:blank_to_nil).split { _1.match? '---+' }
           AIXM.layer(
             class: text_for_class,
             vertical_limit: AIXM.vertical_limit(
