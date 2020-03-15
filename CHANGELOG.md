@@ -1,6 +1,10 @@
-## 0.2.6 (unreleased)
-* Require Ruby 2.7
+## 0.2.6
+
+#### Additions
 * Detect duplicate features
+
+#### Changes
+* Require Ruby 2.7
 
 ## 0.2.5
 
