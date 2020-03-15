@@ -25,16 +25,34 @@ This gem incluces two executables to download and parse aeronautical data as HTM
 
 ## Install
 
+### Security
+
+This gem is [cryptographically signed](https://guides.rubygems.org/security/#using-gems) in order to assure it hasn't been tampered with. Unless already done, please add the author's public key as a trusted certificate now:
+
+```
+gem cert --add <(curl -Ls https://raw.github.com/svoop/aipp/master/certs/svoop.pem)
+```
+
+### Standalone
+
 Make sure to have the [latest version of Ruby](https://www.ruby-lang.org/en/documentation/installation/) and then install this gem:
 
 ```
-gem install aipp
+gem install aipp --trust-policy MediumSecurity
 ```
 
-However, if you're familiar with [Bundler](https://bundler.io) powered Ruby projects, you might prefer to add the following to your <tt>Gemfile</tt> or <tt>gems.rb</tt>:
+### Bundler
+
+If you're familiar with [Bundler](https://bundler.io) powered Ruby projects, you might prefer to add the following to your <tt>Gemfile</tt> or <tt>gems.rb</tt>:
 
 ```ruby
 gem aipp
+```
+
+And then install the bundle:
+
+```
+bundle install --trust-policy MediumSecurity
 ```
 
 ## Usage
