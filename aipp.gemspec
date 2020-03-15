@@ -42,7 +42,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.7.0'
 
-  spec.add_runtime_dependency 'aixm', '>= 0.3.9'
+  spec.add_runtime_dependency 'aixm', '>= 0.3.10'
   spec.add_runtime_dependency 'activesupport', '~> 5'
   spec.add_runtime_dependency 'nokogiri', '~> 1'
   spec.add_runtime_dependency 'nokogumbo', '~> 2'
