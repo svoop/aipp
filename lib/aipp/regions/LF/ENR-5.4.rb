@@ -7,7 +7,7 @@ module AIPP
       include AIPP::LF::Helpers::Base
 
       # Obstacles to be ignored
-      NAME_BLACKLIST = %w(51076 52055 59000 72039).freeze   # all duplicates
+      NAME_BLACKLIST = %w(10051 55050 51076 59000 72039 80088).freeze   # all duplicates
 
       # Map type descriptions to AIXM types and remarks
       TYPES = {

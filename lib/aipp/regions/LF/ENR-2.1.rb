@@ -20,7 +20,7 @@ module AIPP
         'CTA' => { type: 'CTA' },
         'LTA' => { type: 'CTA', local_type: 'LTA' },
         'TMA' => { type: 'TMA' },
-        'SIV' => { type: 'SECTOR', local_type: 'SIV' }   # providing FIS
+        'SIV' => { type: 'SECTOR', local_type: 'FIZ/SIV' }   # providing FIS
       }.freeze
 
       # Map airspace "<type> <name>" to location indicator
@@ -76,7 +76,7 @@ module AIPP
                 layer = layer_from(tds[-3].text)
                 layer.class = class_from(tds[1].text) if tds.count == 5
                 layer.location_indicator = LOCATION_INDICATORS.fetch("#{airspace.type} #{airspace.name}", nil)
-                if airspace.local_type == 'SIV'   # services parsed for SIV only
+                if airspace.local_type == 'FIZ/SIV'   # services parsed for FIZ/SIV only
                   layer.add_services services_from(tds[-2], remarks)
                 end
                 layer.timetable = timetable_from! remarks
