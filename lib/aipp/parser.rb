@@ -135,20 +135,19 @@ module AIPP
             }.to_yaml
           )
           # Manifest
-          manifest, buffer, feature, aip, uid, comment = [], '', '', '', '', ''
-          File.open(tmp_dir.join(aixm_file)).each do |line|
-            buffer << line
-            case line
-            when /^ {2}<(\w{3}).*source=".*?\|.*?\|(.*?)\|/ then buffer, feature, aip = line, $1, $2
-            when /^ {4}<#{feature}Uid[^>]+?mid="(.*?)"/ then uid = $1
-            when /^ {2}<!-- (.*) -->/ then comment = $1
-            when /^ {2}<\/#{feature}>/
-              manifest << [aip, feature, uid[0,8], AIXM::PayloadHash.new(buffer).to_uuid[0,8], comment].to_csv
-              feature, aip, uid = '', '', ''
-            end
-          end
-          manifest = manifest.sort.prepend "AIP,Feature,Short Uid Hash,Short Feature Hash,Comment\n"
-          File.write(tmp_dir.join('manifest.csv'), manifest.join)
+          manifest = ['AIP','Feature', 'Comment', 'Short Uid Hash', 'Short Feature Hash'].to_csv
+          manifest += aixm.features.map do |feature|
+            xml = feature.to_xml
+            element = xml.match(/<(\w{3})\s/)[1]
+            [
+              feature.source.split('|')[2],
+              element,
+              xml.match(/<!-- (.*?) -->/)[1],
+              AIXM::PayloadHash.new(xml.match(%r(<#{element}Uid\s.*?</#{element}Uid>)m).to_s).to_uuid[0,8],
+              AIXM::PayloadHash.new(xml).to_uuid[0,8]
+            ].to_csv
+          end.sort.join
+          File.write(tmp_dir.join('manifest.csv'), manifest)
           # Zip it
           build_file.delete if build_file.exist?
           Zip::File.open(build_file, Zip::File::CREATE) do |zip|

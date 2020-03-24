@@ -1,6 +1,8 @@
 ## 0.2.7 (unreleased)
 
-Nothing so far
+#### Breaking Changes
+* Improve calculation of short feature hash in manifest in order to include
+  e.g. geometries of airspaces.
 
 ## 0.2.6
 
