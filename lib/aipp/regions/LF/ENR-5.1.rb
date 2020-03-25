@@ -78,10 +78,12 @@ module AIPP
       private
 
       def airspace_from(tr)
-        region, source_type, name = tr.text.cleanup.gsub(/\s/, ' ').split(nil, 3)
+        region, source_type, id = tr.css('td').first.text.cleanup.gsub(/\s/, ' ').split(nil, 3)
+        id.remove!(/\W/)
+        name = tr.css('td').last.text.cleanup.gsub(/\s/, ' ')
         fail "unknown type `#{source_type}'" unless SOURCE_TYPES.has_key? source_type
         AIXM.airspace(
-          name: [region, source_type, name].join(' '),
+          name: "#{region}-#{source_type}#{id} #{name}",
           type: SOURCE_TYPES.dig(source_type, :type),
           local_type: SOURCE_TYPES.dig(source_type, :local_type)
         ).tap do |airspace|
