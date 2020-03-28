@@ -51,6 +51,7 @@ module AIPP
             z: z_from(elevation + 'AMSL')
           ).tap do |obstacle|
             obstacle.height = d_from(height)
+            obstacle.height_accurate = true
             obstacle.marking = visibility.match?(/jour/i)
             obstacle.lighting = visibility.match?(/nuit/i)
             obstacle.remarks = remarks_from(type_remarks, (count if count > 1), tds[6].text)
