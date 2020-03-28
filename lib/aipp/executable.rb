@@ -19,7 +19,7 @@ module AIPP
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { @options[:region] = _1.upcase }
         o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { @options[:aip] = _1.upcase }
         if options[:schema] == :ofmx
-          o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (time-consuming!)') { @options[:grouped_obstacles] = _1 }
+          o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (default: false)') { @options[:grouped_obstacles] = _1 }
           o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { @options[:mid] = _1 }
         end
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { @options[:storage] = Pathname(_1) }
