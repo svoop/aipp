@@ -92,6 +92,29 @@ class String
     remove(/\A[^\p{L}\p{N}]*|[^\p{L}\p{N}]*\z/)
   end
 
+  # Apply the pattern and return...
+  # * first capture group - if the pattern matches and contains a capture group
+  # * entire match - if the pattern matches and contains no capture group
+  # * +default+ - if it doesn't match but has a +default+ set
+  # * +nil+ - if it doesn't match and doesn't have a +default+ set
+  #
+  # @example
+  #   "A/A: 123.5 mhz".first_match(/123\.5/)                   # => "123.5"
+  #   "A/A: 123.5 mhz".first_match(/:\s+([\d.]+)/)             # => "123.5"
+  #   "A/A: 123.5 mhz".first_match(/121\.5/)                   # nil
+  #   "A/A: 123.5 mhz".first_match(/(121\.5)/)                 # nil
+  #   "A/A: 123.5 mhz".first_match(/121\.5/, default: "123")   # "123"
+  #
+  # @param pattern [Regexp] pattern to apply
+  # @param default [String] string to return instead of +nil+ if the pattern
+  #   doesn't match
+  # @return [String, nil]
+  def first_match(pattern, default: nil)
+    if captures = match(pattern)
+      captures[1] || captures[0]
+    end || default
+  end
+
   # Similar to +scan+, but remove matches from the string
   def extract(pattern)
     scan(pattern).tap { remove! pattern }

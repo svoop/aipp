@@ -99,6 +99,30 @@ describe String do
     end
   end
 
+  describe :first_match do
+    subject { "A/A: 123.5 mhz" }
+
+    it "returns the entire match if no capture group is present" do
+      _(subject.first_match(/123\.5/)).must_equal "123.5"
+    end
+
+    it "returns the first matching capture group" do
+      _(subject.first_match(/:\s+([\d.]+)/)).must_equal "123.5"
+    end
+
+    it "returns nil if the pattern doesn't match and no capture group is present" do
+      _(subject.first_match(/121\.5/)).must_be :nil?
+    end
+
+    it "returns nil if the capture group doesn't match" do
+      _(subject.first_match(/(121\.5)/)).must_be :nil?
+    end
+
+    it "returns default if the pattern doesn't match" do
+      _(subject.first_match(/121\.5/, default: "123")).must_equal "123"
+    end
+  end
+
   describe :extract do
     subject do
       "This is #first# a test #second# of extract."
