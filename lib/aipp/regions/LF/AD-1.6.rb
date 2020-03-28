@@ -9,6 +9,8 @@ module AIPP
 
       DEPENDS = %w(AD-1.3)
 
+      DEFAULT_FREQUENCY = '123.5'
+
       ID_FIXES = {
         'LF04' => 'LF9004',   # illegal ID as per AIXM
         'LFPY' => nil         # decommissioned - see https://fr.wikipedia.org/wiki/Base_a%C3%A9rienne_217_Br%C3%A9tigny-sur-Orge
@@ -26,8 +28,21 @@ module AIPP
             units_from(trs, airport: @airport).each(&method(:add))
           end
         end
+        # Fallback to VAC or default A/A
+        find_by(:airport).each do |airport|
+          next if airport.units.any?
+          next if airport.addresses.find_by(:address, type: :radio_frequency).any?
+          pdf = read("VAC-#{airport.id}")
+          if freq = pdf.text.first_match(/a\s*\/\s*a\D*([\d.\s]{3,})/i)
+            airport.add_address AIXM.address(type: :radio_frequency, address: freq.remove(/0+$/).remove(/\s/))
+          else
+            warn("no radiocommunications assigned to #{airport.id}", pry: binding)
+          end
+        rescue OpenURI::HTTPError
+          airport.add_address AIXM.address(type: :radio_frequency, address: DEFAULT_FREQUENCY)
+        end
       end
-
     end
+
   end
 end
