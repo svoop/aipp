@@ -4,7 +4,7 @@ module AIPP
       module NavigationalAid
 
         def navigational_aid_from(tds, source:, sections:)
-          NavigationalAid.new(tds, source: source, sections: sections).build
+          NavigationalAid.new(tds, source: source, sections: sections, organisation: cache.organisation_lf).build
         end
 
         class NavigationalAid
@@ -19,8 +19,8 @@ module AIPP
             'l' => 'ndb'   # L denominates a NDB of class locator
           }.freeze
 
-          def initialize(tds, source:, sections:)
-            @tds, @source, @sections = tds, source, sections
+          def initialize(tds, source:, sections:, organisation:)
+            @tds, @source, @sections, @organisation = tds, source, sections, organisation
           end
 
           def build
@@ -40,7 +40,7 @@ module AIPP
 
           def common
             {
-              organisation: organisation_lf,
+              organisation: @organisation,
               id: @tds[:id].text.strip,
               name: @tds[:name].text.strip,
               xy: xy_from(@tds[:xy].text),

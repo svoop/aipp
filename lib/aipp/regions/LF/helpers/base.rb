@@ -87,12 +87,17 @@ module AIPP
         # Templates
 
         def organisation_lf
-          @organisation_lf ||= AIXM.organisation(
-            name: 'FRANCE',
-            type: 'S'
-          ).tap do |organisation|
-            organisation.id = 'LF'
+          unless cache.organisation_lf
+            cache.organisation_lf = AIXM.organisation(
+              source: source(position: 1, aip_file: "GEN-3.1"),
+              name: 'FRANCE',
+              type: 'S'
+            ).tap do |organisation|
+              organisation.id = 'LF'
+            end
+            add cache.organisation_lf
           end
+          cache.organisation_lf
         end
 
         # Transformations

@@ -138,7 +138,7 @@ module AIPP
           manifest = ['AIP','Feature', 'Comment', 'Short Uid Hash', 'Short Feature Hash'].to_csv
           manifest += aixm.features.map do |feature|
             xml = feature.to_xml
-            element = xml.match(/<(\w{3})\s/)[1]
+            element = xml.first_match(/<(\w{3})\s/)
             [
               feature.source.split('|')[2],
               element,
