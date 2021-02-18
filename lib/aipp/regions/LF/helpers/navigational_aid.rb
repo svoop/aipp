@@ -28,7 +28,7 @@ module AIPP
             primary = NAVIGATIONAL_AIDS.fetch(primary, primary)
             secondary = NAVIGATIONAL_AIDS.fetch(secondary, secondary)
             return nil unless NAVIGATIONAL_AIDS.keys.include? primary
-            AIXM.send(primary, common.merge(send(primary))).tap do |navigational_aid|
+            AIXM.send(primary, **common.merge(send(primary))).tap do |navigational_aid|
               navigational_aid.source = @source
               navigational_aid.remarks = remarks
               navigational_aid.timetable = timetable_from!(@tds[:schedule].text)
