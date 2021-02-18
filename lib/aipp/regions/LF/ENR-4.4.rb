@@ -2,7 +2,7 @@ module AIPP
   module LF
 
     # Designated Points
-    class ENR43 < AIP
+    class ENR44 < AIP
 
       include AIPP::LF::Helpers::Base
 

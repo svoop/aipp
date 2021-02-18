@@ -299,7 +299,7 @@ tr.line
 
 ### Errors
 
-You should `fail` on fatal problems. The `-e` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
+You should `fail` on fatal problems which must be fixed. The `-e` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
 
 ```ruby
 fail "my message"
@@ -307,11 +307,12 @@ fail "my message"
 
 ### Warnings
 
-You should `warn` on non-fatal problems. The `-w ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
+You should `warn` on non-fatal problems which should be fixed (default) or might be ignored (`severe: false`). The `-w ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
 
 ```ruby
-warn("my message", pry: binding)   # open Pry attached to the binding
-warn("my message", pry: error)     # open Pry attached to the error
+warn("my message", severe: false)   # show warning only when --unsevere-warn argument is set
+warn("my message", pry: binding)    # open Pry attached to the binding
+warn("my message", pry: error)      # open Pry attached to the error
 ```
 
 ### Messages

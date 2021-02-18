@@ -24,7 +24,8 @@ module AIPP
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { @options[:storage] = Pathname(_1) }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { @options[:force] = _1 }
         o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { $VERBOSE_INFO = _1 }
-        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warn with ID (default: nil)') { $PRY_ON_WARN = _1 || true }
+        o.on('-u', '--[no-]unsevere-warn', 'include unsevere warnings (default: false)') { $UNSEVERE_WARN = _1 }
+        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warning with ID (default: nil)') { $PRY_ON_WARN = _1 || true }
         o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { $PRY_ON_ERROR = _1 }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
@@ -50,7 +51,7 @@ module AIPP
           parser.write_config
         end
         ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        puts "Finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S")
+        info("Finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S"))
       rescue => error
         puts "ERROR: #{error.message}".magenta
         Pry::rescued(error) if $PRY_ON_ERROR

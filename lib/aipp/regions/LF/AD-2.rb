@@ -22,7 +22,7 @@ module AIPP
 
       # Airports without VFR reporting points
       # TODO: designated points on map but no list (LFLD LFSN LFBS) or no AD info (LFRL)
-      NO_DESIGNATED_POINTS = %w(LFAB LFAC LFAV LFAY LFBK LFBN LFBX LFCC LFCI LFCK LFCY LFDH LFDJ LFDN LFEC LFFK LFEV LFEY LFGA LFHP LFHV LFHY LFJR LFJY LFLA LFLH LFLO LFLV LFLW LFMQ LFMQ LFNB LFOH LFOQ LFOU LFOV LFOZ LFPO LFQA LFQB LFQG LFQM LFRC LFRI LFRM LFRT LFRU LFSD LFSG LFSM LFLD LFSN LFBS LFRL).freeze
+      NO_DESIGNATED_POINTS = %w(LFAB LFAC LFAV LFAY LFBK LFBN LFBX LFCC LFCI LFCK LFCY LFDH LFDJ LFDN LFEC LFFK LFEV LFEY LFGA LFHP LFHV LFHY LFJR LFJY LFLA LFLG LFLH LFLO LFLV LFLW LFMQ LFMQ LFNB LFOH LFOQ LFOU LFOV LFOZ LFPO LFQA LFQB LFQG LFQM LFRC LFRI LFRM LFRT LFRU LFSD LFSG LFSM LFLD LFSN LFBS LFRL).freeze
 
       # Map synonyms for +correlate+
       SYNONYMS = [
@@ -39,56 +39,60 @@ module AIPP
 
       def parse
         index_html = prepare(html: read("AD-0.6"))   # index for AD-2.xxxx files
-        index_html.css('#AD-0\.6\.eAIP > .toc-block:nth-of-type(3) .toc-block a').each do |a|
-          @id = a.attribute('href').value[-4,4]
-          begin
-            aip_file = "AD-2.#{@id}"
-            html = prepare(html: read(aip_file))
-            # Airport
-            @remarks = []
-            @airport = AIXM.airport(
-              source: source(position: html.css('tr[id*="CODE_ICAO"]').first.line, aip_file: aip_file),
-              organisation: organisation_lf,   # TODO: not yet implemented
-              id: @id,
-              name: html.css('tr[id*="CODE_ICAO"] td span:nth-of-type(2)').text.strip.uptrans,
-              xy: xy_from(html.css('#AD-2\.2-Position_Geo_Arp td:nth-of-type(3)').text)
-            ).tap do |airport|
-              airport.z = elevation_from(html.css('#AD-2\.2-Altitude_Reference td:nth-of-type(3)').text)
-              airport.declination = declination_from(html.css('#AD-2\.2-Declinaison_Magnetique td:nth-of-type(3)').text)
-  #           airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
-              airport.timetable = timetable_from!(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
-            end
-            runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { @airport.add_runway(_1) if _1 }
-            helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { @airport.add_helipad(_1) if _1 }
-            text = html.css('#AD-2\.2-Observations td:nth-of-type(3)').text
-            @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
-            add @airport
-            # Airspaces
-            airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).
-              reject { aixm.features.find_by(_1.class, type: _1.type, id: _1.id).any? }.
-              each(&method(:add))
-            # Radio
-            trs = html.css('div[id*="-AD-2\.18"] tbody tr')
-            addresses_from(trs).each { @airport.add_address(_1) }
-            units_from(trs, airport: @airport).each(&method(:add))
-            # Navigational aids
-            navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).
-              reject { aixm.features.find_by(_1.class, id: _1.id, xy: _1.xy).any? }.
-              each(&method(:add))
-            # Designated points
-            unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
-              pdf = read("VAC-#{@id}")
-              designated_points_from(pdf).tap do |designated_points|
-                fix_designated_point_remarks(designated_points)
-#               debug(designated_points)
-                designated_points.
-                  uniq(&:to_uid).
+        index_html.css('#AD-0\.6\.eAIP > .toc-block').each do |div|
+          if div.css('a[href*="AD-2-IFR"], a[href*="AD-2-VFR"], a[href*="AD-2-MIL"]').any?
+            div.css('.toc-block a').each do |a|
+              @id = a.attribute('href').value[-4,4]
+              begin
+                aip_file = "AD-2.#{@id}"
+                html = prepare(html: read(aip_file))
+                # Airport
+                @remarks = []
+                @airport = AIXM.airport(
+                  source: source(position: html.css('tr[id*="CODE_ICAO"]').first.line, aip_file: aip_file),
+                  organisation: organisation_lf,   # TODO: not yet implemented
+                  id: @id,
+                  name: html.css('tr[id*="CODE_ICAO"] td span:nth-of-type(2)').text.strip.uptrans,
+                  xy: xy_from(html.css('#AD-2\.2-Position_Geo_Arp td:nth-of-type(3)').text)
+                ).tap do |airport|
+                  airport.z = elevation_from(html.css('#AD-2\.2-Altitude_Reference td:nth-of-type(3)').text)
+                  airport.declination = declination_from(html.css('#AD-2\.2-Declinaison_Magnetique td:nth-of-type(3)').text)
+#                 airport.transition_z = AIXM.z(5000, :qnh)   # TODO: default - exceptions may exist
+                  airport.timetable = timetable_from!(html.css('#AD-2\.3-Gestionnaire_AD td:nth-of-type(3)').text)
+                end
+                runways_from(html.css('div[id*="-AD-2\.12"] tbody')).each { @airport.add_runway(_1) if _1 }
+                helipads_from(html.css('div[id*="-AD-2\.16"] tbody')).each { @airport.add_helipad(_1) if _1 }
+                text = html.css('#AD-2\.2-Observations td:nth-of-type(3)').text
+                @airport.remarks = ([remarks_from(text)] + @remarks).compact.join("\n\n").blank_to_nil
+                add @airport
+                # Airspaces
+                airspaces_from(html.css('div[id*="-AD-2\.17"] tbody')).
+                  reject { aixm.features.find_by(_1.class, type: _1.type, id: _1.id).any? }.
+                  each(&method(:add))
+                # Radio
+                trs = html.css('div[id*="-AD-2\.18"] tbody tr')
+                addresses_from(trs).each { @airport.add_address(_1) }
+                units_from(trs, airport: @airport).each(&method(:add))
+                # Navigational aids
+                navigational_aids_from(html.css('div[id*="-AD-2\.19"] tbody')).
                   reject { aixm.features.find_by(_1.class, id: _1.id, xy: _1.xy).any? }.
                   each(&method(:add))
+                # Designated points
+                unless NO_VAC.include?(@id) || NO_DESIGNATED_POINTS.include?(@id)
+                  pdf = read("VAC-#{@id}")
+                  designated_points_from(pdf).tap do |designated_points|
+                    fix_designated_point_remarks(designated_points)
+#                   debug(designated_points)
+                    designated_points.
+                      uniq(&:to_uid).
+                      reject { aixm.features.find_by(_1.class, id: _1.id, xy: _1.xy).any? }.
+                      each(&method(:add))
+                  end
+                end
+              rescue => error
+                warn("error parsing airport #{@id}: #{error.message}", pry: error)
               end
             end
-          rescue => error
-            warn("error parsing airport #{@id}: #{error.message}", pry: error)
           end
         end
       end
@@ -189,12 +193,14 @@ module AIPP
             airspace = airspace_from tr
           else
             tds = tr.css('td')
-            airspace.geometry = geometry_from tds[0].text
-            fail("geometry is not closed") unless airspace.geometry.closed?
-            airspace.add_layer layer_from(tds[2].text, tds[1].text.strip)
-            airspace.layers.first.timetable = timetable_from! tds[4].text
-            airspace.layers.first.remarks = remarks_from(tds[4].text)
-            array << airspace
+            if (text = tds[0].text).present?
+              airspace.geometry = geometry_from text
+              fail("geometry is not closed") unless airspace.geometry.closed?
+              airspace.add_layer layer_from(tds[2].text, tds[1].text.strip)
+              airspace.layers.first.timetable = timetable_from! tds[4].text
+              airspace.layers.first.remarks = remarks_from(tds[4].text)
+              array << airspace
+            end
           end
         end
       end

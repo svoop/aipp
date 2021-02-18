@@ -23,6 +23,9 @@ module AIPP
   #   end
   class Downloader
 
+    # Error when URL results in "404 Not Found" HTTP status
+    class NotFoundError < StandardError; end
+
     # @return [Pathname] directory to operate within
     attr_reader :storage
 
@@ -56,11 +59,21 @@ module AIPP
     def read(document:, url:, type: nil)
       type ||= Pathname(URI(url).path).extname[1..-1].to_sym
       file = work_path.join([document, type].join('.'))
-      unless file.exist?
+      if file.exist?
+        fail NotFoundError if file.empty?   # replay 404
+      else
         verbose_info "Downloading #{document}"
-        IO.copy_stream(URI.open(url), file)
+        uri = URI.open(url)
+        IO.copy_stream(uri, file)
       end
       convert file
+    rescue OpenURI::HTTPError => error
+      if error.message.match? /^404/
+        FileUtils.touch file   # cache 404
+        raise NotFoundError
+      else
+        raise error
+      end
     end
 
     private

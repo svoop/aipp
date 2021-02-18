@@ -2,7 +2,7 @@ module AIPP
   module LF
 
     # Helipads
-    class AD31 < AIP
+    class AD132 < AIP
 
       include AIPP::LF::Helpers::Base
       using AIXM::Refinements
@@ -23,65 +23,64 @@ module AIPP
       DIMENSIONS_RE = /( diam.tre\s+\d+ | (?:\d[\s\d,.m]*x\s*){1,}[\s\d,.m]+ )/ix.freeze
 
       def parse
-        prepare(html: read).css('tbody').each do |tbody|
-          tbody.css('tr').to_enum.each_slice(3).with_index(1) do |trs, index|
-            name = trs[0].css('span[id*="ADHP.TXT_NAME"]').text.cleanup.remove(/[^\w' ]/)
-            if find_by(:airport, name: name).any?
-              verbose_info "Skipping #{name} in favor of AD-2"
-              next
-            end
-            # Airport
-            @airport = AIXM.airport(
-              source: source(position: trs[0].line),
-              organisation: organisation_lf,   # TODO: not yet implemented
-              id: options[:region],
-              name: name,
-              xy: xy_from(trs[1].css('td:nth-of-type(1)').text.cleanup)
-            ).tap do |airport|
-              airport.z = elevation_from(trs[1].css('td:nth-of-type(2)').text)
-            end
-            # Usage restrictions
-            if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/usage\s+restreint/i)
-              @airport.add_usage_limitation(type: :reservation_required) do |reservation_required|
-                reservation_required.remarks = "Usage restreint / restricted use"
-              end
-            end
-            if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/r.serv.\s+aux\s+administrations/i)
-              @airport.add_usage_limitation(type: :other) do |other|
-                other.remarks = "Réservé aux administrations de l'État / reserved for State administrations"
-              end
-            end
-            # FATOs and helipads
-            text = trs[2].css('span[id*="ADHP.REVETEMENT"]').text.remove(/tlof\s*|\s*\(.*?\)/i).downcase.compact
-            surface = text.blank? ? {} : SURFACES.metch(text)
-            lighting = lighting_from(trs[1].css('span[id*="ADHP.BALISAGE"]').text.cleanup)
-            fatos_from(trs[1].css('span[id*="ADHP.DIM_FATO"]').text).each { @airport.add_fato(_1) }
-            helipads_from(trs[1].css('span[id*="ADHP.DIM_TLOF"]').text).each do |helipad|
-              helipad.surface.composition = surface[:composition]
-              helipad.surface.preparation = surface[:preparation]
-              helipad.surface.remarks = surface[:remarks]
-              helipad.surface.auw_weight = auw_weight_from(trs[2].css('span[id*="ADHP.RESISTANCE"]').text)
-              helipad.add_lighting(lighting) if lighting
-              @airport.add_helipad helipad
-            end
-            # Operator and addresses
-            operator = trs[0].css('span[id*="ADHP.EXPLOITANT"]')
-            splitted = operator.text.split(/( (?<!\p{L})t[ée]l | fax | standard | [\d\s]{10,} | \.\s | \( )/ix, 2)
-            @airport.operator = splitted[0].full_strip.truncate(60, omission: '…').blank_to_nil
-            raw_addresses = splitted[1..].join.cleanup.full_strip
-            addresses_from(splitted[1..].join, source(position: operator.first.line)).each { @airport.add_address(_1) }
-            # Remarks
-            @airport.remarks = [].tap do |remarks|
-              hostility = trs[2].css('span[id*="ADHP.ZONE_HABITEE"]').text.cleanup.downcase.blank_to_nil
-              hostility = HOSTILITIES.fetch(hostility) if hostility
-              positioning = trs[2].css('span[id*="ADHP.EN_TERRASSE"]').text.cleanup.downcase.blank_to_nil
-              positioning = POSITIONINGS.fetch(positioning) if positioning
-              remarks << ('**SITUATION**' if hostility || positioning) << hostility << positioning << ''
-              remarks << trs[2].css('td:nth-of-type(5)').text.cleanup
-              remarks << raw_addresses unless raw_addresses.blank?
-            end.compact.join("\n").strip
-            add(@airport) if @airport.fatos.any? || @airport.helipads.any?
+        tbody = prepare(html: read).css('h4:contains("1.3-2") ~ table:first tbody').first
+        tbody.css('tr').to_enum.each_slice(3).with_index(1) do |trs, index|
+          name = trs[0].css('span[id*="ADHP.TXT_NAME"]').text.cleanup.remove(/[^\w' ]/)
+          if find_by(:airport, name: name).any?
+            verbose_info "Skipping #{name} in favor of AD-2"
+            next
           end
+          # Airport
+          @airport = AIXM.airport(
+            source: source(position: trs[0].line),
+            organisation: organisation_lf,   # TODO: not yet implemented
+            id: options[:region],
+            name: name,
+            xy: xy_from(trs[1].css('td:nth-of-type(1)').text.cleanup)
+          ).tap do |airport|
+            airport.z = elevation_from(trs[1].css('td:nth-of-type(2)').text)
+          end
+          # Usage restrictions
+          if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/usage\s+restreint/i)
+            @airport.add_usage_limitation(type: :reservation_required) do |reservation_required|
+              reservation_required.remarks = "Usage restreint / restricted use"
+            end
+          end
+          if trs[0].css('span[id*="ADHP.STATUT"]').text.match?(/r.serv.\s+aux\s+administrations/i)
+            @airport.add_usage_limitation(type: :other) do |other|
+              other.remarks = "Réservé aux administrations de l'État / reserved for State administrations"
+            end
+          end
+          # FATOs and helipads
+          text = trs[2].css('span[id*="ADHP.REVETEMENT"]').text.remove(/tlof\s*|\s*\(.*?\)/i).downcase.compact
+          surface = text.blank? ? {} : SURFACES.metch(text)
+          lighting = lighting_from(trs[1].css('span[id*="ADHP.BALISAGE"]').text.cleanup)
+          fatos_from(trs[1].css('span[id*="ADHP.DIM_FATO"]').text).each { @airport.add_fato(_1) }
+          helipads_from(trs[1].css('span[id*="ADHP.DIM_TLOF"]').text).each do |helipad|
+            helipad.surface.composition = surface[:composition]
+            helipad.surface.preparation = surface[:preparation]
+            helipad.surface.remarks = surface[:remarks]
+            helipad.surface.auw_weight = auw_weight_from(trs[2].css('span[id*="ADHP.RESISTANCE"]').text)
+            helipad.add_lighting(lighting) if lighting
+            @airport.add_helipad helipad
+          end
+          # Operator and addresses
+          operator = trs[0].css('span[id*="ADHP.EXPLOITANT"]')
+          splitted = operator.text.split(/( (?<!\p{L})t[ée]l | fax | standard | [\d\s]{10,} | \.\s | \( )/ix, 2)
+          @airport.operator = splitted[0].full_strip.truncate(60, omission: '…').blank_to_nil
+          raw_addresses = splitted[1..].join.cleanup.full_strip
+          addresses_from(splitted[1..].join, source(position: operator.first.line)).each { @airport.add_address(_1) }
+          # Remarks
+          @airport.remarks = [].tap do |remarks|
+            hostility = trs[2].css('span[id*="ADHP.ZONE_HABITEE"]').text.cleanup.downcase.blank_to_nil
+            hostility = HOSTILITIES.fetch(hostility) if hostility
+            positioning = trs[2].css('span[id*="ADHP.EN_TERRASSE"]').text.cleanup.downcase.blank_to_nil
+            positioning = POSITIONINGS.fetch(positioning) if positioning
+            remarks << ('**SITUATION**' if hostility || positioning) << hostility << positioning << ''
+            remarks << trs[2].css('td:nth-of-type(5)').text.cleanup
+            remarks << raw_addresses unless raw_addresses.blank?
+          end.compact.join("\n").strip
+          add(@airport) if @airport.fatos.any? || @airport.helipads.any?
         end
       end
 

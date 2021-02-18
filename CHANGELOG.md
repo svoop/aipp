@@ -5,6 +5,9 @@
 * Improve calculation of short feature hash in manifest in order to include
   e.g. geometries of airspaces.
 
+#### Additions
+* Unsevere warnings
+
 ## 0.2.6
 
 #### Additions

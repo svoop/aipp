@@ -138,6 +138,16 @@ describe String do
     end
   end
 
+  describe :strip_markup do
+    subject do
+      'This <br> contains &nbsp; <html lang="en"> markup &amp; entities.'
+    end
+
+    it "must strip tags and entities" do
+      _(subject.strip_markup).must_equal 'This  contains   markup  entities.'
+    end
+  end
+
   describe :unglue do
     it "must insert spaces between camel glued words" do
       _("thisString has spaceProblems".unglue).must_equal "this String has space Problems"

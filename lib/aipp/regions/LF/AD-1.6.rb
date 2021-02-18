@@ -7,7 +7,7 @@ module AIPP
       include AIPP::LF::Helpers::Base
       include AIPP::LF::Helpers::RadioAD
 
-      DEPENDS = %w(AD-1.3)
+      DEPENDS = %w(AD-1.3-1)
 
       DEFAULT_FREQUENCY = '123.5'
 
@@ -36,9 +36,10 @@ module AIPP
           if freq = pdf.text.first_match(/a\s*\/\s*a\D*([\d.\s]{3,})/i)
             airport.add_address AIXM.address(type: :radio_frequency, address: freq.remove(/0+$/).remove(/\s/))
           else
-            warn("no radiocommunications assigned to #{airport.id}", pry: binding)
+            warn("no A/A documented for #{airport.id}", severe: false, pry: binding)
+            fail AIPP::Downloader::NotFoundError
           end
-        rescue OpenURI::HTTPError
+        rescue AIPP::Downloader::NotFoundError
           airport.add_address AIXM.address(type: :radio_frequency, address: DEFAULT_FREQUENCY)
         end
       end

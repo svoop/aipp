@@ -2,7 +2,7 @@ module AIPP
   module LF
 
     # Aerodromes
-    class AD13 < AIP
+    class AD131 < AIP
 
       include AIPP::LF::Helpers::Base
 
@@ -35,7 +35,7 @@ module AIPP
 
       def parse
         ad2_exists = false
-        tbody = prepare(html: read).css('tbody').first   # skip altiports
+        tbody = prepare(html: read).css('h4:contains("1.3-1") ~ table:first tbody').first
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           if tr.attr(:id).match?(/-TXT_NAME-/)
             add @airport if @airport && !ad2_exists
@@ -124,7 +124,7 @@ module AIPP
           values = tds[2].text.remove('°').strip.split
           runway.forth.geographic_orientation = AIXM.a(values.first.to_i)
           runway.back.geographic_orientation = AIXM.a(values.last.to_i) if bidirectional
-          parts = tds[3].text.strip.split(/\n\s+\n\s+/, 2)
+          parts = tds[3].to_html.split(/<br.*?>/, 2).map(&:strip_markup)
           runway.forth.xy = (xy_from(parts[0]) unless parts[0].blank?)
           runway.back.xy = (xy_from(parts[1]) unless parts[1].blank?) if bidirectional
           values = tds[4].text.strip.split

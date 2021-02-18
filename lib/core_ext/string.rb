@@ -92,6 +92,11 @@ class String
     remove(/\A[^\p{L}\p{N}]*|[^\p{L}\p{N}]*\z/)
   end
 
+  # Similar to +scan+, but remove matches from the string
+  def extract(pattern)
+    scan(pattern).tap { remove! pattern }
+  end
+
   # Apply the pattern and return...
   # * first capture group - if the pattern matches and contains a capture group
   # * entire match - if the pattern matches and contains no capture group
@@ -115,9 +120,9 @@ class String
     end || default
   end
 
-  # Similar to +scan+, but remove matches from the string
-  def extract(pattern)
-    scan(pattern).tap { remove! pattern }
+  # Remove all XML/HTML tags and entities from the string
+  def strip_markup
+    self.gsub(/<.*?>|&[#\da-z]+;/i, '')
   end
 
   # Same as +to_f+ but accept both dot and comma as decimal separator

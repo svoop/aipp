@@ -39,7 +39,7 @@ module AIPP
           'macadam' => { composition: :macadam },
           /^bitume ?(traité|psp)?$/ =>  { composition: :bitumen },
           'ciment' => { composition: :concrete, preparation: :paved },
-          /^b[eéè]ton ?(armé|bitume|bitumineux)?$/ => { composition: :concrete, preparation: :paved },
+          /^b[eéè]ton ?(armé|bitume|bitumeux|bitumineux)?$/ => { composition: :concrete, preparation: :paved },
           /^béton( de)? ciment$/ => { composition: :concrete, preparation: :paved },
           'béton herbe' => { composition: :concrete_and_grass },
           'béton avec résine' => { composition: :concrete, preparation: :paved, remarks: 'Avec résine / with resin' },
@@ -57,7 +57,8 @@ module AIPP
           'matériaux composites ignifugés' => { composition: :other, remarks: 'Matériaux composites ignifugés / fire resistant mixed materials' },
           /^(gazon|herbe)$/ => { composition: :grass },
           'neige' => { composition: :snow },
-          'neige damée' => { composition: :snow, preparation: :rolled }
+          'neige damée' => { composition: :snow, preparation: :rolled },
+          'surface en bois' => { composition: :wood }
         }.freeze
 
         # Transform French text fragments to English
@@ -130,7 +131,7 @@ module AIPP
         end
 
         def xy_from(text)
-          parts = text.strip.split(/\s+/)
+          parts = text.cleanup.split(/\s+/)
           AIXM.xy(lat: parts[0], long: parts[1])
         end
 

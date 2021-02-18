@@ -41,11 +41,12 @@ module AIPP
     # An URL builder method +url_for(aip_file)+ must be defined either in
     # +helper.rb+ or in the AIP parser definition (e.g. +ENR-2.1.rb+).
     #
-    # @param aip_file [String] e.g. "ENR-2.1" or "AD-2.LFMV" (default: +aip+)
+    # @param aip_file [String] e.g. "ENR-2.1" or "AD-2.LFMV" (default: +aip+
+    #   with section stripped e.g. "AD-1.3-2" -> "AD-1.3")
     # @return [Nokogiri::HTML5::Document, String] HTML as Nokogiri document,
     #   PDF or TXT as String
     def read(aip_file=nil)
-      aip_file ||= aip
+      aip_file ||= aip.remove(/(?<![A-Z])-\d+$/)
       @downloader.read(document: aip_file, url: url_for(aip_file))
     end
 
