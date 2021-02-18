@@ -30,7 +30,7 @@ This gem incluces two executables to download and parse aeronautical data as HTM
 This gem is [cryptographically signed](https://guides.rubygems.org/security/#using-gems) in order to assure it hasn't been tampered with. Unless already done, please add the author's public key as a trusted certificate now:
 
 ```
-gem cert --add <(curl -Ls https://raw.github.com/svoop/aipp/master/certs/svoop.pem)
+gem cert --add <(curl -Ls https://raw.github.com/svoop/aipp/main/certs/svoop.pem)
 ```
 
 ### Standalone

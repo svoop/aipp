@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
 
   spec.metadata = {
     'homepage_uri'      => spec.homepage,
-    'changelog_uri'     => 'https://github.com/svoop/aipp/blob/master/CHANGELOG.md',
+    'changelog_uri'     => 'https://github.com/svoop/aipp/blob/main/CHANGELOG.md',
     'source_code_uri'   => 'https://github.com/svoop/aipp',
     'documentation_uri' => 'https://www.rubydoc.info/gems/aipp',
     'bug_tracker_uri'   => 'https://github.com/svoop/aipp/issues'

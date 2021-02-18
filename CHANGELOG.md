@@ -1,6 +1,7 @@
 ## 0.2.7 (unreleased)
 
 #### Breaking Changes
+* Renamed default git branch to `main`
 * Improve calculation of short feature hash in manifest in order to include
   e.g. geometries of airspaces.
 
