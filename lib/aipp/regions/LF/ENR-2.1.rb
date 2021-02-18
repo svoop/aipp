@@ -7,7 +7,7 @@ module AIPP
       include AIPP::LF::Helpers::Base
 
       # Airspaces by type to be ignored
-      NAME_BLACKLIST_RE = {
+      NAME_DENYLIST_RE = {
         all: /deleg/i,                     # delegated zones
         terminal_control_area: /geneve/i   # TMA GENEVA is included FYI only
       }.freeze
@@ -44,7 +44,7 @@ module AIPP
           tbody.css('tr').to_enum.with_index(1).each do |tr, index|
             if tr.attr(:id).match?(/--TXT_NAME/)
               if airspace
-                if NAME_BLACKLIST_RE[:all]&.match?(airspace.name) || NAME_BLACKLIST_RE[airspace.type]&.match?(airspace.name)
+                if NAME_DENYLIST_RE[:all]&.match?(airspace.name) || NAME_DENYLIST_RE[airspace.type]&.match?(airspace.name)
                   verbose_info "Ignoring #{airspace.type} #{airspace.name}" unless airspace.type == :terminal_control_area
                 else
                   add airspace
@@ -58,7 +58,7 @@ module AIPP
               tds = tr.css('td')
               if airspace.type == :terminal_control_area && tds[0].text.blank_to_nil
                 if airspace.layers.any?
-                  if NAME_BLACKLIST_RE[:all]&.match?(airspace.name) || NAME_BLACKLIST_RE[airspace.type]&.match?(airspace.name)
+                  if NAME_DENYLIST_RE[:all]&.match?(airspace.name) || NAME_DENYLIST_RE[airspace.type]&.match?(airspace.name)
                     verbose_info "Ignoring #{airspace.type} #{airspace.name}"
                   else
                     add airspace

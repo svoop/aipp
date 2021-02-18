@@ -24,15 +24,15 @@ module AIPP
           end
 
           def build
-            master, slave = @tds[:type].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
-            master = NAVIGATIONAL_AIDS.fetch(master, master)
-            slave = NAVIGATIONAL_AIDS.fetch(slave, slave)
-            return nil unless NAVIGATIONAL_AIDS.keys.include? master
-            AIXM.send(master, common.merge(send(master))).tap do |navigational_aid|
+            primary, secondary = @tds[:type].text.strip.gsub(/[^\w-]/, '').downcase.split('-')
+            primary = NAVIGATIONAL_AIDS.fetch(primary, primary)
+            secondary = NAVIGATIONAL_AIDS.fetch(secondary, secondary)
+            return nil unless NAVIGATIONAL_AIDS.keys.include? primary
+            AIXM.send(primary, common.merge(send(primary))).tap do |navigational_aid|
               navigational_aid.source = @source
               navigational_aid.remarks = remarks
               navigational_aid.timetable = timetable_from!(@tds[:schedule].text)
-              navigational_aid.send("associate_#{slave}", channel: channel_from(@tds[:f].text)) if slave
+              navigational_aid.send("associate_#{secondary}", channel: channel_from(@tds[:f].text)) if secondary
             end
           end
 

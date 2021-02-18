@@ -7,7 +7,7 @@ module AIPP
       include AIPP::LF::Helpers::Base
 
       # Obstacles to be ignored
-      NAME_BLACKLIST = %w(10051 55050 51076 59000 72039 80088).freeze   # all duplicates
+      NAME_DENYLIST = %w(10051 55050 51076 59000 72039 80088).freeze   # all duplicates
 
       # Map type descriptions to AIXM types and remarks
       TYPES = {
@@ -38,7 +38,7 @@ module AIPP
         tbody.css('tr').to_enum.with_index(1).each do |tr, index|
           tds = tr.css('td')
           name = tds[0].text.cleanup
-          next if NAME_BLACKLIST.include? name
+          next if NAME_DENYLIST.include? name
           elevation, height = tds[4].text.cleanup.split(/[()]/).map { _1.cleanup.remove("\n") }
           type, type_remarks = TYPES.fetch(tds[2].text.cleanup)
           count = tds[3].text.cleanup.to_i
