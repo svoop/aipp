@@ -40,6 +40,7 @@ module AIPP
     def run
       Pry.rescue do
         fail(OptionParser::MissingArgument, :region) unless options[:region]
+        starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         AIPP::Parser.new(options: options).tap do |parser|
           parser.read_config
           parser.read_region
@@ -49,6 +50,8 @@ module AIPP
           parser.write_aixm
           parser.write_config
         end
+        ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        puts "Finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S")
       rescue => error
         puts "ERROR: #{error.message}".magenta
         Pry::rescued(error) if $PRY_ON_ERROR
