@@ -9,7 +9,6 @@ module AIPP
       @options[:airac] = AIPP::AIRAC.new
       @options[:storage] = Pathname(Dir.home).join('.aipp')
       @options[:force] = @options[:mid] = false
-      $VERBOSE_INFO = $PRY_ON_WARN = $PRY_ON_ERROR = false
       OptionParser.new do |o|
         o.banner = <<~END
           Download online AIP and convert it to #{options[:schema].upcase}.

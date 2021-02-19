@@ -40,6 +40,9 @@ require_relative 'aipp/aip'
 require_relative 'aipp/parser'
 require_relative 'aipp/downloader'
 
+# Init globals
+$VERBOSE_INFO = $PRY_ON_WARN = $PRY_ON_ERROR = false
+
 # Disable "did you mean?" suggestions
 #
 # @!visibility private
