@@ -27,7 +27,7 @@ module AIPP
               AIXM.address(
                 source: source(position: tr.line),
                 type: :radio_frequency,
-                address: f.freq.to_s
+                address: f
               ).tap do |address|
                 address.remarks = ["#{type} - indicatif/callsign #{callsign}", remarks.blank_to_nil].compact.join("\n")
               end
@@ -42,6 +42,10 @@ module AIPP
             type = tds[0].text.strip
             next if IGNORED_TYPES.include?(type) || ADDRESS_TYPES.include?(type)
             f, callsigns, timetable, remarks = parts_from(tds).values
+            unless f.voice?
+              warn("ignoring voice frequency #{f}", severe: false, pry: binding)
+              next
+            end
             callsigns = if callsigns.match?(/\(\w{2}\)/)
               callsigns.cleanup.split("\n").each_with_object({}) do |callsign, hash|
                 callsign =~ /^(.*)\s+\((\w{2})\)/

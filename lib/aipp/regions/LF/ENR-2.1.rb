@@ -34,8 +34,12 @@ module AIPP
 
       # Fix incomplete SIV service columns
       SERVICE_FIXES = {
-        "IROISE INFO 135.825 / 119.575 (1)" => "APP IROISE\nIROISE INFO 135.825 / 119.575 (1)",
-        "APP TOULOUSE\nTOULOUSE INFO" => "APP TOULOUSE\nTOULOUSE INFO 121.250"
+        "APP IROISE 119.575 (1)\nIROISE INFO 135.825" => "APP IROISE\nIROISE INFO\n119.575 (1)\n135.825",
+        "APP IROISE 119.575 (1)\nIROISE INFO 119.575" => "APP IROISE\nIROISE INFO\n119.575 (1)\n119.575",
+        "APP LANDIVISIAU 122.400\nAPP IROISE 119.575 (1)\nLANDIVISIAU INFO 122.400\nIROISE INFO 119.575" => "APP LANDIVISIAU\nLANDIVISIAU INFO \n119.575 (1)\n122.400\nAPP IROISE\nIROISE INFO\n119.575 (1)\n122.400",
+        "NANTES INFO 122.800 - 119.400(s)" => "APP NANTES\nNANTES INFO\n122.800\n119.400",
+        "NANTES INFO 130.275 - 119.400(s)" => "APP NANTES\nNANTES INFO\n130.275\n119.400",
+        "119.535 - 121.215(s)" => "APP NANTES\nNANTES INFO\n119.535\n121.215"
       }.freeze
 
       def parse
@@ -77,7 +81,7 @@ module AIPP
                 layer.class = class_from(tds[1].text) if tds.count == 5
                 layer.location_indicator = LOCATION_INDICATORS.fetch("#{airspace.type} #{airspace.name}", nil)
                 if airspace.local_type == 'FIZ/SIV'   # services parsed for FIZ/SIV only
-                  layer.add_services services_from(tds[-2], remarks)
+                  layer.add_services services_from(tds[-2], remarks, airspace)
                 end
                 layer.timetable = timetable_from! remarks
                 layer.remarks = remarks_from remarks
@@ -110,56 +114,52 @@ module AIPP
         text.strip
       end
 
-      def services_from(td, remarks)
-        text = td.text.cleanup
-        text = SERVICE_FIXES.fetch(text, text)   # fix incomplete service columns
-        text.gsub!(/(info|app)\s+([\d.]{3,})/i, "\\1\n\\2")   # put frequencies on separate line
-        text.gsub!(/(\d)\s*\/\s*(\d)/, "\\1\n\\2")   # split frequencies onto separate lines
-        units, services = [], []
-        text.split("\n").each do |line|
-          case line
-          when /^(.+(?:info|app))$/i   # service
-            callsign = $1
-            service = AIXM.service(
-# TODO: add source as soon as it is supported by components
-#             source: source(position: td.line),
-              type: :flight_information_service
-            ).tap do |service|
-              service.timetable = AIXM::H24 if remarks.match? /h\s?24/i
-            end
-            services << [service, callsign]
-            units.shift.add_service service
-          when /^(.*?)(\d{3}[.\d]*)(.*)$/   # frequency
-            label, freq, footnote = $1, $2, $3
-            service, callsign = services.last
-            frequency = AIXM.frequency(
-              transmission_f: AIXM.f(freq.to_f, :mhz),
-              callsigns: { en: callsign, fr: callsign }
-            ).tap do |frequency|
-              frequency.type = :standard
-              frequency.timetable = AIXM::H24 if remarks.match? /h\s?24/i
-              frequency.remarks = [
-                (remarks.extract(/#{Regexp.escape(footnote.strip)}\s*([^\n]+)/).join(' / ') unless footnote.empty?),
-                label.strip
-              ].map(&:blank_to_nil).compact.join(' / ').blank_to_nil
-            end
-            service.add_frequency frequency
-          when /.*(?<!info|app|\d{3}|\))$/i   # unit
-            unit = AIXM.unit(
-              source: source(position: td.line),
-              organisation: organisation_lf,   # TODO: not yet implemented
-              name: line,
-              type: :flight_information_centre,
-              class: :icao
-            )
-            units << ((u = find(unit).first) ? (unit = u) : (add unit))
-          else
-            fail("cannot parse `#{text}'")
+      def services_from(td, remarks, airspace)
+        raw_text = td.text.cleanup
+        text = SERVICE_FIXES.fetch(raw_text, raw_text.dup)   # fix incomplete service columns
+        text.remove! /\(s\)/i   # remove noise
+        text.gsub!(/[\/-]/, "\n")   # separate multiple frequencies
+        text = text.gsub(/((?:[A-Z][a-z]\D+)?\d{3}\.\d+)/, "\n\\1").compact   # put frequencies on separate line
+        fail "no unit found in #{raw_text.inspect}" unless text&.match? /^(fic|app|twr)/i
+        units = []
+        text.split(/[\a\n](?=(?:fic|app|twr))/i).map do |group|
+          unit_name, service_name, comms = group.split(/\n/, 3)
+          unit = AIXM.unit(
+            source: source(position: td.line),
+            organisation: organisation_lf,   # TODO: not yet implemented
+            name: unit_name,
+            type: :flight_information_centre,
+            class: :icao
+          )
+          fail "invalid service in #{raw_text.inspect}" unless service_name&.match? /(info|app)$/i
+          service = AIXM.service(
+            # TODO: add source as soon as it is supported by components
+            # source: source(position: td.line),
+            type: :flight_information_service
+          ).tap do |service|
+            service.timetable = AIXM::H24 if remarks.match? /h\s?24/i
           end
+          comms.split("\n").each do |comm|
+            label, frequency, footnote = comm.partition /\d{3}\.\d+/
+            fail "invalid frequency in #{raw_text.inspect}" unless frequency
+            service.add_frequency(
+              AIXM.frequency(
+                transmission_f: AIXM.f(frequency.to_f, :mhz),
+                callsigns: { en: service_name, fr: service_name }
+              ).tap do |frequency|
+                frequency.type = :standard
+                frequency.timetable = AIXM::H24 if remarks.match? /h\s?24/i
+                frequency.remarks = [
+                  (remarks.extract(/#{Regexp.escape(footnote.strip)}\s*([^\n]+)/).join(' / ') unless footnote.empty?),
+                  label.strip
+                ].map(&:blank_to_nil).compact.join(' / ').blank_to_nil
+              end
+            )
+          end
+          units << ((u = find(unit).first) ? (unit = u) : (add unit))
+          unit.add_service service
+          service
         end
-        services = services.map(&:first)
-        fail("at least one service has no frequency") if services.any? { _1.frequencies.none? }
-        services
       end
 
       def remarks_from(text)

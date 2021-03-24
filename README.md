@@ -172,6 +172,26 @@ As well as the following methods:
 * [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) – borders defined as GeoJSON read from the region (see below)
 * [`cache`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#cache-instance_method) – virgin `OStruct` instance to make objects available across AIPs
 
+### Setup
+
+If the file `setup.rb` exists, every other AIP parser will automatically depend on it. You can do everything you can do within a normal AIP parser such as prepopulating the cache.
+
+Most notably, you should use it to do the AIXM configuration for this region:
+
+```ruby
+module AIPP
+  module LF
+    class Setup < AIP
+
+      def parse
+        AIXM.config.voice_channel_separation = :any
+      end
+
+    end
+  end
+end
+```
+
 ### Borders
 
 AIXM knows named borders for country boundaries. However, you might need additional borders which don't exist as named boarders.
@@ -337,6 +357,8 @@ verbose_info("my message")   # displays "my message" in blue
 ### Pry
 
 Pry is loaded with stack explorer support. Type `help` in the Pry console to see all available commands. The most useful command in the context of this gem is `up` which beams you one frame up in the caller stack.
+
+If the current context (`whereami`) is not displayed, you're not at the lowest stack, get there by typing `frame 0`.
 
 Note: It's not currently possible to use pry-byebug at this time since it [interferes with pry-rescue](https://github.com/ConradIrwin/pry-rescue/issues/71).
 

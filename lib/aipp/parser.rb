@@ -72,7 +72,14 @@ module AIPP
         verbose_info "Requiring #{file.basename}"
         require file
         aip = file.basename('.*').to_s
-        @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
+        unless aip == 'setup'
+          @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
+        end
+      end
+      # Setup
+      if dir.join('setup.rb').exist?
+        @dependencies.transform_values! { |v| v.dup.prepend 'Setup' }
+        @dependencies['Setup'] = []
       end
     end
 

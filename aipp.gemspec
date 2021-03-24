@@ -52,7 +52,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'colorize', '~> 0'
   spec.add_runtime_dependency 'pry', '~> 0'
   spec.add_runtime_dependency 'pry-rescue', '~> 1'
-  spec.add_runtime_dependency 'pry-stack_explorer', '~> 0'
+  spec.add_runtime_dependency 'pry-stack_explorer', '~> 0.6'
 
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'minitest'

@@ -9,7 +9,7 @@ module AIPP
 
       DEPENDS = %w(AD-1.3-1)
 
-      DEFAULT_FREQUENCY = '123.5'
+      DEFAULT_FREQUENCY = AIXM.f(123.5, :mhz).freeze
 
       ID_FIXES = {
         'LF04' => 'LF9004',   # illegal ID as per AIXM
@@ -34,7 +34,10 @@ module AIPP
           next if airport.addresses.find_by(:address, type: :radio_frequency).any?
           pdf = read("VAC-#{airport.id}")
           if freq = pdf.text.first_match(/a\s*\/\s*a\D*([\d.\s]{3,})/i)
-            airport.add_address AIXM.address(type: :radio_frequency, address: freq.remove(/0+$/).remove(/\s/))
+            airport.add_address AIXM.address(
+              type: :radio_frequency,
+              address: AIXM.f(freq.split("\n").first.remove(/\s/).to_f, :mhz)
+            )
           else
             warn("no A/A documented for #{airport.id}", severe: false, pry: binding)
             fail AIPP::Downloader::NotFoundError

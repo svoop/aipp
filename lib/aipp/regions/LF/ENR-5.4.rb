@@ -7,7 +7,7 @@ module AIPP
       include AIPP::LF::Helpers::Base
 
       # Obstacles to be ignored
-      NAME_DENYLIST = %w(10051 55050 51076 59000 72039 80088).freeze   # all duplicates
+      NAME_DENYLIST = %w(37071 59039).freeze   # two obstacles on top of each other
 
       # Map type descriptions to AIXM types and remarks
       TYPES = {
@@ -56,17 +56,21 @@ module AIPP
             obstacle.lighting = visibility.match?(/nuit/i)
             obstacle.remarks = remarks_from(type_remarks, (count if count > 1), tds[6].text)
           end
-          if count > 1
-            obstacle_group = AIXM.obstacle_group(
-              source: obstacle.source,
-              name: obstacle.name
-            ).tap do |obstacle_group|
-              obstacle_group.remarks = "#{count} obstacles"
-            end
-            obstacle_group.add_obstacle obstacle
-            add obstacle_group
+          if aixm.features.find_by(:obstacle, xy: obstacle.xy).any?
+            warn("duplicate obstacle #{name}", severe: false, pry: binding)
           else
-            add obstacle
+            if count > 1
+              obstacle_group = AIXM.obstacle_group(
+                source: obstacle.source,
+                name: obstacle.name
+              ).tap do |obstacle_group|
+                obstacle_group.remarks = "#{count} obstacles"
+              end
+              obstacle_group.add_obstacle obstacle
+              add obstacle_group
+            else
+              add obstacle
+            end
           end
         rescue => error
           warn("error parsing obstacle at ##{index}: #{error.message}", pry: error)

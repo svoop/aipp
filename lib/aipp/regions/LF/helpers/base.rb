@@ -53,7 +53,7 @@ module AIPP
           'enrobé béton' => { composition: :concrete, preparation: :paved, remarks: 'Enrobé / coated' },
           /^résine( époxy)?$/ => { composition: :other, remarks: 'Résine / resin' },
           'tole acier larmé' => { composition: :metal, preparation: :grooved },
-          /^(structure métallique|aluminium)$/ => { composition: :metal },
+          /^(structure métallique|structure et caillebotis métallique|aluminium)$/ => { composition: :metal },
           'matériaux composites ignifugés' => { composition: :other, remarks: 'Matériaux composites ignifugés / fire resistant mixed materials' },
           /^(gazon|herbe)$/ => { composition: :grass },
           'neige' => { composition: :snow },
