@@ -35,9 +35,8 @@ module AIPP
 
     def subhash_for(node, memo=[])
       memo.tap do |m|
-        fail TSort::Cyclic if m.include? node
         m << node
-        fetch(node).each { subhash_for(_1, m) }
+        (fetch(node) - m).each { subhash_for(_1, m) }
       end
     end
 
