@@ -7,6 +7,7 @@
 
 #### Additions
 * Unsevere warnings
+* Support for .xlsx, .ods and .csv files
 
 ## 0.2.6
 

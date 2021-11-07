@@ -6,7 +6,7 @@
 
 Parser for Aeronautical Information Publication (AIP) available online.
 
-This gem incluces two executables to download and parse aeronautical data as HTML or PDF, then build and export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
+This gem incluces two executables to download and parse aeronautical data as HTML, PDF, XSLX, ODS and CSV, then build and export is as [AIXM](https://github.com/svoop/aixm) or [OFMX](https://github.com/openflightmaps/ofmx/wiki).
 
 * [Homepage](https://github.com/svoop/aipp)
 * [Rubydoc](https://www.rubydoc.info/gems/aipp/AIPP)

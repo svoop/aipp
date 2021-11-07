@@ -54,8 +54,8 @@ module AIPP
     # @param document [String] document to read (without extension)
     # @param url [String] URL to download the document from
     # @param type [Symbol, nil] document type: +nil+ (default) to derive it from
-    #   the URL, :html, or :pdf
-    # @return [Nokogiri::HTML5::Document, AIPP::PDF]
+    #   the URL, :html, :pdf, :xlsx, :ods or :csv
+    # @return [Nokogiri::HTML5::Document, AIPP::PDF, Roo::Spreadsheet]
     def read(document:, url:, type: nil)
       type ||= Pathname(URI(url).path).extname[1..-1].to_sym
       file = work_path.join([document, type].join('.'))
@@ -120,6 +120,7 @@ module AIPP
       case file.extname
         when '.html' then Nokogiri.HTML5(file)
         when '.pdf' then AIPP::PDF.new(file)
+        when '.xlsx', '.ods', '.csv' then Roo::Spreadsheet.open(file.to_s)
       else
         fail(ArgumentError, "invalid document type")
       end

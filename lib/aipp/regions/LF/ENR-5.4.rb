@@ -19,6 +19,7 @@ module AIPP
         'Cheminée' => [:chimney],
         'Derrick' => [:tower, 'Derrick'],
         'Eglise' => [:tower, 'Church / Eglise'],
+        'Eolienne' => [:wind_turbine],
         'Eolienne(s)' => [:wind_turbine],
         'Grue' => [:tower, 'Crane / Grue'],
         'Mât' => [:mast],
@@ -34,42 +35,67 @@ module AIPP
       }.freeze
 
       def parse
-        tbody = prepare(html: read).css('tbody').last
-        tbody.css('tr').to_enum.with_index(1).each do |tr, index|
-          tds = tr.css('td')
-          name = tds[0].text.cleanup
-          next if NAME_DENYLIST.include? name
-          elevation, height = tds[4].text.cleanup.split(/[()]/).map { _1.cleanup.remove("\n") }
-          type, type_remarks = TYPES.fetch(tds[2].text.cleanup)
-          count = tds[3].text.cleanup.to_i
-          visibility = tds[5].text.cleanup
+        a = prepare(html: read).css('h4:contains("5.4-1") ~ table:first a[href*="Obstacles"]:first').first
+        xlsx = read(a[:href].cleanup.remove(/^.*\//))
+        sheet = xlsx.sheet(xlsx.sheets.find(/^data/i).first)
+        sheet.each(
+          name: 'IDENTIFICATEUR',
+          type: 'TYPE',
+          count: 'nombre',
+          longitude: 'LONGITUDE DECIMALE',
+          latitude: 'LATITUDE DECIMALE',
+          elevation: 'ALTITUDE AU SOMMET',
+          height: 'ALTITUDE AU SOMMET',
+          height_unit: 'UNITE',
+          horizontal_accuracy: 'PRECISION HORIZONTALE',
+          vertical_accuracy: 'PRECISION VERTICALE',
+          visibility: 'BALISAGE',
+          remarks: 'REMARK',
+          updated_on: 'DATE DE DERNIERE MISE A JOUR'
+        ).with_index(0) do |row, index|
+          next unless row[:updated_on].to_s.match? /\d{8}/
+          next if NAME_DENYLIST.include? row[:name]
+          type, type_remarks = TYPES.fetch(row[:type])
+          count = row[:count].to_i
           obstacle = AIXM.obstacle(
-            source: source(position: tr.line),
-            name: name,
+            source: source(position: index),
+            name: row[:name],
             type: type,
-            xy: xy_from(tds[1].text),
-            z: z_from(elevation + 'AMSL')
+            xy: AIXM.xy(lat: row[:latitude].to_f, long: row[:longitude].to_f),
+            z: AIXM.z(row[:elevation].to_i, :qnh)
           ).tap do |obstacle|
-            obstacle.height = d_from(height)
-            obstacle.height_accurate = true
-            obstacle.marking = visibility.match?(/jour/i)
-            obstacle.lighting = visibility.match?(/nuit/i)
-            obstacle.remarks = remarks_from(type_remarks, (count if count > 1), tds[6].text)
-          end
-          if aixm.features.find_by(:obstacle, xy: obstacle.xy).any?
-            warn("duplicate obstacle #{name}", severe: false, pry: binding)
-          else
-            if count > 1
-              obstacle_group = AIXM.obstacle_group(
-                source: obstacle.source,
-                name: obstacle.name
-              ).tap do |obstacle_group|
-                obstacle_group.remarks = "#{count} obstacles"
-              end
-              obstacle_group.add_obstacle obstacle
-              add obstacle_group
+            obstacle.height = AIXM.d(row[:height].to_i, row[:height_unit])
+            if row[:horizontal_accuracy]
+              accuracy = row[:horizontal_accuracy].split
+              obstacle.xy_accuracy = AIXM.d(accuracy.first.to_i, accuracy.last)
+            end
+            if row[:vertical_accuracy]
+              accuracy = row[:horizontal_accuracy].split
+              obstacle.z_accuracy = AIXM.d(accuracy.first.to_i, accuracy.last)
+            end
+            obstacle.marking = row[:visibility].match?(/jour/i)
+            obstacle.lighting = row[:visibility].match?(/nuit/i)
+            obstacle.remarks = remarks_from(
+              type_remarks,
+              (count if count > 0),
+              row[:remarks],
+              (row[:updated_on].to_s.unpack("a4a2a2").join("-") if row[:updated_on])
+            )
+            if aixm.features.find_by(:obstacle, xy: obstacle.xy).any?
+              warn("duplicate obstacle #{obstacle.name}", severe: false, pry: binding)
             else
-              add obstacle
+              if count > 1
+                obstacle_group = AIXM.obstacle_group(
+                  source: obstacle.source,
+                  name: obstacle.name
+                ).tap do |obstacle_group|
+                  obstacle_group.remarks = "#{count} obstacles"
+                end
+                obstacle_group.add_obstacle obstacle
+                add obstacle_group
+              else
+                add obstacle
+              end
             end
           end
         rescue => error
@@ -80,7 +106,7 @@ module AIPP
       private
 
       def remarks_from(*parts)
-        part_titles = ['TYPE', 'NUMBER/NOMBRE', 'DETAILS']
+        part_titles = ['TYPE', 'NUMBER/NOMBRE', 'DETAILS', 'UPDATED/MISE A JOUR']
         [].tap do |remarks|
           parts.each.with_index do |part, index|
             if part

@@ -118,6 +118,7 @@ module AIPP
         raw_text = td.text.cleanup
         text = SERVICE_FIXES.fetch(raw_text, raw_text.dup)   # fix incomplete service columns
         text.remove! /\(s\)/i   # remove noise
+        text.gsub!(/approche/i, 'app')   # force abbreviation
         text.gsub!(/[\/-]/, "\n")   # separate multiple frequencies
         text = text.gsub(/((?:[A-Z][a-z]\D+)?\d{3}\.\d+)/, "\n\\1").compact   # put frequencies on separate line
         fail "no unit found in #{raw_text.inspect}" unless text&.match? /^(fic|app|twr)/i

@@ -46,6 +46,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'activesupport', '~> 6'
   spec.add_runtime_dependency 'nokogiri', '~> 1'
   spec.add_runtime_dependency 'nokogumbo', '~> 2'
+  spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
   spec.add_runtime_dependency 'json', '~> 2'
   spec.add_runtime_dependency 'rubyzip', '~> 2'

@@ -43,8 +43,9 @@ module AIPP
     #
     # @param aip_file [String] e.g. "ENR-2.1" or "AD-2.LFMV" (default: +aip+
     #   with section stripped e.g. "AD-1.3-2" -> "AD-1.3")
-    # @return [Nokogiri::HTML5::Document, String] HTML as Nokogiri document,
-    #   PDF or TXT as String
+    # @return [Nokogiri::HTML5::Document, Roo::Spreadsheet, String] HTML as
+    #   Nokogiri document, XLSX/ODS/CSV as Roo document, PDF and TXT as
+    #   String
     def read(aip_file=nil)
       aip_file ||= aip.remove(/(?<![A-Z])-\d+$/)
       @downloader.read(document: aip_file, url: url_for(aip_file))
