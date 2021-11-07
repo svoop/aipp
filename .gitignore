@@ -1,8 +1,14 @@
+# macOS
 .DS_Store
+
+# Editors
+.nova
+.vscode
+*.sublime*
+
+# Ruby
 gems.locked
 pkg/*
 *.gem
 .bundle
 .yardoc
-*.aixm
-*.ofmx
