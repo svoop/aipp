@@ -315,8 +315,6 @@ In order to reference the source of an AIXM/OFMX feature, it's necessary to know
 tr.line
 ```
 
-⚠️ Make sure you have build Nokogumbo `--with-libxml2`. Otherwise, all elements will report line number `0` and therefore render OFMX documents invalid. See the [Nokogumbo README](https://github.com/rubys/nokogumbo/blob/master/README.md#flavors-of-nokogumbo) for more on this.
-
 ### Errors
 
 You should `fail` on fatal problems which must be fixed. The `-e` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
