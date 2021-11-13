@@ -12,3 +12,13 @@ pkg/*
 *.gem
 .bundle
 .yardoc
+
+# Data
+/*.aixm
+/*.ofmx
+/*.xml
+/*.html
+/*.pdf
+/*.xlsx
+/*.ods
+/*.csv
