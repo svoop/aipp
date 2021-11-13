@@ -118,7 +118,8 @@ module AIPP
 
     def convert(file)
       case file.extname
-        when '.html' then Nokogiri.HTML5(file)
+        when '.xml' then Nokogiri.XML(File.open(file))
+        when '.html' then Nokogiri.HTML5(File.open(file))
         when '.pdf' then AIPP::PDF.new(file)
         when '.xlsx', '.ods', '.csv' then Roo::Spreadsheet.open(file.to_s)
       else
