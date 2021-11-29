@@ -5,6 +5,9 @@
 * Improve calculation of short feature hash in manifest in order to include
   e.g. geometries of airspaces.
 
+#### Changes
+* Switch from `pry` to `debug`
+
 #### Additions
 * Unsevere warnings
 * Support for .xlsx, .ods and .csv files

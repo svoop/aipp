@@ -22,6 +22,8 @@ module AIPP
   #     )
   #   end
   class Downloader
+    extend Forwardable
+    include AIPP::Debugger
 
     # Error when URL results in "404 Not Found" HTTP status
     class NotFoundError < StandardError; end

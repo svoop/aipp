@@ -1,6 +1,7 @@
 require_relative '../../spec_helper'
 
 class Shoe
+  include AIPP::Debugger
   include AIPP::Patcher
 
   attr_accessor :size

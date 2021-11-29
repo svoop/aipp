@@ -2,7 +2,8 @@ module AIPP
 
   # AIP parser infrastructure
   class Parser
-
+    extend Forwardable
+    include AIPP::Debugger
     using AIXM::Refinements
 
     # @return [Hash] passed command line arguments
@@ -111,12 +112,12 @@ module AIPP
       info("Detecting duplicates")
       if (duplicates = aixm.features.duplicates).any?
         message = "duplicates found:\n" + duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
-        @options[:force] ? warn(message, pry: binding) : fail(message)
+        @options[:force] ? warn(message) : fail(message)
       end
       info("Validating #{options[:schema].upcase}")
       unless aixm.valid?
         message = "invalid #{options[:schema].upcase} document:\n" + aixm.errors.map(&:message).join("\n")
-        @options[:force] ? warn(message, pry: binding) : fail(message)
+        @options[:force] ? warn(message) : fail(message)
       end
     end
 

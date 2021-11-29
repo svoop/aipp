@@ -2,6 +2,8 @@ module AIPP
 
   # Executable instantiated by the console tools
   class Executable
+    include AIPP::Debugger
+
     attr_reader :options
 
     def initialize(**options)
@@ -9,6 +11,9 @@ module AIPP
       @options[:airac] = AIPP::AIRAC.new
       @options[:storage] = Pathname(Dir.home).join('.aipp')
       @options[:force] = @options[:mid] = false
+      @options[:verbose] = false
+      @options[:debug_on_warning] = false
+      @options[:debug_on_error] = false
       OptionParser.new do |o|
         o.banner = <<~END
           Download online AIP and convert it to #{options[:schema].upcase}.
@@ -23,10 +28,9 @@ module AIPP
         end
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { @options[:storage] = Pathname(_1) }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { @options[:force] = _1 }
-        o.on('-v', '--[no-]verbose', 'verbose output (default: false)') { $VERBOSE_INFO = _1 }
-        o.on('-u', '--[no-]unsevere-warn', 'include unsevere warnings (default: false)') { $UNSEVERE_WARN = _1 }
-        o.on('-w', '--pry-on-warn [ID]', Integer, 'open pry on warning with ID (default: nil)') { $PRY_ON_WARN = _1 || true }
-        o.on('-e', '--[no-]pry-on-error', 'open pry on error (default: false)') { $PRY_ON_ERROR = _1 }
+        o.on('-v', '--[no-]verbose', 'verbose output including unsevere warnings (default: false)') { @options[:verbose] = _1 }
+        o.on('-w', '--debug-on-warning [ID]', Integer, 'open debug session on warning with ID (default: false)') { @options[:debug_on_warning] = _1 || true }
+        o.on('-e', '--[no-]debug-on-error', 'open debug session on error (default: false)') { @options[:debug_on_error] = _1 }
         o.on('-A', '--about', 'show author/license information and exit') { about }
         o.on('-R', '--readme', 'show README and exit') { readme }
         o.on('-L', '--list', 'list implemented regions and AIPs') { list }
@@ -34,12 +38,8 @@ module AIPP
       end.parse!
     end
 
-    # Load necessary files and execute the parser.
-    #
-    # @raise [RuntimeError] if the region does not exist
     def run
-      Pry.rescue do
-        fail(OptionParser::MissingArgument, :region) unless options[:region]
+      with_debugger(**options.slice(:verbose, :debug_on_warning, :debug_on_error)) do
         starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         AIPP::Parser.new(options: options).tap do |parser|
           parser.read_config
@@ -52,9 +52,6 @@ module AIPP
         end
         ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         info("Finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S"))
-      rescue => error
-        puts "ERROR: #{error.message}".magenta
-        Pry::rescued(error) if $PRY_ON_ERROR
       end
     end
 
@@ -86,6 +83,6 @@ module AIPP
       puts AIPP::VERSION
       exit
     end
-  end
 
+  end
 end

@@ -317,7 +317,7 @@ tr.line
 
 ### Errors
 
-You should `fail` on fatal problems which must be fixed. The `-e` command line argument will open a Pry session when such an error occurs. Issue errors as usual:
+You should `fail` on fatal problems which must be fixed. The `--debug-on-error` command line argument will open a debug session when such an error occurs. Issue errors as usual:
 
 ```ruby
 fail "my message"
@@ -325,12 +325,11 @@ fail "my message"
 
 ### Warnings
 
-You should `warn` on non-fatal problems which should be fixed (default) or might be ignored (`severe: false`). The `-w ID` command line argument will open a Pry session when then warning with the given ID occurs. To issue a warning:
+You should `warn` on non-fatal problems which should be fixed (default) or might be ignored (`severe: false`). The `--debug-on-warning ID` command line argument will open a debug session when then warning with the given ID occurs. To issue a warning:
 
 ```ruby
+warn("my message")
 warn("my message", severe: false)   # show warning only when --unsevere-warn argument is set
-warn("my message", pry: binding)    # open Pry attached to the binding
-warn("my message", pry: error)      # open Pry attached to the error
 ```
 
 ### Messages
@@ -352,13 +351,13 @@ Use `verbose_info` for in-depth info messages which are only shown if the `--ver
 verbose_info("my message")   # displays "my message" in blue
 ```
 
-### Pry
+#### debug
 
-Pry is loaded with stack explorer support. Type `help` in the Pry console to see all available commands. The most useful command in the context of this gem is `up` which beams you one frame up in the caller stack.
+The [default Ruby debugger](https://github.com/ruby/debug#debug-command-on-the-debug-console) is enabled by default, you can add a breakpoint as usual with:
 
-If the current context (`whereami`) is not displayed, you're not at the lowest stack, get there by typing `frame 0`.
-
-Note: It's not currently possible to use pry-byebug at this time since it [interferes with pry-rescue](https://github.com/ConradIrwin/pry-rescue/issues/71).
+```ruby
+debugger
+```
 
 ## AIRAC Date Calculations
 
