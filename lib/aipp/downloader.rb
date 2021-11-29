@@ -51,6 +51,11 @@ module AIPP
       teardown
     end
 
+    # @return [String]
+    def inspect
+      "#<AIPP::Downloader>"
+    end
+
     # Download and read +document+
     #
     # @param document [String] document to read (without extension)
@@ -61,21 +66,12 @@ module AIPP
     def read(document:, url:, type: nil)
       type ||= Pathname(URI(url).path).extname[1..-1].to_sym
       file = work_path.join([document, type].join('.'))
-      if file.exist?
-        fail NotFoundError if file.empty?   # replay 404
-      else
-        verbose_info "Downloading #{document}"
+      unless file.exist?
+        verbose_info "downloading #{document}"
         uri = URI.open(url)
         IO.copy_stream(uri, file)
       end
       convert file
-    rescue OpenURI::HTTPError => error
-      if error.message.match? /^404/
-        FileUtils.touch file   # cache 404
-        raise NotFoundError
-      else
-        raise error
-      end
     end
 
     private

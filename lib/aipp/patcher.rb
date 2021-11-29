@@ -18,14 +18,16 @@ module AIPP
 
     def attach_patches
       parser = self
+      verbose_info_method = method(:verbose_info)
       self.class.patches[self.class]&.each do |(klass, attribute, block)|
         klass.instance_eval do
           alias_method :"original_#{attribute}=", :"#{attribute}="
           define_method(:"#{attribute}=") do |value|
-            catch :abort do
+            error = catch :abort do
               value = block.call(parser, self, value)
-              verbose_info("PATCH: #{self.inspect}", color: :magenta)
+              verbose_info_method.call("Patching #{self.inspect} with #{attribute}=#{value.inspect}", color: :magenta)
             end
+            fail "patching #{self.inspect} with #{attribute}=#{value.inspect} failed: #{error}" if error
             send(:"original_#{attribute}=", value)
           end
         end
@@ -36,6 +38,7 @@ module AIPP
     def detach_patches
       self.class.patches[self.class]&.each do |(klass, attribute, _)|
         klass.instance_eval do
+          remove_method :"#{attribute}="
           alias_method :"#{attribute}=", :"original_#{attribute}="
           remove_method :"original_#{attribute}="
         end

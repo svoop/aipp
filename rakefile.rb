@@ -6,7 +6,7 @@ Rake::TestTask.new do |t|
   t.libs << 'lib'
   t.test_files = FileList['spec/lib/**/*_spec.rb']
   t.verbose = false
-  t.warning = !!ENV['TEST_WARNINGS']
+  t.warning = !ENV['RUBYOPT']&.match?(/-W0/)
 end
 
 namespace :build do
@@ -22,8 +22,8 @@ namespace :build do
 end
 
 Rake::Task[:test].enhance do
-  unless ENV['TEST_WARNINGS']
-    puts "Ruby warnings disabled, set TEST_WARNINGS environment variable to enable."
+  if ENV['RUBYOPT']&.match?(/-W0/)
+    puts "⚠️  Ruby warnings are disabled, remove -W0 from RUBYOPT to enable."
   end
 end
 

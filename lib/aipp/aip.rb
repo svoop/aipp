@@ -8,8 +8,12 @@ module AIPP
 
     DEPENDS = []
 
-    # @return [String] AIP name (e.g. "ENR-2.1")
+    # @return [String] AIP name (equal to the parser file name without its
+    #   file extension such as "ENR-2.1" implemented in the file "ENR-2.1.rb")
     attr_reader :aip
+
+    # @return [String] AIP file as passed and possibly updated by `url_for`
+    attr_reader :aip_file
 
     # @return [Object] Fixture read from YAML file
     attr_reader :fixture
@@ -31,7 +35,12 @@ module AIPP
 
     def initialize(aip:, downloader:, fixture:, parser:)
       @aip, @downloader, @fixture, @parser = aip, downloader, fixture, parser
-      self.class.include ("AIPP::%s::Helpers::URL" % options[:region]).constantize
+      setup if respond_to? :setup
+    end
+
+    # @return [String]
+    def inspect
+      "#<AIPP::AIP #{aip}>"
     end
 
     # Read an AIP source file
@@ -39,17 +48,18 @@ module AIPP
     # Read the cached source file if it exists in the source archive. Otherwise,
     # download it from URL and cache it.
     #
-    # An URL builder method +url_for(aip_file)+ must be defined either in
-    # +helper.rb+ or in the AIP parser definition (e.g. +ENR-2.1.rb+).
+    # An URL builder method +url_for(aip_file)+ must be implemented by the AIP
+    # parser definition (e.g. +ENR-2.1.rb+).
     #
     # @param aip_file [String] e.g. "ENR-2.1" or "AD-2.LFMV" (default: +aip+
     #   with section stripped e.g. "AD-1.3-2" -> "AD-1.3")
-    # @return [Nokogiri::HTML5::Document, Roo::Spreadsheet, String] HTML as
-    #   Nokogiri document, XLSX/ODS/CSV as Roo document, PDF and TXT as
-    #   String
+    # @return [Nokogiri::XML::Document, Nokogiri::HTML5::Document,
+    #   Roo::Spreadsheet, String] XML/HTML as Nokogiri document, XLSX/ODS/CSV
+    #   as Roo document, PDF and TXT as String
     def read(aip_file=nil)
-      aip_file ||= aip.remove(/(?<![A-Z])-\d+$/)
-      @downloader.read(document: aip_file, url: url_for(aip_file))
+      @aip_file = aip_file || aip.remove(/(?<![A-Z])-\d+$/)
+      url = url_for(@aip_file)   # may update aip_file string
+      @downloader.read(document: @aip_file, url: url)
     end
 
     # Add feature to AIXM
@@ -57,7 +67,7 @@ module AIPP
     # @param feature [AIXM::Feature] e.g. airport or airspace
     # @return [AIXM::Feature] added feature
     def add(feature)
-      verbose_info "Adding #{feature.inspect}"
+      verbose_info "adding #{feature.inspect}"
       aixm.add_feature feature
       feature
     end
@@ -79,6 +89,78 @@ module AIPP
         aixm.features.send(method, *args)
       end
     end
-  end
 
+    # @overload given(*objects)
+    #   Return +objects+ unless at least one of them equals nil
+    #
+    #   @example
+    #     # Instead of this:
+    #     first, last = unless ((first = expensive_first).nil? || (last = expensive_last).nil?)
+    #       [first, last]
+    #     end
+    #
+    #     # Use the following:
+    #     first, last = given(expensive_first, expensive_last)
+    #
+    #   @param *objects [Array<Object>] any objects really
+    #   @return [Object] nil if at least one of the objects is nil, given
+    #     objects otherwise
+    #
+    # @overload given(*objects)
+    #   Yield +objects+ unless at least one of them equals nil
+    #
+    #   @example
+    #     # Instead of this:
+    #     name = unless ((first = expensive_first.nil? || (last = expensive_last.nil?)
+    #       "#{first} #{last}"
+    #     end
+    #
+    #     # Use any of the following:
+    #     name = given(expensive_first, expensive_last) { |f, l| "#{f} #{l}" }
+    #     name = given(expensive_first, expensive_last) { "#{_1} #{_2}" }
+    #
+    #   @param *objects [Array<Object>] any objects really
+    #   @yield [Array<Object>] objects passed as parameter
+    #   @return [Object] nil if at least one of the objects is nil, return of
+    #     block otherwise
+    def given(*objects)
+      if objects.none?(&:nil?)
+        block_given? ? yield(*objects) : objects
+      end
+    end
+
+    # Build and optionally check a Markdown link
+    #
+    # @example
+    #   options[:check_links] = false
+    #   link_to('foo', 'https://bar.com/exists')      # => "[foo](https://bar.com/exists)"
+    #   link_to('foo', 'https://bar.com/not-found')   # => "[foo](https://bar.com/not-found)"
+    #   options[:check_links] = true
+    #   link_to('foo', 'https://bar.com/exists')      # => "[foo](https://bar.com/exists)"
+    #   link_to('foo', 'https://bar.com/not-found')   # => nil
+    #
+    # @params body [String] body text of the link
+    # @params url [String] URL of the link
+    # @return [String, nil] Markdown link
+    def link_to(body, url)
+      "[#{body}](#{url})" if !options[:check_links] || url_exists?(url)
+    end
+
+    private
+
+    def url_exists?(url)
+      uri = URI.parse(url)
+      Net::HTTP.new(uri.host, uri.port).tap do |request|
+        request.use_ssl = (uri.scheme == 'https')
+        path = uri.path.present? ? uri.path : '/'
+        result = request.request_head(path)
+        if result.kind_of? Net::HTTPRedirection
+          url_exist?(result['location'])
+        else
+          result.code == '200'
+        end
+      end
+    end
+
+  end
 end

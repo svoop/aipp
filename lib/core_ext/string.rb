@@ -35,55 +35,8 @@ class String
   #   "  foo\n\nbar \r".copact   # => "foo\nbar"
   #
   # @return [String] compacted string
-  def compact
+  def compact   # TODO: in use, don't remove!
     split("\n").map { _1.squish.blank_to_nil }.compact.join("\n")
-  end
-
-  # Calculate the correlation of two strings by counting mutual words
-  #
-  # Both strings are normalized as follows:
-  # * remove accents, umlauts etc
-  # * remove everything but members of the +\w+ class
-  # * downcase
-  #
-  # The normalized strings are split into words. Only words fulfilling either
-  # of the following conditions are taken into consideration:
-  # * words present in and translated by the +synonyms+ map
-  # * words of at least 5 characters length
-  # * words consisting of exactly one letter followed by any number of digits
-  #   (an optional whitespace between the two is ignored, e.g. "D 25" is the
-  #   same as "D25")
-  #
-  # The +synonyms+ map is an array where terms in even positions map to their
-  # synonym in the following (odd) position:
-  #
-  #   SYNONYMS = ['term1', 'synonym1', 'term2', 'synonym2']
-  #
-  # @example
-  #   subject = "Truck en route on N 3 sud"
-  #   subject.correlate("my car is on D25")          # => 0
-  #   subject.correlate("my truck is on D25")        # => 1
-  #   subject.correlate("my truck is on N3")         # => 2
-  #   subject.correlate("south", ['sud', 'south'])   # => 1
-  #
-  # @param other [String] string to compare with
-  # @param synonyms [Array<String>] array of synonym pairs
-  # @return [Integer] 0 for unrelated strings and positive integers for related
-  #   strings with higher numbers indicating tighter correlation
-  def correlate(other, synonyms=[])
-    self_words, other_words = [self, other].map do |string|
-      string.
-        unicode_normalize(:nfd).
-        downcase.gsub(/[-\u2013]/, ' ').
-        remove(/[^\w\s]/).
-        gsub(/\b(\w)\s?(\d+)\b/, '\1\2').
-        compact.
-        split(/\W+/).
-        map { (i = synonyms.index(_1)).nil? ? _1 : (i.odd? ? _1 : synonyms[i + 1]).upcase }.
-        keep_if { _1.match?(/\w{5,}|\w\d+|[[:upper:]]/) }.
-        uniq
-    end
-    (self_words & other_words).count
   end
 
   # Similar to +strip+, but remove any leading or trailing non-letters/numbers
@@ -97,11 +50,11 @@ class String
     scan(pattern).tap { remove! pattern }
   end
 
-  # Apply the pattern and return...
-  # * first capture group - if the pattern matches and contains a capture group
-  # * entire match - if the pattern matches and contains no capture group
-  # * +default+ - if it doesn't match but has a +default+ set
-  # * +nil+ - if it doesn't match and doesn't have a +default+ set
+  # Apply the patterns in the given order and return...
+  # * first capture group - if a pattern matches and contains a capture group
+  # * entire match - if a pattern matches and contains no capture group
+  # * +default+ - if no pattern matches and a +default+ is set
+  # * +nil+ - if no pattern matches and no +default+ is set
   #
   # @example
   #   "A/A: 123.5 mhz".first_match(/123\.5/)                   # => "123.5"
@@ -110,14 +63,17 @@ class String
   #   "A/A: 123.5 mhz".first_match(/(121\.5)/)                 # nil
   #   "A/A: 123.5 mhz".first_match(/121\.5/, default: "123")   # "123"
   #
-  # @param pattern [Regexp] pattern to apply
+  # @param patterns [Array<Regexp>] one or more patterns to apply in order
   # @param default [String] string to return instead of +nil+ if the pattern
   #   doesn't match
   # @return [String, nil]
-  def first_match(pattern, default: nil)
-    if captures = match(pattern)
-      captures[1] || captures[0]
-    end || default
+  def first_match(*patterns, default: nil)
+    patterns.each do |pattern|
+      if captures = match(pattern)
+        return captures[1] || captures[0]
+      end
+    end
+    default
   end
 
   # Remove all XML/HTML tags and entities from the string
@@ -135,23 +91,6 @@ class String
   # @return [Float] number parsed from text
   def to_ff
     sub(/,/, '.').to_f
-  end
-
-  # Add spaces between obviously glued words:
-  # * camel glued words
-  # * three-or-more-letter and number-only words
-  #
-  # @example
-  #   "thisString has spaceProblems".unglue   # => "this String has space problems"
-  #   "the first123meters of D25".unglue      # => "the first 123 meters of D25"
-  #
-  # @return [String] unglued string
-  def unglue
-    self.dup.tap do |string|
-      [/([[:lower:]])([[:upper:]])/, /([[:alpha:]]{3,})(\d)/, /(\d)([[:alpha:]]{3,})/].freeze.each do |regexp|
-        string.gsub!(regexp, '\1 \2')
-      end
-    end
   end
 
 end

@@ -38,49 +38,47 @@ module AIPP
       AIXM.config.region = options[:region]
     end
 
+    # @return [String]
+    def inspect
+      "#<AIPP::Parser>"
+    end
+
     # Read the configuration from config.yml.
     def read_config
-      info("Reading config.yml")
-      @config = YAML.load_file(config_file, fallback: {}).transform_keys(&:to_sym) if config_file.exist?
+      info("reading config.yml")
+      @config = YAML.load_file(config_file, symbolize_names: true, fallback: {}) if config_file.exist?
       @config[:namespace] ||= SecureRandom.uuid
       @aixm.namespace = @config[:namespace]
     end
 
     # Read the region directory and build the dependency list.
     def read_region
-      info("Reading region #{options[:region]}")
+      info("reading region #{options[:region]}")
       dir = Pathname(__FILE__).dirname.join('regions', options[:region])
       fail("unknown region `#{options[:region]}'") unless dir.exist?
       # Fixtures
       dir.glob('fixtures/*.yml').each do |file|
-        verbose_info "Reading fixture fixtures/#{file.basename}"
+        verbose_info "reading fixture fixtures/#{file.basename}"
         fixture = YAML.load_file(file)
         @fixtures[file.basename('.yml').to_s] = fixture
       end
       # Borders
       dir.glob('borders/*.geojson').each do |file|
-        verbose_info "Reading border borders/#{file.basename}"
-        border = AIPP::Border.new(file)
-        @borders[border.name] = border
+        verbose_info "reading border borders/#{file.basename}"
+        border = AIPP::Border.from_file(file)
+        @borders[file.basename] = border
       end
       # Helpers
       dir.glob('helpers/*.rb').each do |file|
-        verbose_info "Reading helper helpers/#{file.basename}"
+        verbose_info "reading helper helpers/#{file.basename}"
         require file
       end
       # Parsers
       dir.glob('*.rb').each do |file|
-        verbose_info "Requiring #{file.basename}"
+        verbose_info "requiring #{file.basename}"
         require file
         aip = file.basename('.*').to_s
-        unless aip == 'setup'
-          @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).classify]).constantize
-        end
-      end
-      # Setup
-      if dir.join('setup.rb').exist?
-        @dependencies.transform_values! { |v| v.dup.prepend 'Setup' }
-        @dependencies['Setup'] = []
+        @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).camelcase]).constantize
       end
     end
 
@@ -89,8 +87,8 @@ module AIPP
       info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", color: :green)
       AIPP::Downloader.new(storage: options[:storage], source: options[:airac].date.xmlschema) do |downloader|
         @dependencies.tsort(options[:aip]).each do |aip|
-          info("Parsing #{aip}")
-          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).classify]).constantize.new(
+          info("parsing #{aip}")
+          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).camelcase]).constantize.new(
             aip: aip,
             downloader: downloader,
             fixture: @fixtures[aip],
@@ -99,22 +97,22 @@ module AIPP
         end
       end
       if options[:grouped_obstacles]
-        info("Grouping obstacles")
+        info("grouping obstacles")
         aixm.group_obstacles!
       end
-      info("Counting #{aixm.features.count} features")
+      info("counting #{aixm.features.count} features")
     end
 
     # Validate the AIXM document.
     #
     # @raise [RuntimeError] if the document is not valid
     def validate_aixm
-      info("Detecting duplicates")
+      info("detecting duplicates")
       if (duplicates = aixm.features.duplicates).any?
         message = "duplicates found:\n" + duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
         @options[:force] ? warn(message) : fail(message)
       end
-      info("Validating #{options[:schema].upcase}")
+      info("validating #{options[:schema].upcase}")
       unless aixm.valid?
         message = "invalid #{options[:schema].upcase} document:\n" + aixm.errors.map(&:message).join("\n")
         @options[:force] ? warn(message) : fail(message)
@@ -124,9 +122,9 @@ module AIPP
     # Write the AIXM document and context information.
     def write_build
       if @options[:aip]
-        info ("Skipping build")
+        info ("skipping build")
       else
-        info("Writing build")
+        info("writing build")
         builds_path.mkpath
         build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
         Dir.mktmpdir do |tmp_dir|
@@ -169,14 +167,14 @@ module AIPP
 
     # Write the AIXM document.
     def write_aixm
-      info("Writing #{aixm_file}")
+      info("writing #{aixm_file}")
       AIXM.config.mid = options[:mid]
       File.write(aixm_file, aixm.to_xml)
     end
 
     # Write the configuration to config.yml.
     def write_config
-      info("Writing config.yml")
+      info("writing config.yml")
       File.write(config_file, config.to_yaml)
     end
 

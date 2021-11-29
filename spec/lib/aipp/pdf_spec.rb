@@ -50,8 +50,8 @@ describe AIPP::PDF do
   context "without boundaries" do
     describe :text do
       it "returns the entire text" do
-        _(subject.text).must_match /\Apage 1, line 1/
-        _(subject.text).must_match /page 3, line 5\z/
+        _(subject.text).must_match(/\Apage 1, line 1/)
+        _(subject.text).must_match(/page 3, line 5\z/)
       end
     end
 
@@ -95,8 +95,8 @@ describe AIPP::PDF do
 
     describe :text do
       it "returns the entire text" do
-        _(subject.text).must_match /\Ane 2/
-        _(subject.text).must_match /page 3\z/
+        _(subject.text).must_match(/\Ane 2/)
+        _(subject.text).must_match(/page 3\z/)
       end
     end
 

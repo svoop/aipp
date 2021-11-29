@@ -1,6 +1,9 @@
-## 0.2.7 (unreleased)
+## 1.0.0 (unreleased)
 
 #### Breaking Changes
+* Switch from individual AIP HTML section files to the comprehensive AIP XML
+  database dump for the LF region reference implementation.
+* Drop the mandatory `URL` helper in favour of a mandatory `url_for` method.
 * Renamed default git branch to `main`
 * Improve calculation of short feature hash in manifest in order to include
   e.g. geometries of airspaces.

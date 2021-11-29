@@ -41,40 +41,6 @@ describe String do
     end
   end
 
-  describe :correlate do
-    subject do
-      %q(Truck "Montréal" en route on N 3 sud)
-    end
-
-    it "must recognize similar words with 5 or more characters" do
-      _(subject.correlate("truck route")).must_equal 2
-    end
-
-    it "must recognize street denominators with 2 or more characters" do
-      _(subject.correlate("truck N 3")).must_equal 2
-    end
-
-    it "must ignore whitespace in road identifiers" do
-      _(subject.correlate("truck N3")).must_equal 2
-    end
-
-    it "must get rid of accents and similar decorations" do
-      _(subject.correlate("truck Montreal")).must_equal 2
-    end
-
-    it "must downcase" do
-      _(subject.correlate("truck montreal")).must_equal 2
-    end
-
-    it "must honor synonyms" do
-      _(subject.correlate("truck south", ['south', 'sud'])).must_equal 2
-    end
-
-    it "must ignore words with less than 5 characters" do
-      _(subject.correlate("en on for")).must_equal 0
-    end
-  end
-
   describe :to_ff do
     it "must convert normal float numbers as does to_f" do
       _("5".to_ff).must_equal "5".to_f
@@ -100,26 +66,52 @@ describe String do
   end
 
   describe :first_match do
-    subject { "A/A: 123.5 mhz" }
+    context "one pattern" do
+      subject { "A/A: 123.5 mhz" }
 
-    it "returns the entire match if no capture group is present" do
-      _(subject.first_match(/123\.5/)).must_equal "123.5"
+      it "returns the entire match if no capture group is present" do
+        _(subject.first_match(/123\.5/)).must_equal "123.5"
+      end
+
+      it "returns the first matching capture group" do
+        _(subject.first_match(/:\s+([\d.]+)/)).must_equal "123.5"
+      end
+
+      it "returns nil if the pattern doesn't match and no capture group is present" do
+        _(subject.first_match(/121\.5/)).must_be :nil?
+      end
+
+      it "returns nil if the capture group doesn't match" do
+        _(subject.first_match(/(121\.5)/)).must_be :nil?
+      end
+
+      it "returns default if the pattern doesn't match" do
+        _(subject.first_match(/121\.5/, default: "123")).must_equal "123"
+      end
     end
 
-    it "returns the first matching capture group" do
-      _(subject.first_match(/:\s+([\d.]+)/)).must_equal "123.5"
-    end
+    context "multiple patterns" do
+      subject { "LIM-LIH" }
 
-    it "returns nil if the pattern doesn't match and no capture group is present" do
-      _(subject.first_match(/121\.5/)).must_be :nil?
-    end
+      it "returns the entire match if no capture group is present" do
+        _(subject.first_match(/LIH/, /LIM/)).must_equal "LIH"
+      end
 
-    it "returns nil if the capture group doesn't match" do
-      _(subject.first_match(/(121\.5)/)).must_be :nil?
-    end
+      it "returns the first matching capture group" do
+        _(subject.first_match(/LI(H)/, /LI(M)/)).must_equal "H"
+      end
 
-    it "returns default if the pattern doesn't match" do
-      _(subject.first_match(/121\.5/, default: "123")).must_equal "123"
+      it "returns nil if the pattern doesn't match and no capture group is present" do
+        _(subject.first_match(/LIA/, /LIB/)).must_be :nil?
+      end
+
+      it "returns nil if the capture group doesn't match" do
+        _(subject.first_match(/LI(A)/, /LI(B)/)).must_be :nil?
+      end
+
+      it "returns default if the pattern doesn't match" do
+        _(subject.first_match(/LIA/, /LIB/, default: "123")).must_equal "123"
+      end
     end
   end
 
@@ -145,16 +137,6 @@ describe String do
 
     it "must strip tags and entities" do
       _(subject.strip_markup).must_equal 'This  contains   markup  entities.'
-    end
-  end
-
-  describe :unglue do
-    it "must insert spaces between camel glued words" do
-      _("thisString has spaceProblems".unglue).must_equal "this String has space Problems"
-    end
-
-    it "must insert spaces between three-or-more-letter and number-only words" do
-      _("the first123meters of D25".unglue).must_equal "the first 123 meters of D25"
     end
   end
 

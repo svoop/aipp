@@ -1,17 +1,14 @@
 module AIPP
   module LF
 
-    # Obstacles
-    class ENR54 < AIP
+    class Obstacles < AIP
 
       include AIPP::LF::Helpers::Base
-
-      # Obstacles to be ignored
-      NAME_DENYLIST = %w(37071 59039).freeze   # two obstacles on top of each other
 
       # Map type descriptions to AIXM types and remarks
       TYPES = {
         'Antenne' => [:antenna],
+        'Autre' => [:other],
         'Bâtiment' => [:building],
         'Câble' => [:other, 'Cable / Câble'],
         'Centrale thermique' => [:building, 'Thermal power plant / Centrale thermique'],
@@ -35,30 +32,39 @@ module AIPP
       }.freeze
 
       def parse
-        a = prepare(html: read).css('h4:contains("5.4-1") ~ table:first a[href*="Obstacles"]:first').first
-        xlsx = read(a[:href].cleanup.remove(/^.*\//))
-        sheet = xlsx.sheet(xlsx.sheets.find(/^data/i).first)
-        sheet.each(
+        if options[:region_options].include? 'lf_obstacles_xlsx'
+          info("reading obstacles from XLSX")
+          @xlsx = read('Obstacles')
+          parse_from_xlsx
+        else
+          parse_from_xml
+        end
+      end
+
+      private
+
+      def parse_from_xlsx
+        # Build obstacles
+        @xlsx.sheet(@xlsx.sheets.find(/^data/i).first).each(
           name: 'IDENTIFICATEUR',
           type: 'TYPE',
-          count: 'nombre',
+          count: 'NOMBRE',
           longitude: 'LONGITUDE DECIMALE',
           latitude: 'LATITUDE DECIMALE',
           elevation: 'ALTITUDE AU SOMMET',
-          height: 'ALTITUDE AU SOMMET',
+          height: 'HAUTEUR HORS SOL',
           height_unit: 'UNITE',
           horizontal_accuracy: 'PRECISION HORIZONTALE',
           vertical_accuracy: 'PRECISION VERTICALE',
           visibility: 'BALISAGE',
           remarks: 'REMARK',
-          updated_on: 'DATE DE DERNIERE MISE A JOUR'
+          effective_on: 'DATE DE MISE EN VIGUEUR'
         ).with_index(0) do |row, index|
-          next unless row[:updated_on].to_s.match? /\d{8}/
-          next if NAME_DENYLIST.include? row[:name]
+          next unless row[:effective_on].to_s.match? /\d{8}/
           type, type_remarks = TYPES.fetch(row[:type])
           count = row[:count].to_i
           obstacle = AIXM.obstacle(
-            source: source(position: index),
+            source: source(section: 'ENR', position: index),
             name: row[:name],
             type: type,
             xy: AIXM.xy(lat: row[:latitude].to_f, long: row[:longitude].to_f),
@@ -75,14 +81,15 @@ module AIPP
             end
             obstacle.marking = row[:visibility].match?(/jour/i)
             obstacle.lighting = row[:visibility].match?(/nuit/i)
-            obstacle.remarks = remarks_from(
-              type_remarks,
-              (count if count > 0),
-              row[:remarks],
-              (row[:updated_on].to_s.unpack("a4a2a2").join("-") if row[:updated_on])
-            )
+            obstacle.remarks = {
+              'type' => type_remarks,
+              'number/nombre' => (count if count > 1),
+              'details' => row[:remarks],
+              'effective/mise en vigueur' => (row[:effective_on].to_s.unpack("a4a2a2").join("-") if row[:updated_on])
+            }.to_remarks
+            # Group obstacles
             if aixm.features.find_by(:obstacle, xy: obstacle.xy).any?
-              warn("duplicate obstacle #{obstacle.name}", severe: false, pry: binding)
+              warn("duplicate obstacle #{obstacle.name}", severe: false)
             else
               if count > 1
                 obstacle_group = AIXM.obstacle_group(
@@ -98,24 +105,49 @@ module AIPP
               end
             end
           end
-        rescue => error
-          warn("error parsing obstacle at ##{index}: #{error.message}", pry: error)
         end
       end
 
-      private
-
-      def remarks_from(*parts)
-        part_titles = ['TYPE', 'NUMBER/NOMBRE', 'DETAILS', 'UPDATED/MISE A JOUR']
-        [].tap do |remarks|
-          parts.each.with_index do |part, index|
-            if part
-              part = part.to_s.cleanup.blank_to_nil
-              remarks << "**#{part_titles[index]}**\n#{part}"
+      def parse_from_xml
+        cache.obstacle.css(%Q(Obstacle[lk^="[LF]"])).each do |node|
+          # Build obstacles
+          type, type_remarks = TYPES.fetch(node.(:TypeObst))
+          count = node.(:Combien).to_i
+          obstacle = AIXM.obstacle(
+            source: source(section: 'ENR', position: node.line),
+            name: node.(:NumeroNom),
+            type: type,
+            xy: xy_from(node.(:Geometrie)),
+            z: AIXM.z(node.(:AmslFt).to_i, :qnh)
+          ).tap do |obstacle|
+            obstacle.height = AIXM.d(node.(:AglFt).to_i, :ft)
+            obstacle.marking = node.(:Balisage).match?(/jour/i)
+            obstacle.lighting = node.(:Balisage).match?(/nuit/i)
+            obstacle.remarks = {
+              'type' => type_remarks,
+              'number/nombre' => (count if count > 1)
+            }.to_remarks
+          end
+          # Group obstacles
+          if aixm.features.find_by(:obstacle, xy: obstacle.xy).any?
+            warn("duplicate obstacle #{obstacle.name}", severe: false)
+          else
+            if count > 1
+              obstacle_group = AIXM.obstacle_group(
+                source: obstacle.source,
+                name: obstacle.name
+              ).tap do |obstacle_group|
+                obstacle_group.remarks = "#{count} obstacles"
+              end
+              obstacle_group.add_obstacle obstacle
+              add obstacle_group
+            else
+              add obstacle
             end
           end
-        end.join("\n\n").blank_to_nil
+        end
       end
+
     end
   end
 end

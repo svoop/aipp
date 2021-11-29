@@ -18,9 +18,8 @@ This gem incluces two executables to download and parse aeronautical data as HTM
 [Usage](#usage)<br>
 [Storage](#storage)<br>
 [Regions](#regions)<br>
-[AIP Parsers](#aip-parsers)<br>
-[References](#references)<br>
 [AIRAC Date Calculations](#airac-date-calculations)<br>
+[References](#references)<br>
 [Development](#development)
 
 ## Install
@@ -124,6 +123,24 @@ module AIPP
 
       DEPENDS = %w(ENR-2.1 ENR-2.2)   # declare dependencies to other AIPs
 
+    end
+  end
+end
+```
+
+The class has to implement some methods either in the class itself or in a [helper](#Helpers) included by the class.
+
+⚠️ Parser files usually follow AIP naming conventions such as `ENR-4.3`. However, you're free to use arbitrary naming for parser files e.g. if you're working with one big data source which contains the full AIP dataset.
+
+#### Mandatory `parse` Method
+
+The class must implement the `parse` method which contains the code to read, parse and write the data:
+
+```ruby
+module AIPP
+  module LF
+    class ENR43 < AIP
+
       def parse
         html = read             # read the Nokogiri::HTML5 document
         feature = (...)         # build the feature
@@ -144,8 +161,8 @@ module AIPP
 
       def parse
         %i(one two three).each do |part|
-          html = read(aip_file: "#{aip}.#{part}")   # read with a non-standard name
-          support_html = read(aip_file: 'AD-0.6')        # maybe read necessary support documents
+          html = read("#{aip}.#{part}")   # read with a non-standard name
+          support_html = read('AD-0.6')   # maybe read necessary support documents
           (...)
         end
       end
@@ -157,34 +174,69 @@ end
 
 Inside the `parse` method, you have access to the following methods:
 
-* [`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) – download and read an AIP file
-* [`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) – add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
-* [`find`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) – find previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature) by object
-* [`find_by`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find_by-instance_method) – find previously written [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature) by class and attribute values
-* [`unique`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#unique-instance_method) – prevent duplicate [`AIXM::Feature`s](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
-* some core extensions from ActiveSupport – [`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String)
-* core extensions from this gem – [`Object`](https://www.rubydoc.info/gems/aipp/Object), [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass), [`Integer`](https://www.rubydoc.info/gems/aipp/Integer), [`String`](https://www.rubydoc.info/gems/aipp/String), [`Hash`](https://www.rubydoc.info/gems/aipp/Hash) and [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
+Method | Description
+-------|------------
+[`read`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#read-instance_method) | download and read an AIP file
+[`add`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#add-instance_method) | add a [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)
+[`find`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find-instance_method) | find previously written [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)s by object
+[`find_by`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#find_by-instance_method) | find previously written [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)s by class and attribute values
+[`unique`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#unique-instance_method) | prevent duplicate [`AIXM::Feature`](https://www.rubydoc.info/gems/aixm/AIXM/Feature)s
+[`given`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#given-instance_method) | inline condition for assignments
+[`link_to`](https://www.rubydoc.info/gems/aipp/AIPP/AIP#link_to-instance_method) | optionally checked Markdown link
+[`Object#blank`](https://www.rubydoc.info/gems/activesupport/Object#blank%3F-instance_method) and [`String`](https://www.rubydoc.info/gems/activesupport/String) | some core extensions from ActiveSupport
+[`aip`](https://www.rubydoc.info/gems/aipp/AIPP%2FAIP:aip) | AIP name (equal to the parser file name without its file extension such as "ENR-2.1" implemented in the file "ENR-2.1.rb")
+[`aip_file`](https://www.rubydoc.info/gems/aipp/AIPP%2FAIP:aip_file) | AIP file as passed and possibly renamed by `url_for`
+[`options`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#options-instance_method) | arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
+[`config`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#config-instance_method) | configuration read from <tt>config.yml</tt>
+[`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) | borders defined as GeoJSON read from the region (see below)
+[`cache`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#cache-instance_method) | `OStruct` instance to make objects available across AIPs
 
-As well as the following methods:
+To make the parser code more readable, this gem provides a few useful core extensions as well:
 
-* [`options`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#options-instance_method) – arguments read from <tt>aip2aixm</tt> or <tt>aip2ofmx</tt> respectively
-* [`config`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#config-instance_method) – configuration read from <tt>config.yml</tt>
-* [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) – borders defined as GeoJSON read from the region (see below)
-* [`cache`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#cache-instance_method) – virgin `OStruct` instance to make objects available across AIPs
+* [`NilClass`](https://www.rubydoc.info/gems/aipp/NilClass)
+* [`Integer`](https://www.rubydoc.info/gems/aipp/Integer)
+* [`String`](https://www.rubydoc.info/gems/aipp/String)
+* [`Hash`](https://www.rubydoc.info/gems/aipp/Hash)
+* [`Enumerable`](https://www.rubydoc.info/gems/aipp/Enumerable)
+* [`Nokogiri`](https://www.rubydoc.info/gems/aipp/Nokogiri)
 
-### Setup
+#### Mandatory `url_for` Method
 
-If the file `setup.rb` exists, every other AIP parser will automatically depend on it. You can do everything you can do within a normal AIP parser such as prepopulating the cache.
-
-Most notably, you should use it to do the AIXM configuration for this region:
+The class must implement the `url_for` method which returns the URL from where to download the AIP file:
 
 ```ruby
 module AIPP
   module LF
-    class Setup < AIP
+    class AD2 < AIP
 
-      def parse
+      def url_for(aip_file)
+        # build and return the download URL for the aip file
+      end
+
+    end
+  end
+end
+```
+
+There are a few things to note about `url_for`:
+
+* If the returned string begins with a protocol like `https:`, the downloader will fetch the file from there.
+* If the returned string is just a file name, the downloader will look for this exact file in the current local directory.
+* The passed `aip_file` will be used as the file name for the local copy in the sources directory. You can rename it on the fly by assigning a new value to this variable.
+
+#### Optional `setup` Method
+
+The class may implement the `setup` method. If present, it will be called when this parser is instantiated:
+
+
+```ruby
+module AIPP
+  module LF
+    class AD2 < AIP
+
+      def setup
         AIXM.config.voice_channel_separation = :any
+        cache.setup_at ||= Time.now
       end
 
     end
@@ -194,9 +246,13 @@ end
 
 ### Borders
 
-AIXM knows named borders for country boundaries. However, you might need additional borders which don't exist as named boarders.
+AIXM knows named borders for country boundaries. However, you might need additional borders which don't exist as named borders.
 
-To define additional borders, create simple GeoJSON files in the <tt>lib/aipp/regions/{REGION}/borders/</tt> directory, for example this `custom_border.geojson`:
+You can define additional borders as [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) objects in two ways.
+
+#### From GeoJSON
+
+Create simple GeoJSON files in the <tt>lib/aipp/regions/{REGION}/borders/</tt> directory, for example this `my_border_1.geojson`:
 
 ```json
 {
@@ -208,6 +264,13 @@ To define additional borders, create simple GeoJSON files in the <tt>lib/aipp/re
         [6.009531650000042, 45.12013319700009],
         [6.015747738000073, 45.12006702600007]
       ]
+    },
+    {
+      "type": "LineString",
+      "coordinates": [
+        [4.896732957592112, 43.95662950764992],
+        [4.005739165537195, 44.10769266295027]
+      ]
     }
   ]
 }
@@ -215,10 +278,31 @@ To define additional borders, create simple GeoJSON files in the <tt>lib/aipp/re
 
 ⚠️ The GeoJSON file must consist of exactly one `GeometryCollection` which may contain any number of `LineString` geometries. Only `LineString` geometries are recognized! To define a closed polygon, the first coordinates of a `LineString` must be identical to the last coordinates.
 
-The [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) method gives you access to a map from the border name (upcased file name) to the corresponding [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) object:
+#### From Coordinates
+
+It's also possible to create a [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) objects on the fly:
 
 ```ruby
-borders   # => { "CUSTOM_BORDER" => #<AIPP::Border file=custom_border.geojson> }
+my_border_2 = AIPP::Border.from_array(
+  [
+    ["6.009531650000042 45.12013319700009", "6.015747738000073 45.12006702600007"],
+    ["4.896732957592112 43.95662950764992", "4.005739165537195 44.10769266295027"]
+  ]
+)
+```
+
+The coordinate pairs must be separated with whitespaces and/or commas. If you want to use this border everywhere, make sure you add it to the others:
+
+```ruby
+  borders["my_border_2"] = my_border_2
+```
+
+#### Usage in Parsers
+
+In the parser, the [`borders`](https://www.rubydoc.info/gems/aipp/AIPP/Parser#borders-instance_method) method gives you access to all borders read from GeoJSON files:
+
+```ruby
+borders   # => { "my_border_1" => #<AIPP::Border>, "my_border_2" => #<AIPP::Border> }
 ```
 
 The border object implements simple nearest point and segment calculations to create arrays of [`AIXM::XY`](https://www.rubydoc.info/gems/aixm/AIXM/XY) which can be used with [`AIXM::Component::Geometry`](https://www.rubydoc.info/gems/aixm/AIXM/Component/Geometry).
@@ -229,59 +313,9 @@ See [`AIPP::Border`](https://www.rubydoc.info/gems/aipp/AIPP/Border) for more on
 
 Helpers are modules defined in the <tt>lib/aipp/regions/{REGION}/helpers/</tt> directory. All helper modules are required automatically in alphabetic order.
 
-There is one mandatory helper called `URL.rb` which must define the following method to build URLs from which to download AIPs:
-
-```ruby
-module AIPP
-  module LF
-    module Helpers
-      module URL
-
-        def url_for(aip_file)
-          # build and return the download URL for the aip file
-        end
-
-      end
-    end
-  end
-end
-```
-
-Feel free to add more helpers to DRY code which is shared by multiple AIP parsers. Say you want to extract methods which are used by all AIP parsers:
-
-```ruby
-module AIPP
-  module LF
-    module Helpers
-      module Base
-
-        def source(position:, aip_file: nil)
-          (...)
-        end
-
-      end
-    end
-  end
-end
-```
-
-To use this `source` method, simply include the helper module in the AIP parser:
-
-```ruby
-module AIPP
-  module LF
-    class AD2 < AIP
-
-      include AIPP::LF::Helpers::Base
-
-    end
-  end
-end
-```
-
 ### Fixtures and Patches
 
-Fixtures is static data defined as YAML in the <tt>lib/aipp/regions/{REGION}/fixtures/</tt> directory. All fixtures are read automatically. Please note that the name of the AIP parser (e.g. `AD-1.3.rb`) must match the name of the corresponding fixture (e.g. `fixtures/AD-1.3.yml`).
+Fixtures are static YAML data files in the <tt>lib/aipp/regions/{REGION}/fixtures/</tt> directory. All fixtures are read automatically. Please note that the name of the AIP parser (e.g. `AD-1.3.rb`) must match the name of the corresponding fixture (e.g. `fixtures/AD-1.3.yml`).
 
 When parsed data is faulty or missing, you may fall back to such static data instead. This is where patches come in. You can patch any AIXM attribute setter by defining a patch block inside the AIP parser and accessing the static data via `parser.fixture`:
 
@@ -290,14 +324,10 @@ module AIPP
   module LF
     class AD2 < AIP
 
-      patch AIXM::Component::Runway::Direction, :xy do |parser, object, value|
-        throw :abort unless value.nil?
-        @fixtures ||= YAML.load_file(Pathname(__FILE__).dirname.join('AD-1.3.yml'))
-        airport_id = parser.instance_variable_get(:@airport).id
-        direction_name = object.name.to_s
-        throw :abort if (xy = parser.fixture.dig('runways', airport_id, direction_name, 'xy')).nil?
-        lat, long = xy.split(/\s+/)
-        AIXM.xy(lat: lat, long: long)
+      patch AIXM::Feature::Airport, :z do |parser, object, value|
+        throw(:abort) unless value.nil?
+        throw(:abort, 'fixture missing') unless z = parser.fixture.dig(object.id, 'z')
+        AIXM.z(z, :qnh)
       end
 
     end
@@ -305,7 +335,17 @@ module AIPP
 end
 ```
 
-The patch block receives the object and the current value. If this value is okay, `throw :abort` to leave the patch block without touching anything. Otherwise, have the patch block return a new value which will be used instead.
+The patch receives the object and the value which is about to be assigned. It should implement something along these lines:
+
+* If the value is okay, `throw(:abort)` to leave the patch block without touching anything.
+* Otherwise, try to fetch a better value e.g. from the fixtures. If no better value can be found (e.g. outdated fixtures), `throw(:abort, "reason")` to leave the patch block and fail with a useful error message which contains the reason thrown.
+* At last, build and return the value object which will be assigned instead of the original value.
+
+In case the `object` does not carry enough details, you can access instance variables of the parser like so:
+
+```ruby
+parser.instance_variable_get(:@instance_variable)
+```
 
 ### Source File Line Numbers
 
@@ -373,10 +413,6 @@ airac.next_id     # => 1801
 
 ## References
 
-* LF - France
-  * [SIA – AIP publisher](https://www.sia.aviation-civile.gouv.fr)
-  * [OpenData – public data files](https://www.data.gouv.fr)
-  * [Protected Planet – protected area data files](https://www.protectedplanet.net)
 * [Geo Maps – programmatically generated GeoJSON maps](https://github.com/simonepri/geo-maps)
 * [open flightmaps – open-source aeronautical maps](https://openflightmaps.org)
 * [AIXM Rubygem – AIXM/OFMX generator for Ruby](https://github.com/svoop/aixm)

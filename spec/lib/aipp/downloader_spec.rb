@@ -36,7 +36,7 @@ describe AIPP::Downloader do
           _(File.exist?(tmp_dir.join('work'))).must_equal true
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
             _(content).must_be_instance_of Nokogiri::HTML5::Document
-            _(content.text).must_match /fixture-html-new/
+            _(content.text).must_match(/fixture-html-new/)
           end
         end
         _(zip_entries(subject.source_file)).must_equal %w(new.html one.html two.html)
@@ -48,7 +48,7 @@ describe AIPP::Downloader do
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.html').tap do |content|
             _(content).must_be_instance_of Nokogiri::HTML5::Document
-            _(content.text).must_match /fixture-html-new/
+            _(content.text).must_match(/fixture-html-new/)
           end
         end
       end
@@ -58,7 +58,7 @@ describe AIPP::Downloader do
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new.pdf').tap do |content|
             _(content).must_be_instance_of AIPP::PDF
-            _(content.text).must_match /fixture-pdf-new/
+            _(content.text).must_match(/fixture-pdf-new/)
           end
         end
       end
@@ -68,7 +68,7 @@ describe AIPP::Downloader do
         AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
           downloader.read(document: 'new', url: 'http://localhost/new', type: :pdf).tap do |content|
             _(content).must_be_instance_of AIPP::PDF
-            _(content.text).must_match /fixture-pdf-new/
+            _(content.text).must_match(/fixture-pdf-new/)
           end
         end
       end

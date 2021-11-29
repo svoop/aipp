@@ -4,8 +4,8 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  ruby '>= 2.7'
-  gem 'aipp', '~> 0'
+  ruby '>= 3.0.0'
+  gem 'aipp', '~> 1'
 end
 
 AIPP::Executable.new(schema: File.basename($0)[4..-1].to_sym).run

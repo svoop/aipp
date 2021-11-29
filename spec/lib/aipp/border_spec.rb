@@ -4,8 +4,8 @@ describe AIPP::Border::Position do
   subject do
     AIPP::Border::Position.new(
       geometries: [
-        [AIXM.xy(long: 0, lat: 0), AIXM.xy(long: 1, lat: 1), AIXM.xy(long: 2, lat: 2)],
-        [AIXM.xy(long: 10, lat: 10), AIXM.xy(long: 11, lat: 11), AIXM.xy(long: 12, lat: 12)]
+        [AIXM.xy(lat: 0, long: 0), AIXM.xy(lat: 1, long: 1), AIXM.xy(lat: 2, long: 2)],
+        [AIXM.xy(lat: 10, long: 10), AIXM.xy(lat: 11, long: 11), AIXM.xy(lat: 12, long: 12)]
       ],
       geometry_index: 0,
       coordinates_index: 0
@@ -14,7 +14,7 @@ describe AIPP::Border::Position do
 
   describe :xy do
     it "returns the coordinates" do
-      _(subject.xy).must_equal AIXM.xy(long: 0, lat: 0)
+      _(subject.xy).must_equal AIXM.xy(lat: 0, long: 0)
     end
 
     it "returns nil if the geometry index is out of bounds" do
@@ -38,18 +38,36 @@ describe AIPP::Border do
   # * index 2: unclosed I-shaped geometry following the TGV from the S to N bridges over the Rhône
   # * index 3: unclosed U-shaped geometry around Île de Bartelasse from N to S end of Pont Daladier
   subject do
-    AIPP::Border.new(fixtures_dir.join('border.geojson'))
+    AIPP::Border.from_file(fixtures_dir.join('border.geojson'))
   end
 
-  describe :initialize do
+  describe :from_file do
     it "fails for files unless the extension is .geojson" do
-      _{ AIPP::Border.new("/path/to/another.txt") }.must_raise ArgumentError
+      _{ AIPP::Border.from_file("/path/to/another.txt") }.must_raise ArgumentError
+    end
+
+    it "loads the coordinates from the file" do
+      _(subject.geometries[0].count).must_equal 7
+      _(subject.geometries[0].first).must_equal AIXM.xy(lat: 43.98920208, long: 4.75729465)
     end
   end
 
-  describe :name do
-    it "returns the upcased file name" do
-      _(subject.name).must_equal 'BORDER'
+  describe :from_array do
+    subject do
+      AIPP::Border.from_array([
+        ['0 0', '1  1', '2   2'],        # index 0
+        ['10,10', '11, 11', '12 , 12']   # index 1
+      ])
+    end
+
+    it "loads the whitespace separated coordinates from nested arrays" do
+      _(subject.geometries[0].count).must_equal 3
+      _(subject.geometries[0].first).must_equal AIXM.xy(lat: 0, long: 0)
+    end
+
+    it "loads the comma separated coordinates from nested arrays" do
+      _(subject.geometries[1].count).must_equal 3
+      _(subject.geometries[1].first).must_equal AIXM.xy(lat: 10, long: 10)
     end
   end
 

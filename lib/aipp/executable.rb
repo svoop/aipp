@@ -7,26 +7,31 @@ module AIPP
     attr_reader :options
 
     def initialize(**options)
-      @options = options
-      @options[:airac] = AIPP::AIRAC.new
-      @options[:storage] = Pathname(Dir.home).join('.aipp')
-      @options[:force] = @options[:mid] = false
-      @options[:verbose] = false
-      @options[:debug_on_warning] = false
-      @options[:debug_on_error] = false
+      @options = options.merge(
+        airac: AIRAC::Cycle.new,
+        region_options: [],
+        storage: Pathname(Dir.home).join('.aipp'),
+        force: false,
+        mid: false,
+        verbose: false,
+        debug_on_warning: false,
+        debug_on_error: false
+      )
       OptionParser.new do |o|
         o.banner = <<~END
           Download online AIP and convert it to #{options[:schema].upcase}.
           Usage: #{File.basename($0)} [options]
         END
-        o.on('-d', '--airac DATE', String, %Q[AIRAC date (default: "#{@options[:airac].date.xmlschema}")]) { @options[:airac] = AIPP::AIRAC.new(_1) }
+        o.on('-d', '--airac (DATE|INTEGER)', String, %Q[AIRAC date or delta e.g. "+1" (default: "#{@options[:airac].date.xmlschema}")]) { @options[:airac] = airac_for(_1) }
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { @options[:region] = _1.upcase }
-        o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { @options[:aip] = _1.upcase }
+        o.on('-a', '--aip STRING', String, 'process this AIP only (e.g. "ENR-5.1")') { @options[:aip] = _1 }
         if options[:schema] == :ofmx
           o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (default: false)') { @options[:grouped_obstacles] = _1 }
           o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { @options[:mid] = _1 }
         end
+        o.on('-o', '--region-options STRING', String, %Q[comma separated region specific options]) { @options[:region_options] = _1.split(',') }
         o.on('-s', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { @options[:storage] = Pathname(_1) }
+        o.on('-h', '--[no-]check-links', 'check all links with HEAD requests') { @options[:check_links] = _1 }
         o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { @options[:force] = _1 }
         o.on('-v', '--[no-]verbose', 'verbose output including unsevere warnings (default: false)') { @options[:verbose] = _1 }
         o.on('-w', '--debug-on-warning [ID]', Integer, 'open debug session on warning with ID (default: false)') { @options[:debug_on_warning] = _1 || true }
@@ -51,11 +56,19 @@ module AIPP
           parser.write_config
         end
         ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        info("Finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S"))
+        info("finished after %s" % Time.at(ending - starting).utc.strftime("%H:%M:%S"))
       end
     end
 
     private
+
+    def airac_for(argument)
+      if argument.match?(/^[+-]\d+$/)   # delta
+        AIRAC::Cycle.new + argument.to_i
+      else   # date
+        AIRAC::Cycle.new(argument)
+      end
+    end
 
     def about
       puts 'Written by Sven Schwyn (bitcetera.com) and distributed under MIT license.'

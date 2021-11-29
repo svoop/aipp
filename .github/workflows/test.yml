@@ -6,8 +6,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        ruby: [3.0]
+        ruby: [3.0, 3.1]
     runs-on: ${{ matrix.os }}
+    name: test (Ruby ${{ matrix.ruby }} on ${{ matrix.os }})
     steps:
     - name: Check out
       uses: actions/checkout@v2

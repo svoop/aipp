@@ -22,20 +22,20 @@ module AIPP
     #   @param verbose [Boolean] print verbose info, print unsevere warnings
     #     and re-raise rescued errors
     #   @yield Block the debugger is watching
-    def with_debugger(**options, &block)
+    def with_debugger(**options, &)
       DEBUGGER__.instance_variable_set(:@options__, options.merge(counter: 0))
       case
       when id = debugger_options[:debug_on_warning]
         puts instructions_for(@id == true ? 'warning' : "warning #{id}")
         DEBUGGER__::start(no_sigint_hook: true, nonstop: true)
-        call_with_rescue(&block)
+        call_with_rescue(&)
       when debugger_options[:debug_on_error]
         puts instructions_for('error')
         DEBUGGER__::start(no_sigint_hook: true, nonstop: true, postmortem: true)
-        call_without_rescue(&block)
+        call_without_rescue(&)
       else
         DEBUGGER__::start(no_sigint_hook: true, nonstop: true)
-        call_with_rescue(&block)
+        call_with_rescue(&)
       end
     end
 
@@ -51,7 +51,7 @@ module AIPP
     def warn(message, severe: true)
       if severe || debugger_options[:verbose]
         debugger_options[:counter] += 1
-        original_warn "WARNING #{debugger_options[:counter]}: #{message} #{'(unsevere)' unless severe}".red
+        original_warn "WARNING #{debugger_options[:counter]}: #{message.upcase_first} #{'(unsevere)' unless severe}".red
         debugger if debugger_options[:debug_on_warning] == true || debugger_options[:debug_on_warning] == debugger_options[:counter]
       end
     end
@@ -61,7 +61,7 @@ module AIPP
     # @param message [String] informational message
     # @param color [Symbol] message color
     def info(message, color: nil)
-      puts color ? message.send(color) : message
+      puts color ? message.upcase_first.send(color) : message.upcase_first
     end
 
     # Issue a verbose informational message.
@@ -81,7 +81,8 @@ module AIPP
     def call_with_rescue(&block)
       block.call
     rescue => error
-      puts "ERROR: #{error.message}".magenta
+      message = error.respond_to?(:original_message) ? error.original_message : error.message
+      puts "ERROR: #{message}".magenta
       raise if debugger_options[:verbose]
     end
 
@@ -92,7 +93,7 @@ module AIPP
     def instructions_for(trigger)
       <<~END.strip.red
         Debug on #{trigger} enabled.
-        Remember: Type "up" to enter faulty frames.
+        Remember: Type "up" to enter caller frames.
       END
     end
 

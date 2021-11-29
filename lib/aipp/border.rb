@@ -1,51 +1,90 @@
 module AIPP
 
-  # Border GeoJSON file reader
+  # Custom border geometries
   #
-  # The border GeoJSON files must be a geometry collection of one or more
-  # line strings:
-  #
-  #   {
-  #     "type": "GeometryCollection",
-  #     "geometries": [
-  #       {
-  #         "type": "LineString",
-  #         "coordinates": [
-  #           [6.009531650000042, 45.12013319700009],
-  #           [6.015747738000073, 45.12006702600007]
-  #         ]
-  #       }
-  #     ]
-  #   }
-  #
-  # @example
-  #   border = AIPP::Border.new("/path/to/file.geojson")
-  #   border.geometries
-  #   # => [[#<AIXM::XY 45.12013320N 006.00953165E>, <AIXM::XY 45.12006703N 006.01574774E>]]
+  # The border consists of one ore more open or closed geometries which are
+  # defined by either a GeoJSON file or arrays of coordinate pairs.
   class Border
-    attr_reader :file
+
+    # @return [Array<AIXM::XY>]
     attr_reader :geometries
 
-    def initialize(file)
-      @file = file.is_a?(Pathname) ? file : Pathname(file)
-      fail(ArgumentError, "file must have extension .geojson") unless @file.extname == '.geojson'
-      @geometries = load_geometries
+    def initialize(geometries)
+      @geometries = geometries
+    end
+
+    class << self
+      undef_method :new
+
+      # New border object from GeoJSON file
+      #
+      # The border GeoJSON files must be a geometry collection of one or more
+      # line strings:
+      #
+      #   {
+      #     "type": "GeometryCollection",
+      #     "geometries": [
+      #       {
+      #         "type": "LineString",
+      #         "coordinates": [
+      #           [6.009531650000042, 45.12013319700009],
+      #           [6.015747738000073, 45.12006702600007]
+      #         ]
+      #       }
+      #     ]
+      #   }
+      #
+      # Please note that GeoJSON orders coordinate tuples in mathematical order
+      # as `[longitude, latitude]`!
+      #
+      # @param file [Pathname, String] GeoJSON file
+      #
+      # @example
+      #   border = AIPP::Border.from_file("/path/to/national_park.geojson")
+      #   border.geometries
+      #   # => [[#<AIXM::XY 45.12013320N 006.00953165E>, <AIXM::XY 45.12006703N 006.01574774E>]]
+      def from_file(file)
+        file = Pathname(file) unless file.is_a? Pathname
+        fail(ArgumentError, "file must have extension .geojson") unless file.extname == '.geojson'
+        geometries = JSON.load(file)['geometries'].map do |collection|
+          collection['coordinates'].map do |long, lat|
+            AIXM.xy(lat: lat, long: long)
+          end
+        end
+        allocate.instance_eval do
+          initialize(geometries)
+          self
+        end
+      end
+
+      # New border object from array of points
+      #
+      # The array must contain coordinate tuples in geographical order as
+      # `latitude longitude` separated by whitespace and/or commas.
+      #
+      # @param array [Array<Array<String>>] one or more arrays of coordinate pairs
+      #
+      # @example
+      #   border = AIPP::Border.from_array([["45.1201332 6.00953165", "45.12006703 6.01574774"]])
+      #   border.geometries
+      #   # => [[#<AIXM::XY 45.12013320N 006.00953165E>, <AIXM::XY 45.12006703N 006.01574774E>]]
+      def from_array(array)
+        geometries = array.map do |collection|
+          collection.map do |coordinates|
+            lat, long = coordinates.split(/[\s,]+/)
+            AIXM.xy(lat: lat.to_f, long: long.to_f)
+          end
+        end
+        allocate.instance_eval do
+          initialize(geometries)
+          self
+        end
+      end
     end
 
     # @return [String]
     def inspect
-      %Q(#<#{self.class} file=#{@file}>)
-    end
-
-    # Name of the border
-    #
-    # By convention, the name of the border is taken from the filename with
-    # both the extension .geojson and all non alphanumeric characters dropped
-    # and the resulting string upcased.
-    #
-    # @return [String]
-    def name
-      @file.basename('.geojson').to_s.gsub(/\W/, '').upcase
+      %Q(#<#{self.class} #{@geometries.count} geometries>)
     end
 
     # Whether the given geometry is closed or not
@@ -72,7 +111,7 @@ module AIPP
       @geometries.each.with_index do |geometry, g_index|
         next unless geometry_index.nil? || geometry_index == g_index
         geometry.each.with_index do |coordinates, c_index|
-          distance = xy.distance(coordinates).dist
+          distance = xy.distance(coordinates).dim
           if distance < min_distance
             position = Position.new(geometries: geometries, geometry_index: g_index, coordinates_index: c_index)
             min_distance = distance
@@ -106,14 +145,6 @@ module AIPP
     end
 
     private
-
-    def load_geometries
-      JSON.load(@file)['geometries'].map do |line_string|
-        line_string['coordinates'].map do |long, lat|
-          AIXM.xy(long: long, lat: lat)
-        end
-      end
-    end
 
     # Position defines an exact point on a border
     #
