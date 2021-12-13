@@ -60,8 +60,8 @@ module AIPP
     #
     # @param message [String] informational message
     # @param color [Symbol] message color
-    def info(message, color: :black)
-      puts message.send(color)
+    def info(message, color: nil)
+      puts color ? message.send(color) : message
     end
 
     # Issue a verbose informational message.
