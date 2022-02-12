@@ -32,10 +32,10 @@ class String
   #   are preserved and not collapsed into one space.
   #
   # @example
-  #   "  foo\n\nbar \r".copact   # => "foo\nbar"
+  #   "  foo\n\nbar \r".compact   # => "foo\nbar"
   #
   # @return [String] compacted string
-  def compact   # TODO: in use, don't remove!
+  def compact
     split("\n").map { _1.squish.blank_to_nil }.compact.join("\n")
   end
 
