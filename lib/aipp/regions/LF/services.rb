@@ -59,7 +59,8 @@ module AIPP
                 end
               end
               if airport
-                airport.add_unit(service.unit)
+                airport.add_unit(service.unit) if airport.units.find(service.unit).none?
+                airport.add_service(service) if airport.services.find(service).none?
               end
               given service_node.at_css('Espace')&.attr('pk') do |espace_pk|
                 find_by(:airspace, meta: espace_pk).each do |airspace|
@@ -71,7 +72,7 @@ module AIPP
         end
         # Assign fallback address (default A/A frequency) to all yet radioless airports
         find_by(:airport).each do |airport|
-          unless airport.units.any? || airport.addresses.any?
+          unless airport.services.find_by(:service, type: :aerodrome_control_tower_service).any? || airport.addresses.any?
             airport.add_address(fallback_address_for(airport.name))
           end
         end
