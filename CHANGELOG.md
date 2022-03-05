@@ -1,4 +1,8 @@
-## 1.0.0 (unreleased)
+## Main
+
+Nothing so far
+
+## 1.0.0
 
 #### Breaking Changes
 * Switch from individual AIP HTML section files to the comprehensive AIP XML
