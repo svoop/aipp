@@ -18,7 +18,6 @@ This gem incluces two executables to download and parse aeronautical data as HTM
 [Usage](#usage)<br>
 [Storage](#storage)<br>
 [Regions](#regions)<br>
-[AIRAC Date Calculations](#airac-date-calculations)<br>
 [References](#references)<br>
 [Development](#development)
 
@@ -397,18 +396,6 @@ The [default Ruby debugger](https://github.com/ruby/debug#debug-command-on-the-d
 
 ```ruby
 debugger
-```
-
-## AIRAC Date Calculations
-
-The `AIPP::AIRAC` class is used to calculate AIRAC cycles:
-
-```ruby
-airac = AIPP::AIRAC.new(Date.parse('2017-12-24'))
-airac.date        # => 2018-12-07
-airac.id          # => 1713
-airac.next_date   # => 2018-01-04
-airac.next_id     # => 1801
 ```
 
 ## References
