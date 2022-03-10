@@ -12,28 +12,28 @@ module AIPP
 
         def setup
           AIXM.config.voice_channel_separation = :any
-          unless cache.espace
+          unless AIPP.cache.espace
             xml = read('XML_SIA')
-            %i(Ad Bordure Espace Frequence Helistation NavFix Obstacle Partie RadioNav Rwy RwyLgt Service Volume).each do |section|
-              cache[section.downcase] = xml.css("#{section}S")
+            %i(Ad Bordure Espace Frequence Helistation NavFix Obstacle Partie RadioNav Rwy RwyLgt Service Volume).each do |table|
+              AIPP.cache[table.downcase] = xml.css("#{table}S")
             end
             warn("XML_SIA database dump version mismatch") unless xml.at_css('SiaExport').attr(:Version) == VERSION
           end
         end
 
-        def url_for(aip_file)
-          sia_date = options[:airac].date.strftime('%d_%^b_%Y')   # 04_JAN_2018
-          xml_date = options[:airac].date.xmlschema               # 2018-01-04
+        def url_for(document)
+          sia_date = AIPP.options.airac.date.strftime('%d_%^b_%Y')   # 04_JAN_2018
+          xml_date = AIPP.options.airac.date.xmlschema               # 2018-01-04
           sia_url = "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_#{sia_date}"
-          case aip_file
+          case document
           when /^Obstacles$/   # obstacles spreadsheet
             "#{sia_url}/FRANCE/ObstaclesDataZone1MFRANCE_#{xml_date.remove('-')}.xlsx"
-          when /^VAC\-(\w+)/   # aerodrome VAC PDF
-            "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf"
-          when /^VACH\-(\w+)/   # helipad VAC PDF
-            "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf"
-          when /^[A-Z]+-/   # eAIP HTML page (e.g. ENR-5.5)
-            "#{sia_url}/FRANCE/AIRAC-#{xml_date}/html/eAIP/FR-#{aip_file}-fr-FR.html"
+#         when /^VAC\-(\w+)/   # aerodrome VAC PDF
+#           "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf"
+#         when /^VACH\-(\w+)/   # helipad VAC PDF
+#           "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf"
+#         when /^[A-Z]+-/   # eAIP HTML page (e.g. ENR-5.5)
+#           "#{sia_url}/FRANCE/AIRAC-#{xml_date}/html/eAIP/FR-#{document}-fr-FR.html"
           else   # SIA XML database dump
             "XML_SIA_#{xml_date}.xml"
           end
@@ -42,17 +42,17 @@ module AIPP
         # Templates
 
         def organisation_lf
-          unless cache.organisation_lf
-            cache.organisation_lf = AIXM.organisation(
-              source: source(position: 1, aip_file: "GEN-3.1"),
+          unless AIPP.cache.organisation_lf
+            AIPP.cache.organisation_lf = AIXM.organisation(
+              source: source(position: 1, document: "GEN-3.1"),
               name: 'FRANCE',
               type: 'S'
             ).tap do |organisation|
               organisation.id = 'LF'
             end
-            add cache.organisation_lf
+            add AIPP.cache.organisation_lf
           end
-          cache.organisation_lf
+          AIPP.cache.organisation_lf
         end
 
         # Parsersettes
@@ -60,17 +60,17 @@ module AIPP
         # Build a source string
         #
         # @param position [Integer] line on which to find the information
-        # @param section [String] override autodetected section (e.g. "ENR")
-        # @param aip_file [String] override autodetected aip_file
+        # @param part [String] override autodetected part (e.g. "ENR")
+        # @param document [String] override autodetected document (e.g. "ENR-2.1")
         # @return [String] source string
-        def source(position:, section: nil, aip_file: nil)
-          aip_file ||= 'XML_SIA'
-          section ||= aip_file.split(/-(?=\d)/).first
+        def source(position:, part: nil, document: nil)
+          document ||= 'XML_SIA'
+          part ||= document.split(/-(?=\d)/).first
           [
-            options[:region],
-            section,
-            aip_file,
-            options[:airac].date.xmlschema,
+            AIPP.options.region,
+            part,
+            document,
+            AIPP.options.airac.date.xmlschema,
             position
           ].join('|')
         end
@@ -134,7 +134,7 @@ module AIPP
               parts = element.split(',', 3).last.split(/[():,]/)
               # Write explicit geometry from previous iteration
               if (bordure_name, xy = buffer.delete(:fnt))
-                border = borders[bordure_name]
+                border = AIPP.borders.send(bordure_name)
                 geometry.add_segments border.segment(
                   from_position: border.nearest(xy: xy),
                   to_position: border.nearest(xy: xy_from(parts[0]))
@@ -163,10 +163,10 @@ module AIPP
                     radius: d_from(parts[3..4].join(' '))
                   )
                 when 'fnt'
-                  bordure = cache.bordure.at_css(%Q(Bordure[pk="#{parts[3]}"]))
+                  bordure = AIPP.cache.bordure.at_css(%Q(Bordure[pk="#{parts[3]}"]))
                   bordure_name = bordure.(:Code)
                   if bordure_name.match? /:/   # explicit geometry
-                    borders[bordure_name] ||= AIPP::Border.from_array([bordure.(:Geometrie).split])
+                    AIPP.borders[bordure_name] ||= AIPP::Border.from_array([bordure.(:Geometrie).split])
                     buffer[:fnt] = [bordure_name, xy_from(parts[2])]
                     AIXM.point(
                       xy: xy_from(parts[0])

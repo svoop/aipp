@@ -1,6 +1,53 @@
 class String
+  remove_method :classify
 
-  # Convert blank strings to +nil+.
+  # Convert (underscored) file name to (camelcased) class name
+  #
+  # Similar to +classify+ from ActiveSupport, however, with a few differences:
+  #
+  # * Namespaces are ignored.
+  # * Plural strings are not singularized.
+  # * Characters other than A-Z, a-z, 0-9 and _ are removed.
+  #
+  # Use +sectionize+ to reverse this method.
+  #
+  # @example
+  #   "navigational_aids".classify     # => "NavigationalAids"
+  #   "ENR".classify                   # => "ENR"
+  #   "ENR-4.1".classify               # => "ENR41"
+  #   "AIPP/LF/AIP/ENR-4.1".classify   # => "ENR41"
+  #
+  # @return [String] converted string
+  def classify
+    split('/').last.remove(/\W/).camelcase
+  end
+
+  # Convert (camelcased) class name to (underscored) file name
+  #
+  # Similar to +underscore+ from ActiveSupport, however, with a few differences:
+  #
+  # * Namespaces are ignored.
+  # * AIP naming conventions are honored.
+  #
+  # Use +classify+ to reverse this method.
+  #
+  # @example
+  #   "NavigationalAids".sectionize       # => "navigational_aids"
+  #   "ENR".sectionize                    # => "ENR"
+  #   "ENR41".sectionize                  # => "ENR-4.1"
+  #   "AIPP::LF::AIP::ENR41".sectionize   # => "ENR-4.1"
+  #
+  # @return [String] converted string
+  def sectionize
+    case klass = self.split('::').last
+      when /\A([A-Z]{2,3})\z/ then $1
+      when /\A([A-Z]{2,3})(\d)\z/ then "#{$1}-#{$2}"
+      when /\A([A-Z]{2,3})(\d)(\d+)\z/ then "#{$1}-#{$2}.#{$3}"
+      else klass.underscore
+    end
+  end
+
+  # Convert blank strings to +nil+
   #
   # @example
   #   "foobar".blank_to_nil   # => "foobar"

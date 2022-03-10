@@ -2,37 +2,75 @@ require_relative '../../spec_helper'
 
 describe String do
 
+  describe :classify do
+    it "converts sections following AIP naming conventions" do
+      _("ENR".classify).must_equal "ENR"
+      _("AD-2".classify).must_equal "AD2"
+      _("ENR-4.1".classify).must_equal "ENR41"
+      _("ENR-4.11".classify).must_equal "ENR411"
+    end
+
+    it "converts other sections" do
+      _("navigational_aids".classify).must_equal "NavigationalAids"
+      _("aerodromes".classify).must_equal "Aerodromes"
+      _("other".classify).must_equal "Other"
+    end
+
+    it "ignores namespaces" do
+      _("AIPP/LF/AIP/ENR-4.1".classify).must_equal "ENR41"
+    end
+  end
+
+  describe :sectionize do
+    it "converts class following AIP naming conventions" do
+      _("ENR".sectionize).must_equal "ENR"
+      _("AD2".sectionize).must_equal "AD-2"
+      _("ENR41".sectionize).must_equal "ENR-4.1"
+      _("ENR411".sectionize).must_equal "ENR-4.11"
+    end
+
+    it "converts other class" do
+      _("NavigationalAids".sectionize).must_equal "navigational_aids"
+      _("Aerodromes".sectionize).must_equal "aerodromes"
+      _("Other".sectionize).must_equal "other"
+    end
+
+    it "ignores namespaces" do
+      _("AIPP::LF::AIP::ENR41".sectionize).must_equal "ENR-4.1"
+    end
+  end
+
   describe :blank_to_nil do
-    it "must convert blank to nil" do
+    it "converts blank to nil" do
       _("\n     \n         ".blank_to_nil).must_be :nil?
     end
 
-    it "must leave non-blank untouched" do
+    it "leaves non-blank untouched" do
       _("foobar".blank_to_nil).must_equal "foobar"
     end
 
-    it "must leave non-blank with whitespace untouched" do
+    it "leaves non-blank with whitespace untouched" do
       _("\nfoo bar\n".blank_to_nil).must_equal "\nfoo bar\n"
     end
   end
 
   describe :cleanup do
-    it "must replace double apostrophes" do
+    it "replaces double apostrophes" do
       _("the ''Terror'' was a fine ship".cleanup).must_equal 'the "Terror" was a fine ship'
     end
 
-    it "must replace funky apostrophes and quotes" do
+    it "replaces funky apostrophes and quotes" do
       _("from ’a‘ to “b”".cleanup).must_equal %q(from 'a' to "b")
     end
 
-    it "must remove whitespace within quotes" do
+    it "removes whitespace within quotes" do
       _('the " best " way to fly'.cleanup).must_equal 'the "best" way to fly'
       _(%Q(the " best\nway " to fly).cleanup).must_equal %Q(the "best\nway" to fly)
     end
   end
 
   describe :compact do
-    it "must remove unneccessary whitespace" do
+    it "removes unneccessary whitespace" do
       _("  foo\n\nbar \r".compact).must_equal "foo\nbar"
       _("foo\n \nbar".compact).must_equal "foo\nbar"
       _("   ".compact).must_equal ""
@@ -42,25 +80,25 @@ describe String do
   end
 
   describe :to_ff do
-    it "must convert normal float numbers as does to_f" do
+    it "converts normal float numbers as does to_f" do
       _("5".to_ff).must_equal "5".to_f
       _("5.1".to_ff).must_equal "5.1".to_f
       _(" 5.2 ".to_ff).must_equal " 5.2 ".to_f
     end
 
-    it "must convert comma float numbers as well" do
+    it "converts comma float numbers as well" do
       _("5,1".to_ff).must_equal "5.1".to_f
       _(" 5,2 ".to_ff).must_equal "5.2".to_f
     end
   end
 
   describe :full_strip do
-    it "must behave like strip" do
+    it "behaves like strip" do
       subject = "  foobar\t\t"
       _(subject.full_strip).must_equal subject.strip
     end
 
-    it "must remove non-letterlike characters as well" do
+    it "removes non-letterlike characters as well" do
       _(" - foobar :.".full_strip).must_equal "foobar"
     end
   end
@@ -120,7 +158,7 @@ describe String do
       "This is #first# a test #second# of extract."
     end
 
-    it "must return array of matches" do
+    it "returns array of matches" do
       _(subject.extract(/#.+?#/)).must_equal ['#first#', '#second#']
     end
 
@@ -135,7 +173,7 @@ describe String do
       'This <br> contains &nbsp; <html lang="en"> markup &amp; entities.'
     end
 
-    it "must strip tags and entities" do
+    it "strips tags and entities" do
       _(subject.strip_markup).must_equal 'This  contains   markup  entities.'
     end
   end

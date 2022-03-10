@@ -8,4 +8,4 @@ gemfile do
   gem 'aipp', '~> 1'
 end
 
-AIPP::Executable.new(schema: File.basename($0)[4..-1].to_sym).run
+AIPP::AIP::Executable.new(File.basename($0)).run

@@ -1,196 +1,166 @@
 module AIPP
 
-  # AIP parser infrastructure
+  # @abstract
   class Parser
-    extend Forwardable
     include AIPP::Debugger
-    using AIXM::Refinements
+    include AIPP::Patcher
 
-    # @return [Hash] passed command line arguments
-    attr_reader :options
-
-    # @return [Hash] configuration read from config.yml
-    attr_reader :config
-
-    # @return [AIXM::Document] target document
+    # @return [AIXM::Document] AIXM document instance
     attr_reader :aixm
 
-    # @return [Hash] map from AIP name to fixtures
-    attr_reader :fixtures
+    class << self
+      # Declare a dependency
+      #
+      # @param dependencies [Array<String>] class names of other parsers this
+      #   parser depends on
+      def depends_on(*dependencies)
+        @dependencies = dependencies.map(&:to_s)
+      end
 
-    # @return [Hash] map from border names to border objects
-    attr_reader :borders
+      # Declared dependencies
+      #
+      # @return [Array<String>] class names of other parsers this parser
+      #   depends on
+      def dependencies
+        @dependencies || []
+      end
+    end
 
-    # @return [OpenStruct] object cache
-    attr_reader :cache
-
-    def initialize(options:)
-      @options = options
-      @options[:storage] = options[:storage].join(options[:region])
-      @options[:storage].mkpath
-      @config = {}
-      @aixm = AIXM.document(effective_at: @options[:airac].date)
-      @dependencies = THash.new
-      @fixtures = {}
-      @borders = {}
-      @cache = OpenStruct.new
-      AIXM.send("#{options[:schema]}!")
-      AIXM.config.region = options[:region]
+    def initialize(downloader:, aixm:)
+      @downloader, @aixm = downloader, aixm
+      setup if respond_to? :setup
     end
 
     # @return [String]
     def inspect
-      "#<AIPP::Parser>"
+      "#<AIPP::Parser #{section}>"
     end
 
-    # Read the configuration from config.yml.
-    def read_config
-      info("reading config.yml")
-      @config = YAML.load_file(config_file, symbolize_names: true, fallback: {}) if config_file.exist?
-      @config[:namespace] ||= SecureRandom.uuid
-      @aixm.namespace = @config[:namespace]
+    # @return [String]
+    def section
+      self.class.to_s.sectionize
     end
 
-    # Read the region directory and build the dependency list.
-    def read_region
-      info("reading region #{options[:region]}")
-      dir = Pathname(__FILE__).dirname.join('regions', options[:region])
-      fail("unknown region `#{options[:region]}'") unless dir.exist?
-      # Fixtures
-      dir.glob('fixtures/*.yml').each do |file|
-        verbose_info "reading fixture fixtures/#{file.basename}"
-        fixture = YAML.load_file(file)
-        @fixtures[file.basename('.yml').to_s] = fixture
-      end
-      # Borders
-      dir.glob('borders/*.geojson').each do |file|
-        verbose_info "reading border borders/#{file.basename}"
-        border = AIPP::Border.from_file(file)
-        @borders[file.basename] = border
-      end
-      # Helpers
-      dir.glob('helpers/*.rb').each do |file|
-        verbose_info "reading helper helpers/#{file.basename}"
-        require file
-      end
-      # Parsers
-      dir.glob('*.rb').each do |file|
-        verbose_info "requiring #{file.basename}"
-        require file
-        aip = file.basename('.*').to_s
-        @dependencies[aip] = ("AIPP::%s::%s::DEPENDS" % [options[:region], aip.remove(/\W/).camelcase]).constantize
-      end
+    # @abstract
+    def url_for(*)
+      fail "url_for method must be implemented in parser"
     end
 
-    # Parse AIP by invoking the parser classes for the current region.
-    def parse_aip
-      info("AIRAC #{options[:airac].id} effective #{options[:airac].date}", color: :green)
-      AIPP::Downloader.new(storage: options[:storage], source: options[:airac].date.xmlschema) do |downloader|
-        @dependencies.tsort(options[:aip]).each do |aip|
-          info("parsing #{aip}")
-          ("AIPP::%s::%s" % [options[:region], aip.remove(/\W/).camelcase]).constantize.new(
-            aip: aip,
-            downloader: downloader,
-            fixture: @fixtures[aip],
-            parser: self
-          ).attach_patches.tap(&:parse).detach_patches
-        end
-      end
-      if options[:grouped_obstacles]
-        info("grouping obstacles")
-        aixm.group_obstacles!
-      end
-      info("counting #{aixm.features.count} features")
-    end
-
-    # Validate the AIXM document.
+    # Read a source document
     #
-    # @raise [RuntimeError] if the document is not valid
-    def validate_aixm
-      info("detecting duplicates")
-      if (duplicates = aixm.features.duplicates).any?
-        message = "duplicates found:\n" + duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
-        @options[:force] ? warn(message) : fail(message)
-      end
-      info("validating #{options[:schema].upcase}")
-      unless aixm.valid?
-        message = "invalid #{options[:schema].upcase} document:\n" + aixm.errors.map(&:message).join("\n")
-        @options[:force] ? warn(message) : fail(message)
-      end
+    # Read the cached document if it exists in the source archive. Otherwise,
+    # download and cache it.
+    #
+    # An URL builder method +url_for+ must be implemented by the parser
+    # definition.
+    #
+    # @param document [String] e.g. "ENR-2.1" or "aerodromes" (default: current
+    #   +section+)
+    # @return [Nokogiri::XML::Document, Nokogiri::HTML5::Document,
+    #   Roo::Spreadsheet, String] document
+    def read(document=section)
+      @downloader.read(document: document, url: url_for(document))
     end
 
-    # Write the AIXM document and context information.
-    def write_build
-      if @options[:aip]
-        info ("skipping build")
-      else
-        info("writing build")
-        builds_path.mkpath
-        build_file = builds_path.join("#{@options[:airac].date.xmlschema}.zip")
-        Dir.mktmpdir do |tmp_dir|
-          tmp_dir = Pathname(tmp_dir)
-          # AIXM/OFMX file
-          AIXM.config.mid = true
-          File.write(tmp_dir.join(aixm_file), aixm.to_xml)
-          # Build details
-          File.write(
-            tmp_dir.join('build.yaml'), {
-              version: AIPP::VERSION,
-              config: @config,
-              options: @options
-            }.to_yaml
-          )
-          # Manifest
-          manifest = ['AIP','Feature', 'Comment', 'Short Uid Hash', 'Short Feature Hash'].to_csv
-          manifest += aixm.features.map do |feature|
-            xml = feature.to_xml
-            element = xml.first_match(/<(\w{3})\s/)
-            [
-              feature.source.split('|')[2],
-              element,
-              xml.match(/<!-- (.*?) -->/)[1],
-              AIXM::PayloadHash.new(xml.match(%r(<#{element}Uid\s.*?</#{element}Uid>)m).to_s).to_uuid[0,8],
-              AIXM::PayloadHash.new(xml).to_uuid[0,8]
-            ].to_csv
-          end.sort.join
-          File.write(tmp_dir.join('manifest.csv'), manifest)
-          # Zip it
-          build_file.delete if build_file.exist?
-          Zip::File.open(build_file, Zip::File::CREATE) do |zip|
-            tmp_dir.children.each do |entry|
-              zip.add(entry.basename.to_s, entry) unless entry.basename.to_s[0] == '.'
-            end
-          end
-        end
+    # Add feature to AIXM
+    #
+    # @param feature [AIXM::Feature] e.g. airport or airspace
+    # @return [AIXM::Feature] added feature
+    def add(feature)
+      verbose_info "adding #{feature.inspect}"
+      aixm.add_feature feature
+      feature
+    end
+
+    # @!method find_by(klass, attributes={})
+    #   Find objects of the given class and optionally with the given attribute
+    #   values previously written to AIXM.
+    #
+    #   @note This method is delegated to +AIXM::Association::Array+.
+    #   @see https://www.rubydoc.info/gems/aixm/AIXM/Association/Array#find_by-instance_method
+    #
+    # @!method find(object)
+    #   Find equal objects previously written to AIXM.
+    #
+    #   @note This method is delegated to +AIXM::Association::Array+.
+    #   @see https://www.rubydoc.info/gems/aixm/AIXM/Association/Array#find-instance_method
+    %i(find_by find).each do |method|
+      define_method method do |*args|
+        aixm.features.send(method, *args)
       end
     end
 
-    # Write the AIXM document.
-    def write_aixm
-      info("writing #{aixm_file}")
-      AIXM.config.mid = options[:mid]
-      File.write(aixm_file, aixm.to_xml)
+    # @overload given(*objects)
+    #   Return +objects+ unless at least one of them equals nil
+    #
+    #   @example
+    #     # Instead of this:
+    #     first, last = unless ((first = expensive_first).nil? || (last = expensive_last).nil?)
+    #       [first, last]
+    #     end
+    #
+    #     # Use the following:
+    #     first, last = given(expensive_first, expensive_last)
+    #
+    #   @param *objects [Array<Object>] any objects really
+    #   @return [Object] nil if at least one of the objects is nil, given
+    #     objects otherwise
+    #
+    # @overload given(*objects)
+    #   Yield +objects+ unless at least one of them equals nil
+    #
+    #   @example
+    #     # Instead of this:
+    #     name = unless ((first = expensive_first.nil? || (last = expensive_last.nil?)
+    #       "#{first} #{last}"
+    #     end
+    #
+    #     # Use any of the following:
+    #     name = given(expensive_first, expensive_last) { |f, l| "#{f} #{l}" }
+    #     name = given(expensive_first, expensive_last) { "#{_1} #{_2}" }
+    #
+    #   @param *objects [Array<Object>] any objects really
+    #   @yield [Array<Object>] objects passed as parameter
+    #   @return [Object] nil if at least one of the objects is nil, return of
+    #     block otherwise
+    def given(*objects)
+      if objects.none?(&:nil?)
+        block_given? ? yield(*objects) : objects
+      end
     end
 
-    # Write the configuration to config.yml.
-    def write_config
-      info("writing config.yml")
-      File.write(config_file, config.to_yaml)
+    # Build and optionally check a Markdown link
+    #
+    # @example
+    #   AIPP.options.check_links = false
+    #   link_to('foo', 'https://bar.com/exists')      # => "[foo](https://bar.com/exists)"
+    #   link_to('foo', 'https://bar.com/not-found')   # => "[foo](https://bar.com/not-found)"
+    #   AIPP.options.check_links = true
+    #   link_to('foo', 'https://bar.com/exists')      # => "[foo](https://bar.com/exists)"
+    #   link_to('foo', 'https://bar.com/not-found')   # => nil
+    #
+    # @param body [String] body text of the link
+    # @param url [String] URL of the link
+    # @return [String, nil] Markdown link
+    def link_to(body, url)
+      "[#{body}](#{url})" if !AIPP.options.check_links || url_exists?(url)
     end
 
     private
 
-    def aixm_file
-      "#{options[:region]}_#{options[:airac].date.xmlschema}.#{options[:schema]}"
+    def url_exists?(url)
+      uri = URI.parse(url)
+      Net::HTTP.new(uri.host, uri.port).tap do |request|
+        request.use_ssl = (uri.scheme == 'https')
+        path = uri.path.present? ? uri.path : '/'
+        result = request.request_head(path)
+        if result.kind_of? Net::HTTPRedirection
+          url_exist?(result['location'])
+        else
+          result.code == '200'
+        end
+      end
     end
 
-    def builds_path
-      options[:storage].join('builds')
-    end
-
-    def config_file
-      options[:storage].join('config.yml')
-    end
   end
-
 end

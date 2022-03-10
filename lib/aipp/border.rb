@@ -35,7 +35,7 @@ module AIPP
       #   }
       #
       # Please note that GeoJSON orders coordinate tuples in mathematical order
-      # as `[longitude, latitude]`!
+      # as +[longitude, latitude]+!
       #
       # @param file [Pathname, String] GeoJSON file
       #
@@ -60,7 +60,7 @@ module AIPP
       # New border object from array of points
       #
       # The array must contain coordinate tuples in geographical order as
-      # `latitude longitude` separated by whitespace and/or commas.
+      # +latitude longitude+ separated by whitespace and/or commas.
       #
       # @param array [Array<Array<String>>] one or more arrays of coordinate pairs
       #

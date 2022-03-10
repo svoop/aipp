@@ -1,12 +1,8 @@
 require_relative '../../spec_helper'
 
 describe AIPP::PDF do
-  let :fixtures_dir do
-    Pathname(__FILE__).join('..', '..', '..', 'fixtures')
-  end
-
   subject do
-    AIPP::PDF.new(fixtures_dir.join('document.pdf'))
+    AIPP::PDF.new(fixtures_path.join('pdf', 'document.pdf'))
   end
 
   describe :@page_ranges do

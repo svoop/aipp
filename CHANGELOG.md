@@ -1,11 +1,16 @@
 ## Main
 
-Nothing so far
+#### Breaking Changes
+* Overhaul file/class layout to accommodate other than AIP, implement NOTAM.
+* Cache, borders, fixtures, options and config are now dedicated objects
+  accessible on `AIPP`.
+* Patches are no longer passed the parser instance.
+* Add support for PostgreSQL and MySQL.
 
 ## 1.0.0
 
 #### Breaking Changes
-* Switch from individual AIP HTML section files to the comprehensive AIP XML
+* Switch from individual AIP HTML files to the comprehensive AIP XML
   database dump for the LF region reference implementation.
 * Drop the mandatory `URL` helper in favour of a mandatory `url_for` method.
 * Renamed default git branch to `main`

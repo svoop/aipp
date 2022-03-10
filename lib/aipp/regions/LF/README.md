@@ -1,4 +1,4 @@
-# AIP LF – Mainland France
+# LF – France Mainland
 
 ## Prerequisites
 
@@ -7,7 +7,7 @@ This parser requires the XML data dump from SIA. It is available free of charge,
 1. Browse to the [SIA web shop](https://www.sia.aviation-civile.gouv.fr/produits-numeriques-en-libre-disposition/les-bases-de-donnees-sia.html).
 2. Shop the desired dump named «données aéronautiques XML AIRAC ii/yy».
 3. Browse to [your customer page](https://www.sia.aviation-civile.gouv.fr/customer/account/#orders-and-proposals).
-4. In section «mes produits téléchargeables» download the desired dump.
+4. On page «mes produits téléchargeables» download the desired dump.
 5. Unzip the downloaded ZIP archive.
 6. Move the file «XML_SIA_yyyy-mm-dd.xml» to the directory in which you will execute the parser.
 

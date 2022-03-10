@@ -15,4 +15,15 @@ Rake::Task[:test].enhance do
   end
 end
 
+desc "Serve documentation on http://localhost:8808"
+task :yard do
+  server = Thread.new do
+    `rm -rf .yardoc`
+    `yard server -r`
+  end
+  sleep 1
+  `open http://localhost:8808`
+  server.join
+end
+
 task default: :test

@@ -13,8 +13,6 @@ require 'minitest/reporters'
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Sound::Reporter.new]
 
 require 'minitest/focus'
-require 'minitest/matchers'
-require 'spy/integration'
 
 module AIPP
   def self.root
@@ -26,4 +24,8 @@ class MiniTest::Spec
   class << self
     alias_method :context, :describe
   end
+end
+
+def fixtures_path
+  Pathname(__dir__).join('fixtures')
 end

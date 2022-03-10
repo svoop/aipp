@@ -22,14 +22,14 @@ module AIPP
     #   @param verbose [Boolean] print verbose info, print unsevere warnings
     #     and re-raise rescued errors
     #   @yield Block the debugger is watching
-    def with_debugger(**options, &)
-      DEBUGGER__.instance_variable_set(:@options__, options.merge(counter: 0))
+    def with_debugger(&)
+      AIPP.cache.debug_counter = 0
       case
-      when id = debugger_options[:debug_on_warning]
+      when id = AIPP.options.debug_on_warning
         puts instructions_for(@id == true ? 'warning' : "warning #{id}")
         DEBUGGER__::start(no_sigint_hook: true, nonstop: true)
         call_with_rescue(&)
-      when debugger_options[:debug_on_error]
+      when AIPP.options.debug_on_error
         puts instructions_for('error')
         DEBUGGER__::start(no_sigint_hook: true, nonstop: true, postmortem: true)
         call_without_rescue(&)
@@ -39,20 +39,17 @@ module AIPP
       end
     end
 
-    def self.included(*)
-      DEBUGGER__.instance_variable_set(:@options__, {})
-    end
+    alias_method :original_warn, :warn
 
     # Issue a warning and maybe open a debug session.
     #
     # @param message [String] warning message
     # @param severe [Boolean] whether this problem must be fixed or not
-    alias_method :original_warn, :warn
     def warn(message, severe: true)
-      if severe || debugger_options[:verbose]
-        debugger_options[:counter] += 1
-        original_warn "WARNING #{debugger_options[:counter]}: #{message.upcase_first} #{'(unsevere)' unless severe}".red
-        debugger if debugger_options[:debug_on_warning] == true || debugger_options[:debug_on_warning] == debugger_options[:counter]
+      if severe || AIPP.options.verbose
+        AIPP.cache.debug_counter += 1
+        original_warn "WARNING #{AIPP.cache.debug_counter}: #{message.upcase_first} #{'(unsevere)' unless severe}".red
+        debugger if AIPP.options.debug_on_warning == true || AIPP.options.debug_on_warning == AIPP.cache.debug_counter
       end
     end
 
@@ -69,21 +66,17 @@ module AIPP
     # @param message [String] verbose informational message
     # @param color [Symbol] message color
     def verbose_info(message, color: :blue)
-      info(message, color: color) if debugger_options[:verbose]
+      info(message, color: color) if AIPP.options.verbose
     end
 
     private
-
-    def debugger_options
-      DEBUGGER__.instance_variable_get(:@options__)
-    end
 
     def call_with_rescue(&block)
       block.call
     rescue => error
       message = error.respond_to?(:original_message) ? error.original_message : error.message
       puts "ERROR: #{message}".magenta
-      raise if debugger_options[:verbose]
+      raise if AIPP.options.verbose
     end
 
     def call_without_rescue(&block)

@@ -1,9 +1,9 @@
 module AIPP
   module Patcher
 
-    def self.included(klass)
-      klass.extend(ClassMethods)
-      klass.class_variable_set(:@@patches, {})
+    def self.included(base)
+      base.extend(ClassMethods)
+      base.class_variable_set(:@@patches, {})
     end
 
     module ClassMethods
@@ -17,14 +17,13 @@ module AIPP
     end
 
     def attach_patches
-      parser = self
       verbose_info_method = method(:verbose_info)
       self.class.patches[self.class]&.each do |(klass, attribute, block)|
         klass.instance_eval do
           alias_method :"original_#{attribute}=", :"#{attribute}="
           define_method(:"#{attribute}=") do |value|
             error = catch :abort do
-              value = block.call(parser, self, value)
+              value = block.call(self, value)
               verbose_info_method.call("Patching #{self.inspect} with #{attribute}=#{value.inspect}", color: :magenta)
             end
             fail "patching #{self.inspect} with #{attribute}=#{value.inspect} failed: #{error}" if error

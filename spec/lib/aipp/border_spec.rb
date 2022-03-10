@@ -28,17 +28,13 @@ describe AIPP::Border::Position do
 end
 
 describe AIPP::Border do
-  let :fixtures_dir do
-    Pathname(__FILE__).join('..', '..', '..', 'fixtures')
-  end
-
   # The border.geojson fixture defines three geometries:
   # * index 0: closed geometry circumventing the airfield of Pujaut
   # * index 1: closed geometry circumventing the village of Pujaut
   # * index 2: unclosed I-shaped geometry following the TGV from the S to N bridges over the Rhône
   # * index 3: unclosed U-shaped geometry around Île de Bartelasse from N to S end of Pont Daladier
   subject do
-    AIPP::Border.from_file(fixtures_dir.join('border.geojson'))
+    AIPP::Border.from_file(fixtures_path.join('borders', 'oggystan.geojson'))
   end
 
   describe :from_file do

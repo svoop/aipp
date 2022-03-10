@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.files         = Dir['lib/**/*']
   spec.require_paths = %w(lib)
   spec.bindir        = 'exe'
-  spec.executables   = %w(aip2aixm aip2ofmx)
+  spec.executables   = %w(aip2aixm aip2ofmx notam2aixm notam2ofmx)
 
   spec.cert_chain  = ["certs/svoop.pem"]
   spec.signing_key = File.expand_path(ENV['GEM_SIGNING_KEY']) if ENV['GEM_SIGNING_KEY']
@@ -49,6 +49,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'nokogiri', '~> 1', '>= 1.12.0'
   spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
+  spec.add_runtime_dependency 'pg', '~> 1'
+  spec.add_runtime_dependency 'ruby-mysql', '~> 3'
   spec.add_runtime_dependency 'json', '~> 2'
   spec.add_runtime_dependency 'rubyzip', '~> 2'
   spec.add_runtime_dependency 'colorize', '~> 0'
@@ -59,8 +61,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'minitest-sound'
   spec.add_development_dependency 'minitest-focus'
-  spec.add_development_dependency 'minitest-matchers'
-  spec.add_development_dependency 'spy'
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-minitest'
+  spec.add_development_dependency 'yard'
 end
