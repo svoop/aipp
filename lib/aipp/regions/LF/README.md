@@ -41,6 +41,10 @@ grep "<Revetement>" XML_SIA_2021-12-02_UTF.xml | sort | uniq
 (...)
 ```
 
+## Error Reports
+
+Feedback and error reports should be sent to SIA. However, their [contact form](https://www.sia.aviation-civile.gouv.fr/contact) is sometimes broken. If you don't receive an automatic reception confirmation, you should send it directly to sia-qualite@aviation-civile.gouv.fr instead.
+
 ## References
 
 * [SIA – AIP publisher](https://www.sia.aviation-civile.gouv.fr)

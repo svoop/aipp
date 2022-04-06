@@ -19,6 +19,8 @@ module AIPP::LF::AIP
       ACTIVITIES.each do |code, type|
         verbose_info("processing #{code}")
         AIPP.cache.espace.css(%Q(Espace[lk^="[LF][#{code} "])).each do |espace_node|
+# HACK: Missing partie/volume as of AIRAC 2204 (reported)
+next if espace_node['pk'] == '1360'
           partie_node = AIPP.cache.partie.at_css(%Q(Partie:has(Espace[pk="#{espace_node['pk']}"])))
           volume_node = AIPP.cache.volume.at_css(%Q(Volume:has(Partie[pk="#{partie_node['pk']}"])))
           add(
