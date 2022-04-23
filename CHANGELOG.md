@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.0.0.pre2
+
 #### Breaking Changes
 * Drop support for Ruby 3.0
 * Overhaul file/class layout to accommodate other than AIP, implement NOTAM.
@@ -7,6 +11,8 @@
   accessible on `AIPP`.
 * Patches are no longer passed the parser instance.
 * Add support for PostgreSQL and MySQL.
+
+## 2.0.0.pre1 (yanked)
 
 ## 1.0.0
 
