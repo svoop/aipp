@@ -4,8 +4,8 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  ruby '>= 3.0.0'
-  gem 'aipp', '~> 1'
+  ruby '>= 3.1.0'
+  gem 'aipp', '>= 2.0.0.pre'
 end
 
 AIPP::NOTAM::Executable.new(File.basename($0)).run
