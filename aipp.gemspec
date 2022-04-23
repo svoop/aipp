@@ -41,7 +41,7 @@ Gem::Specification.new do |spec|
     '--quiet'
   ]
 
-  spec.required_ruby_version = '>= 3.0.0'
+  spec.required_ruby_version = '>= 3.1.0'
 
   spec.add_runtime_dependency 'airac', '~> 1.0'
   spec.add_runtime_dependency 'aixm', '~> 1', '>=1.2.1'
