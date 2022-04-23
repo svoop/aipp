@@ -22,6 +22,7 @@ require 'json'
 require 'zip'
 require 'airac'
 require 'aixm'
+require 'notam'
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'
