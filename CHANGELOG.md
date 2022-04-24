@@ -1,7 +1,12 @@
 ## Main
 
+Nothing so far
+
+## 2.0.0.pre6
+
 #### Breaking Changes
 * Drop support for Ruby 3.0
+* Make database adapters optional.
 * Overhaul file/class layout to accommodate other than AIP, implement NOTAM.
 * Cache, borders, fixtures, options and config are now dedicated objects
   accessible on `AIPP`.
