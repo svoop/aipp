@@ -30,6 +30,12 @@ module AIPP
   # [.csv] Parsed by Roo returning an instance of {Roo::CSV}[https://www.rubydoc.info/gems/roo/Roo/CSV]
   # [.txt] Instance of +String+
   #
+  # @note SQL protocols require the corresponding database adapter gem to be
+  #   installed and the connection URL to be set using the environment variable
+  #   +AIPP_POSTGRESQL_URL+ or +AIPP_MYSQL_URL+ respectively. Refer to the
+  #   regional README file for details.
+  #
+  #
   # @example
   #   AIPP::Downloader.new(storage: AIPP.options.storage, source: "2018-11-08") do |downloader|
   #     html = downloader.read(
@@ -149,6 +155,7 @@ module AIPP
     end
 
     def postgresql(uri, command)
+      fail "install `pg ~> 1` gem and set AIPP_POSTGRESQL_URL environment variable" unless defined? PG
       Nokogiri::XML::Builder.new do |xml|
         PG::Connection.sync_connect(uri) do |db|
           xml.rows do
@@ -167,6 +174,7 @@ module AIPP
     end
 
     def mysql(uri, command)
+      fail "install `ruby-mysql ~> 3` gem and set AIPP_MYSQL_URL environment variable" unless defined? Mysql
       Nokogiri::XML::Builder.new do |xml|
         Mysql.connect(uri).then do |db|
           xml.rows do

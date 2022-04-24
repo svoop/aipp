@@ -23,7 +23,7 @@ module AIPP
             fail "document not recognized"
           end
           "mysql://%s?command=%s" % [
-            ENV.fetch('DB_URL', 'cloudsqlproxy@127.0.0.1:33306/notam'),
+            ENV.fetch('AIPP_MYSQL_URL'),
             CGI.escape(sql)
           ]
         end

@@ -16,13 +16,17 @@ require 'nokogiri'
 require 'csv'
 require 'roo'
 require 'pdf-reader'
-require 'pg'
-require 'mysql'
 require 'json'
 require 'zip'
 require 'airac'
 require 'aixm'
 require 'notam'
+
+begin
+  require 'pg'
+  require 'mysql'
+rescue LoadError
+end
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'

@@ -4,8 +4,10 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  ruby '>= 3.0.0'
-  gem 'aipp', '~> 1'
+  ruby '>= 3.1.0'
+  gem 'aipp', '>= 2.0.0.pre'
+  gem 'pg', '~> 1' if ENV['AIPP_POSTGRESQL_URL']
+  gem 'ruby-mysql', '~> 3' if ENV['AIPP_MYSQL_URL']
 end
 
 AIPP::AIP::Executable.new(File.basename($0)).run

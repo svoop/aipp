@@ -50,8 +50,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'nokogiri', '~> 1', '>= 1.12.0'
   spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
-  spec.add_runtime_dependency 'pg', '~> 1'
-  spec.add_runtime_dependency 'ruby-mysql', '~> 3'
   spec.add_runtime_dependency 'json', '~> 2'
   spec.add_runtime_dependency 'rubyzip', '~> 2'
   spec.add_runtime_dependency 'colorize', '~> 0'
@@ -64,4 +62,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'guard'
   spec.add_development_dependency 'guard-minitest'
   spec.add_development_dependency 'yard'
+  spec.add_development_dependency 'pg', '~> 1'
+  spec.add_development_dependency 'ruby-mysql', '~> 3'
 end
