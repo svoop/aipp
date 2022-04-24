@@ -44,7 +44,7 @@ gem install aipp --trust-policy MediumSecurity
 If you're familiar with [Bundler](https://bundler.io) powered Ruby projects, you might prefer to add the following to your <samp>Gemfile</samp> or <samp>gems.rb</samp>:
 
 ```ruby
-gem aipp
+gem 'aipp'
 ```
 
 And then install the bundle:
@@ -52,17 +52,6 @@ And then install the bundle:
 ```
 bundle install --trust-policy MediumSecurity
 ```
-
-### SQL Support
-
-This gem requires SQL adapters by default which won't build unless binary database libraries are installed. In case you're only using parsers which don't rely on any SQL protocol, you can install this gem after setting either or both of the following environment variables:
-
-```
-export AIPP_NO_POSTGRESQL=true
-export AIPP_NO_MYSQL=true
-```
-
-See [Downloader](https://www.rubydoc.info/gems/aipp/AIPP/Downloader) for more on this.
 
 ## Usage
 

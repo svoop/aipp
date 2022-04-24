@@ -16,13 +16,17 @@ require 'nokogiri'
 require 'csv'
 require 'roo'
 require 'pdf-reader'
-require 'pg' unless ENV['AIPP_NO_POSTGRESQL']
-require 'mysql' unless ENV['AIPP_NO_MYSQL']
 require 'json'
 require 'zip'
 require 'airac'
 require 'aixm'
 require 'notam'
+
+begin
+  require 'pg'
+  require 'mysql'
+rescue LoadError
+end
 
 require 'active_support'
 require 'active_support/core_ext/object/blank'

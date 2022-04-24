@@ -51,8 +51,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
   spec.add_runtime_dependency 'json', '~> 2'
-  spec.add_runtime_dependency 'pg', '~> 1' unless ENV['AIPP_NO_POSTGRESQL']
-  spec.add_runtime_dependency 'ruby-mysql', '~> 3' unless ENV['AIPP_NO_MYSQL']
   spec.add_runtime_dependency 'rubyzip', '~> 2'
   spec.add_runtime_dependency 'colorize', '~> 0'
   spec.add_runtime_dependency 'debug', '>= 1.0.0'
