@@ -53,6 +53,17 @@ And then install the bundle:
 bundle install --trust-policy MediumSecurity
 ```
 
+### SQL Support
+
+This gem requires SQL adapters by default which won't build unless binary database libraries are installed. In case you're only using parsers which don't rely on any SQL protocol, you can install this gem after setting either or both of the following environment variables:
+
+```
+export AIPP_NO_POSTGRESQL=true
+export AIPP_NO_MYSQL=true
+```
+
+See [Downloader](https://www.rubydoc.info/gems/aipp/AIPP/Downloader) for more on this.
+
 ## Usage
 
 AIPP parses different kind of information sources. The parsers are organized in three levels:
@@ -113,7 +124,12 @@ LF/                         ⬅︎ region "LF"
     └── surface.rb
 ```
 
-:warning: All paths from here on forward are relative to the region directory.
+<table>
+  <tr>
+    <td>⚠️</td>
+    <td>All paths from here on forward are relative to the region directory.</td>
+  </tr>
+</table>
 
 ### Parsers
 

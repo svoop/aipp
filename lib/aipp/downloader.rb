@@ -30,6 +30,11 @@ module AIPP
   # [.csv] Parsed by Roo returning an instance of {Roo::CSV}[https://www.rubydoc.info/gems/roo/Roo/CSV]
   # [.txt] Instance of +String+
   #
+  # @note SQL protocols require adapter gems which depend on binary libraries.
+  #   If you don't need SQL protocols, you can set the environment variables
+  #   +AIPP_NO_POSTGRESQL+ and/or +AIPP_NO_MYSQL+ respectively prior to
+  #   installing the "aipp" gem in order not to add support and dependencies.
+  #
   # @example
   #   AIPP::Downloader.new(storage: AIPP.options.storage, source: "2018-11-08") do |downloader|
   #     html = downloader.read(

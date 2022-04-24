@@ -16,8 +16,8 @@ require 'nokogiri'
 require 'csv'
 require 'roo'
 require 'pdf-reader'
-require 'pg'
-require 'mysql'
+require 'pg' unless ENV['AIPP_NO_POSTGRESQL']
+require 'mysql' unless ENV['AIPP_NO_MYSQL']
 require 'json'
 require 'zip'
 require 'airac'
