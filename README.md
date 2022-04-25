@@ -44,7 +44,7 @@ gem install aipp --trust-policy MediumSecurity
 If you're familiar with [Bundler](https://bundler.io) powered Ruby projects, you might prefer to add the following to your <samp>Gemfile</samp> or <samp>gems.rb</samp>:
 
 ```ruby
-gem aipp
+gem 'aipp'
 ```
 
 And then install the bundle:
@@ -113,7 +113,12 @@ LF/                         ⬅︎ region "LF"
     └── surface.rb
 ```
 
-:warning: All paths from here on forward are relative to the region directory.
+<table>
+  <tr>
+    <td>⚠️</td>
+    <td>All paths from here on forward are relative to the region directory.</td>
+  </tr>
+</table>
 
 ### Parsers
 
