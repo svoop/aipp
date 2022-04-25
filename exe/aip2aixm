@@ -1,11 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'bundler/inline'
-
-gemfile do
-  source 'https://rubygems.org'
-  ruby '>= 3.0.0'
-  gem 'aipp', '~> 1'
-end
+require 'aipp'
 
 AIPP::AIP::Executable.new(File.basename($0)).run
