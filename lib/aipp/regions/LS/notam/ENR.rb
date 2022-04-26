@@ -28,6 +28,7 @@ module AIPP::LS::NOTAM
             radius: notam.data[:radius]
           )
         )
+        airspace.comment = notam.text
         add airspace
       end
     end
