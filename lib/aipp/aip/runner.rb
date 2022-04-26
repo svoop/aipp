@@ -4,7 +4,11 @@ module AIPP
     class Runner < AIPP::Runner
 
       def effective_at
-        AIPP.options.airac.date
+        AIPP.options.airac.effective.begin
+      end
+
+      def expiration_at
+        AIPP.options.airac.effective.end
       end
 
       def run

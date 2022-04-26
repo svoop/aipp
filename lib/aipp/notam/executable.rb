@@ -5,9 +5,10 @@ module AIPP
 
       def initialize(exe_file)
         super
+        now = Time.now.utc
         AIPP.options.merge(
           module: 'NOTAM',
-          effective_at: Time.now.beginning_of_hour + 3600
+          effective_at: now - now.sec + 60
         )
         OptionParser.new do |o|
           o.banner = <<~END

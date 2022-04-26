@@ -12,7 +12,7 @@ module AIPP
       AIPP.options.storage = AIPP.options.storage.join(AIPP.options.region, AIPP.options.module.downcase)
       AIPP.options.storage.mkpath
       @dependencies = THash.new
-      @aixm = AIXM.document(effective_at: effective_at)
+      @aixm = AIXM.document(effective_at: effective_at, expiration_at: expiration_at)
       AIXM.send("#{AIPP.options.schema}!")
       AIXM.config.region = AIPP.options.region
     end
@@ -25,6 +25,11 @@ module AIPP
     # @abstract
     def effective_at
       fail "effective_at method must be implemented by module runner"
+    end
+
+    # @abstract
+    def expiration_at
+      nil
     end
 
     # @abstract

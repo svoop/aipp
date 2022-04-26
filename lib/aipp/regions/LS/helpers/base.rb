@@ -13,9 +13,10 @@ module AIPP
             <<~END
               SELECT id, effectiveFrom, validUntil, notam
                 FROM notam
-                WHERE id LIKE '%-LSAS' AND
-                  validUntil > CAST('#{AIPP.options.effective_at.utc}' AS datetime)
-                ORDER BY effectiveFrom
+                WHERE id LIKE 'W_______-LS__' AND
+                  effectiveFrom < '#{aixm.expiration_at}' AND
+                  validUntil > '#{aixm.effective_at.beginning_of_day}'
+                ORDER BY id
             END
           when 'AD'
             fail "not yet implemented"
