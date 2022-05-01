@@ -243,8 +243,9 @@ end
 There are a few things to note about `url_for`:
 
 * If the returned string begins with a protocol like `https:`, the downloader will fetch the file from there.
-* If the returned string begins with `postgresql:` or `mysql:`, the downloader will perform a SELECT query on the database, convert the result to XML.
 * If the returned string is just a file name, the downloader will look for this exact file in the current local directory.
+* The file type is derived from the URL (e.g. `https://foo.bar/doc.pdf` is a PDF file), however, if the URL does not expose the file type or a wrong file type, you can force it with a prefix (e.g. `pdf+https://example.com/doc` is a PDF file as well).
+* If the returned string begins with `postgresql:` or `mysql:`, the downloader will perform a SELECT query on the database, convert the result to XML.
 
 See [Downloader](https://www.rubydoc.info/gems/aipp/AIPP/Downloader) for more on protocols and recognized file types.
 

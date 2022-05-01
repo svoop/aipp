@@ -67,11 +67,11 @@ module AIPP
         if AIPP.options.clean
           @source_file.delete
         else
-          unzip
+          unpack
         end
       end
       yield self
-      zip
+      pack
     ensure
       teardown
     end
@@ -86,13 +86,14 @@ module AIPP
     # @param document [String] document to read (without extension)
     # @param url [String] URL to download the document from
     # @param type [Symbol, nil] document type: +nil+ (default) to derive it from
-    #   the URL, :html, :pdf, :xlsx, :ods or :csv
+    #   the URL, :xml, :ofmx, :html, :pdf, :xlsx, :ods or :csv
     # @return [Nokogiri::HTML5::Document, AIPP::PDF, Roo::Spreadsheet, String]
     def read(document:, url:, type: nil)
       uri = URI(url)
       type = :xml if uri.scheme&.match?(/sql/)
       type ||= Pathname(uri.path).extname[1..-1].to_sym
-      file = work_path.join([document, type].join('.'))
+      archive, file = nil, work_path.join([document, type].join('.'))
+      archive, file = file, work_path.join(Pathname(uri.fragment).basename) if type == :zip
       unless file.exist?
         verbose_info "downloading #{document}"
         if respond_to?(uri.scheme.to_s, include_all: true)
@@ -102,7 +103,11 @@ module AIPP
           uri.query = URI.encode_www_form(query.except('command')).blank_to_nil
           File.write(file, send(uri.scheme, uri, command))
         else
-          IO.copy_stream(URI.open(url), file)
+          IO.copy_stream(URI.open(url), archive || file)
+        end
+        if archive
+          extract(archive, only_entry: uri.fragment) or fail "`#{uri.fragment}' not found in archive"
+          archive.delete
         end
       end
       convert file
@@ -131,13 +136,11 @@ module AIPP
       end
     end
 
-    def unzip
-      Zip::File.open(source_file).each do |entry|
-        entry.extract(work_path.join(entry.name))
-      end
-    end
+    def unpack
+      extract(source_file) or fail
+     end
 
-    def zip
+    def pack
       backup_file = source_file.sub(/$/, '.old') if source_file.exist?
       source_file.rename(backup_file) if backup_file
       Zip::File.open(source_file, Zip::File::CREATE) do |zip|
@@ -182,15 +185,35 @@ module AIPP
       end.to_xml
     end
 
+    def extract(archive, only_entry: nil)
+      case archive.extname
+        when '.zip' then unzip(archive, only_entry: only_entry)
+        else fail(ArgumentError, "unrecognized archive type")
+      end
+    end
+
+    # @return [Boolean] whether at least one file was extracted
+    def unzip(archive, only_entry:)
+      Zip::File.open(archive).inject(false) do |_, entry|
+        case
+        when only_entry && only_entry == entry.name
+          break !!entry.extract(work_path.join(Pathname(entry.name).basename))
+        when !only_entry
+          !!entry.extract(work_path.join(entry.name))
+        else
+          false
+        end
+      end
+    end
+
     def convert(file)
       case file.extname
-        when '.xml' then Nokogiri.XML(File.open(file))
+        when '.xml', '.ofmx' then Nokogiri.XML(File.open(file), &:noblanks)
         when '.html' then Nokogiri.HTML5(File.open(file))
         when '.pdf' then AIPP::PDF.new(file)
         when '.xlsx', '.ods', '.csv' then Roo::Spreadsheet.open(file.to_s)
         when '.txt' then File.read(file)
-      else
-        fail(ArgumentError, "invalid document type")
+        else fail(ArgumentError, "unrecognized file type")
       end
     end
   end
