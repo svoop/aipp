@@ -128,30 +128,6 @@ describe AIPP::Downloader do
         end
       end
 
-      context "SQL query" do
-        it "downloads PostgreSQL SELECT query to Nokogiri::XML::Document" do
-          PG::Connection.stub(:sync_connect, nil, db) do
-            AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
-              downloader.read(document: 'new', url: 'postgresql://localhost/db?command=SELECT+*+FROM+test').tap do |content|
-                _(content).must_be_instance_of Nokogiri::XML::Document
-                _(content.css('row:first column:first').text).must_equal 'fixture-sql-new'
-              end
-            end
-          end
-        end
-
-        it "downloads MySQL SELECT query to Nokogiri::XML::Document" do
-          Mysql.stub(:connect, db) do
-            AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
-              downloader.read(document: 'new', url: 'mysql://localhost/db?command=SELECT+*+FROM+test').tap do |content|
-                _(content).must_be_instance_of Nokogiri::XML::Document
-                _(content.css('row:first column:first').text).must_equal 'fixture-sql-new'
-              end
-            end
-          end
-        end
-      end
-
       it "downloads explicitly specified type" do
         URI.stub(:open, File.open(fixtures_path.join('downloader', 'new.pdf'))) do
           AIPP::Downloader.new(storage: tmp_dir, source: 'source') do |downloader|
@@ -167,19 +143,5 @@ describe AIPP::Downloader do
 
   def zip_entries(zip_file)
     Zip::File.open(zip_file).entries.map(&:name).sort
-  end
-
-  def db
-    Class.new do
-      def exec(_)
-        yield [{ first: 'fixture-sql-new', second: 'two', third: 'three' }, { first: 'uno', second: 'dos', third: 'tres' }]
-      end
-
-      def query(_)
-        [{ first: 'fixture-sql-new', second: 'two', third: 'three' }, { first: 'uno', second: 'dos', third: 'tres' }].tap do |array|
-          array.instance_eval { alias each_hash each }
-        end
-      end
-    end.new
   end
 end

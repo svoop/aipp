@@ -3,7 +3,7 @@ module Nokogiri
   module PseudoClasses
     class Matches
       def matches(node_set, regexp)
-        node_set.find_all { _1.content.match? /#{regexp}/ }
+        node_set.find_all { _1.content.match?(/#{regexp}/) }
       end
     end
   end

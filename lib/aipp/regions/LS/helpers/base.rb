@@ -15,19 +15,19 @@ module AIPP
         def url_for(document)
           case document
           when 'ENR'
-            sql = <<~END
-              SELECT id, effectiveFrom, validUntil, notam
-                FROM notam
-                WHERE substr(id, 10, 2) IN ('LS') AND
-                  substr(id, 1, 1) IN ('B', 'W') AND
-                  effectiveFrom < '#{aixm.expiration_at}' AND
-                  validUntil > '#{aixm.effective_at.beginning_of_day}'
-                ORDER BY id
-            END
-            "mysql://%s?command=%s" % [
-              ENV.fetch('DB_URL', 'cloudsqlproxy@127.0.0.1:33306/notam'),
-              CGI.escape(sql)
-            ]
+            # sql = <<~END
+            #   SELECT id, effectiveFrom, validUntil, notam
+            #     FROM notam
+            #     WHERE substr(id, 10, 2) IN ('LS') AND
+            #       substr(id, 1, 1) IN ('B', 'W') AND
+            #       effectiveFrom < '#{aixm.expiration_at}' AND
+            #       validUntil > '#{aixm.effective_at.beginning_of_day}'
+            #     ORDER BY id
+            # END
+            # "mysql://%s?command=%s" % [
+            #   ENV.fetch('DB_URL', 'cloudsqlproxy@127.0.0.1:33306/notam'),
+            #   CGI.escape(sql)
+            # ]
           when 'AD'
             fail "not yet implemented"
           when 'AIP'

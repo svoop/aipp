@@ -15,10 +15,6 @@ module AIPP
   #   Connect to a web server using {URI#open}[https://www.rubydoc.info/gems/open-uri].
   # [FTPS or FTP]
   #   Connect to a file server using {URI#open}[https://www.rubydoc.info/gems/open-uri].
-  # [SQL]
-  #   Connect to a {PostgreSQL}[https://www.rubydoc.info/gems/pg/PG/Connection#new-class_method] or {MySQL}[https://www.rubydoc.info/gems/ruby-mysql/Mysql#initialize-instance_method] database server. The result of the SELECT command is converted to XML.<br>
-  #   **URI:** +postgresql|mysql+://+username+:+password+@+host+:+port+/+database+?command=+SELECT...+<br>
-  #   **Command:** SELECT +columns|*+ FROM +table+ WHERE +conditions+ ORDER +columns+
   #
   # The following file type extensions are recognised:
   #
@@ -90,21 +86,12 @@ module AIPP
     # @return [Nokogiri::HTML5::Document, AIPP::PDF, Roo::Spreadsheet, String]
     def read(document:, url:, type: nil)
       uri = URI(url)
-      type = :xml if uri.scheme&.match?(/sql/)
       type ||= Pathname(uri.path).extname[1..-1].to_sym
       archive, file = nil, work_path.join([document, type].join('.'))
       archive, file = file, work_path.join(Pathname(uri.fragment).basename) if type == :zip
       unless file.exist?
         verbose_info "downloading #{document}"
-        if respond_to?(uri.scheme.to_s, include_all: true)
-          query = CGI.parse(uri.query)
-          command = query['command']&.first
-          fail "mandatory SELECT command missing" unless command&.match?(/^select/i)
-          uri.query = URI.encode_www_form(query.except('command')).blank_to_nil
-          File.write(file, send(uri.scheme, uri, command))
-        else
-          IO.copy_stream(URI.open(url), archive || file)
-        end
+        IO.copy_stream(URI.open(url), archive || file)
         if archive
           extract(archive, only_entry: uri.fragment) or fail "`#{uri.fragment}' not found in archive"
           archive.delete
@@ -138,7 +125,7 @@ module AIPP
 
     def unpack
       extract(source_file) or fail
-     end
+    end
 
     def pack
       backup_file = source_file.sub(/$/, '.old') if source_file.exist?
@@ -149,40 +136,6 @@ module AIPP
         end
       end
       backup_file&.delete
-    end
-
-    def postgresql(uri, command)
-      Nokogiri::XML::Builder.new do |xml|
-        PG::Connection.sync_connect(uri) do |db|
-          xml.rows do
-            db.exec(command) do |rows|
-              rows.each do |row|
-                xml.row do
-                  row.each do |column, value|
-                    xml.column(value, { name: column })
-                  end
-                end
-              end
-            end
-          end
-        end
-      end.to_xml
-    end
-
-    def mysql(uri, command)
-      Nokogiri::XML::Builder.new do |xml|
-        Mysql.connect(uri).then do |db|
-          xml.rows do
-            db.query(command).each_hash do |row|
-              xml.row do
-                row.each do |column, value|
-                  xml.column(value, { name: column })
-                end
-              end
-            end
-          end
-        end
-      end.to_xml
     end
 
     def extract(archive, only_entry: nil)

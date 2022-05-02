@@ -6,7 +6,6 @@
 * Cache, borders, fixtures, options and config are now dedicated objects
   accessible on `AIPP`.
 * Patches are no longer passed the parser instance.
-* Add support for PostgreSQL and MySQL.
 
 ## 1.0.0
 
