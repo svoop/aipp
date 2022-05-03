@@ -42,8 +42,8 @@ module AIPP
     end
 
     # @abstract
-    def url_for(*)
-      fail "url_for method must be implemented in parser"
+    def origin_for(*)
+      fail "origin_for method must be implemented in parser"
     end
 
     # Read a source document
@@ -51,13 +51,8 @@ module AIPP
     # Read the cached document if it exists in the source archive. Otherwise,
     # download and cache it.
     #
-    # An URL builder method +url_for+ must be implemented by the parser
+    # An origin builder method +origin_for+ must be implemented by the parser
     # definition.
-    #
-    # The file type is derived from the URL (e.g. `https://foo.bar/doc.pdf`
-    # is a PDF file), however, if the URL does not expose the file type
-    # or a wrong file type, you can force it with a prefix (e.g.
-    # `pdf+https://example.com/doc` is a PDF file as well).
     #
     # @param document [String] e.g. "ENR-2.1" or "aerodromes" (default: current
     #   +section+)
@@ -66,8 +61,7 @@ module AIPP
     def read(document=section)
       @downloader.read(
         document: document,
-        url: url_for(document).sub(/\A(\w+)\+/ , ''),
-        type: $1&.to_sym
+        origin: origin_for(document)
       )
     end
 

@@ -124,8 +124,23 @@ class String
   end
 
   # Remove all XML/HTML tags and entities from the string
+  #
+  # @example
+  #   "this <em>is</em> a <br> test".strip_markup   # => "this is a  test"
+  #
+  # @return [String]
   def strip_markup
     self.gsub(/<.*?>|&[#\da-z]+;/i, '')
+  end
+
+  # Builds the MD5 hash as hex and returns the first eight characters.
+  #
+  # @example
+  #   "this is a test".to_digest   # => "54b0c58c"
+  #
+  # @return [String]
+  def to_digest
+    Digest::MD5.hexdigest(self)[0,8]
   end
 
   # Same as +to_f+ but accept both dot and comma as decimal separator

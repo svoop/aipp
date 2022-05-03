@@ -55,7 +55,7 @@ module AIPP::LF::AIP
 #         vac ||= "VACH-H#{airport.name[0, 3].upcase}"
 #         airport.remarks = [
 #           airport.remarks.to_s,
-#           link_to('VAC-HP', url_for(vac))
+#           link_to('VAC-HP', origin_for(vac).file)
 #         ].join("\n")
 #       end
         # Add helipad and FATO

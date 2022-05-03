@@ -79,19 +79,6 @@ describe String do
     end
   end
 
-  describe :to_ff do
-    it "converts normal float numbers as does to_f" do
-      _("5".to_ff).must_equal "5".to_f
-      _("5.1".to_ff).must_equal "5.1".to_f
-      _(" 5.2 ".to_ff).must_equal " 5.2 ".to_f
-    end
-
-    it "converts comma float numbers as well" do
-      _("5,1".to_ff).must_equal "5.1".to_f
-      _(" 5,2 ".to_ff).must_equal "5.2".to_f
-    end
-  end
-
   describe :full_strip do
     it "behaves like strip" do
       subject = "  foobar\t\t"
@@ -175,6 +162,25 @@ describe String do
 
     it "strips tags and entities" do
       _(subject.strip_markup).must_equal 'This  contains   markup  entities.'
+    end
+  end
+
+  describe :to_digest do
+    it "returns short MD5 hex" do
+      _("this is a test".to_digest).must_equal "54b0c58c"
+    end
+  end
+
+  describe :to_ff do
+    it "converts normal float numbers as does to_f" do
+      _("5".to_ff).must_equal "5".to_f
+      _("5.1".to_ff).must_equal "5.1".to_f
+      _(" 5.2 ".to_ff).must_equal " 5.2 ".to_f
+    end
+
+    it "converts comma float numbers as well" do
+      _("5,1".to_ff).must_equal "5.1".to_f
+      _(" 5,2 ".to_ff).must_equal "5.2".to_f
     end
   end
 

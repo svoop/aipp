@@ -224,31 +224,98 @@ To make the parser code more readable, a few core extensions are provided:
 * [`DateTime` (ActiveSupport)](https://www.rubydoc.info/gems/activesupport/DateTime)
 * [`Nokogiri`](https://www.rubydoc.info/gems/aipp/Nokogiri)
 
-#### Mandatory `url_for` Method
+#### Mandatory `origin_for` Method
 
-The class must implement the `url_for` method which returns the URL from where to download a specific document (e.g. AIP file):
+The class must implement the `origin_for` method which returns an origin object describing how to download the source data (e.g. an AIP file or NOTAM message):
 
 ```ruby
 module AIPP::LF::AIP
   class AD2 < AIPP::AIP::Parser
 
-    def url_for(document)
-      # build and return the download URL for the aip file
+    def origin_for(document)
+      # build and return the origin object
     end
 
   end
 end
 ```
 
-There are a few things to note about `url_for`:
+Return any of the following origin objects best explained by example:
 
-* If the returned string begins with a protocol like `https:`, the downloader will fetch the file from there.
-* If the returned string is just a file name, the downloader will look for this exact file in the current local directory.
-* The file type is derived from the URL (e.g. `https://foo.bar/doc.pdf` is a PDF file), however, if the URL does not expose the file type or a wrong file type, you can force it with a prefix (e.g. `pdf+https://example.com/doc` is a PDF file as well).
+```
+AIPP::Downloader::File.new(
+  file: "file.dat",   # relative path to file
+  type: :pdf          # optional: file type if different from extension
+)
+```
 
-See [Downloader](https://www.rubydoc.info/gems/aipp/AIPP/Downloader) for more on protocols and recognized file types.
+```
+AIPP::Downloader::File.new(
+  archive: "foobar.zip",     # relative path to archive
+  file: "subdir/file.dat",   # file to extract from archive
+  type: :pdf                 # optional: file type if different from extension
+)
+```
 
-For performance, downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each module defines a cache scope, see the [table of modules above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` CLI option.
+See [Downloader](https://www.rubydoc.info/gems/aipp/AIPP/Downloader) for more on recognised file and archive types.
+
+```
+AIPP::Downloader::HTTP.new(
+  file: "https://example.com/foobar.zip",   # URL where the file is located
+  type: :pdf,                               # optional: file type if different from extension
+  headers: "Cookie: name=value",            # optional: additional headers e.g. for session
+)
+```
+
+```
+AIPP::Downloader::HTTP.new(
+  archive: "https://example.com/foobar.zip",   # URL where the archive is located
+  file: "subdir/file.dat",                     # file to extract from archive
+  type: :pdf,                                  # optional: file type if different from extension
+  headers: "Cookie: name=value",               # optional: additional headers e.g. for session
+)
+```
+
+The [excon gem](https://www.rubydoc.info/gems/excon) is used to perform HTTP requests.
+
+```
+AIPP::Downloader::GraphQL.new(
+  client: MyAPI::Client,       # GraphQL client class
+  query: MyAPI::Name::Query,   # GraphQL query class
+  variables: {                 # dynamic query parameters
+    first_name: 'Geronimo',
+    age: 50
+  }
+)
+```
+
+For this GraphQL downloader to work, you have to declare a GraphQL client class beforehand. See the [graphql-client gem documentation](https://www.rubydoc.info/gems/graphql-client) for details, the following example fits the downloader above:
+
+```ruby
+module MyAPI
+  HttpAdapter = GraphQL::Client::HTTP.new(ENV['MY_API_URL']) do
+    def headers(context)
+      { "Authorization": "Bearer #{ENV['MY_API_AUTHORIZATION']}" }
+    end
+  end
+  Schema = GraphQL::Client.load_schema(HttpAdapter)
+  Client = GraphQL::Client.new(schema: Schema, execute: HttpAdapter)
+
+  class Name
+    Query = Client.parse <<~END
+      query ($first_name: String!, $age: Int!) {
+        queryNOTAMs(
+          filter: {first_name: $first_name, age: $age}
+        ) {
+          name
+        }
+      }
+    END
+  end
+end
+```
+
+For performance, all downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each module defines a cache scope, see the [table of modules above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` CLI option.
 
 #### Optional `setup` Method
 

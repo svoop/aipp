@@ -80,7 +80,7 @@ module AIPP::LF::AIP
 #         # Link to VAC
 #         airport.remarks = [
 #           airport.remarks.to_s,
-#           link_to('VAC-AD', url_for("VAC-#{airport.id}"))
+#           link_to('VAC-AD', origin_for("VAC-#{airport.id}").file)
 #         ].join("\n")
           AIPP.cache.rwy.css(%Q(Rwy:has(Ad[pk="#{ad_node.attr(:pk)}"]))).each do |rwy_node|
             add_runway_to(airport, rwy_node)

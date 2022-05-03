@@ -6,10 +6,10 @@ module AIPP::LS::NOTAM
     include AIPP::LS::Helpers::Base
 
     def parse
+      json = read
       xml = read
-      xml.css('row').each do |row|
-        column = row.css('column[name="notam"]')
-        text = JSON.parse(column.text.gsub(/\n/, '\\n')).fetch('all')
+      json['queryNOTAMs'].each do |row|
+        text = row['notamRaw']
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
         notam = NOTAM.parse(text)
         if respect? notam

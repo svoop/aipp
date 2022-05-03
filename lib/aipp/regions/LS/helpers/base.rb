@@ -1,4 +1,26 @@
 module AIPP
+  module NewayAPI
+    HttpAdapter = GraphQL::Client::HTTP.new(ENV['NEWAY_API_URL']) do
+      def headers(context)
+        { "Authorization": "Bearer #{ENV['NEWAY_API_AUTHORIZATION']}" }
+      end
+    end
+    Schema = GraphQL::Client.load_schema(HttpAdapter)
+    Client = GraphQL::Client.new(schema: Schema, execute: HttpAdapter)
+
+    class Notam
+      Query = Client.parse <<~END
+        query ($region: String!, $series: [String!], $start: Int!, $end: Int!) {
+          queryNOTAMs(
+            filter: {region: $region, series: $series, start: $start, end: $end}
+          ) {
+            notamRaw
+          }
+        }
+      END
+    end
+  end
+
   module LS
     module Helpers
       module Base
@@ -12,29 +34,31 @@ module AIPP
 #         AIPP.cache.dabs = read('DABS')
         end
 
-        def url_for(document)
+        def origin_for(document)
           case document
           when 'ENR'
-            # sql = <<~END
-            #   SELECT id, effectiveFrom, validUntil, notam
-            #     FROM notam
-            #     WHERE substr(id, 10, 2) IN ('LS') AND
-            #       substr(id, 1, 1) IN ('B', 'W') AND
-            #       effectiveFrom < '#{aixm.expiration_at}' AND
-            #       validUntil > '#{aixm.effective_at.beginning_of_day}'
-            #     ORDER BY id
-            # END
-            # "mysql://%s?command=%s" % [
-            #   ENV.fetch('DB_URL', 'cloudsqlproxy@127.0.0.1:33306/notam'),
-            #   CGI.escape(sql)
-            # ]
+            AIPP::Downloader::GraphQL.new(
+              client: AIPP::NewayAPI::Client,
+              query: AIPP::NewayAPI::Notam::Query,
+              variables: {
+                region: 'LS',
+                series: %w(W B),
+                start: aixm.expiration_at.to_i,
+                end: aixm.effective_at.beginning_of_day.to_i
+              }
+            )
           when 'AD'
             fail "not yet implemented"
           when 'AIP'
-            airac = AIRAC::Cycle.new
-            "https://snapshots.openflightmaps.org/live/#{airac.id}/ofmx/lsas/latest/ofmx_ls.zip#ofmx_ls/isolated/ofmx_ls.ofmx"
+            AIPP::Downloader::HTTP.new(
+              archive: "https://snapshots.openflightmaps.org/live/#{AIRAC::Cycle.new.id}/ofmx/lsas/latest/ofmx_ls.zip",
+              file: "ofmx_ls/isolated/ofmx_ls.ofmx"
+            )
           when 'DABS'
-            "pdf+https://www.skybriefing.com/dabs?p_p_id=ch_skyguide_ibs_portal_dabs_DabsUI&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=APP&p_p_cacheability=cacheLevelPage&_ch_skyguide_ibs_portal_dabs_DabsUI_v-resourcePath=%2FAPP%2Fconnector%2F0%2F2%2Fhref%2Fdabs-#{aixm.effective_at.to_date}.pdf"
+            AIPP::Downloader::HTTP.new(
+              file: "https://www.skybriefing.com/dabs?p_p_id=ch_skyguide_ibs_portal_dabs_DabsUI&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=APP&p_p_cacheability=cacheLevelPage&_ch_skyguide_ibs_portal_dabs_DabsUI_v-resourcePath=%2FAPP%2Fconnector%2F0%2F2%2Fhref%2Fdabs-#{aixm.effective_at.to_date}.pdf",
+              type: :pdf
+            )
           else
             fail "document not recognized"
           end

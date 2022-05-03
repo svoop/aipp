@@ -4,23 +4,28 @@ module AIPP
   #
   # The downloader operates in the +storage+ directory where it creates two
   # subdirectories "sources" and "work". The initializer looks for the +source+
-  # archive in "sources" and (if found) unzips its contents into "work". When
+  # archive in "sources" and (if found) unpacks its contents into "work". When
   # reading a +document+, the downloader looks for the +document+ in "work" and
-  # (unless found or clean option set) downloads it from +url+ and reads them.
-  # Finally, the contents of "work" are written back to the +source+ archive.
+  # (if not found or the clean option is set) downloads it from +origin+.
+  # Finally, the contents of "work" are packed back into the +source+ archive.
   #
-  # The following protocols are recognized:
+  # Origins are defined as instances of downloader origin objects:
   #
-  # [HTTPS or HTTP]
-  #   Connect to a web server using {URI#open}[https://www.rubydoc.info/gems/open-uri].
-  # [FTPS or FTP]
-  #   Connect to a file server using {URI#open}[https://www.rubydoc.info/gems/open-uri].
+  # * {AIXM::Downloader::File} – local file or archive
+  # * {AIXM::Downloader::HTTP} – remote file or archive via HTTP
+  # * {AIXM::Downloader::GraphQL} – GraphQL query
   #
-  # The following file type extensions are recognised:
+  # The following archives are recognized:
   #
+  # [.zip] ZIP archive
+  #
+  # The following file types are recognised:
+  #
+  # [.ofmx] Parsed by Nokogiri returning an instance of {Nokogiri::XML::Document}[https://www.rubydoc.info/gems/nokogiri/Nokogiri/XML/Document]
   # [.xml] Parsed by Nokogiri returning an instance of {Nokogiri::XML::Document}[https://www.rubydoc.info/gems/nokogiri/Nokogiri/XML/Document]
   # [.html] Parsed by Nokogiri returning an instance of {Nokogiri::HTML5::Document}[https://www.rubydoc.info/gems/nokogiri/Nokogiri/HTML5/Document]
   # [.pdf] Converted to text – see {AIPP::PDF}
+  # [.json] Deserialized JSON e.g. as response to a GraphQL query
   # [.xlsx] Parsed by Roo returning an instance of {Roo::Excelx}[https://www.rubydoc.info/gems/roo/Roo/Excelx]
   # [.ods] Parsed by Roo returning an instance of {Roo::OpenOffice}[https://www.rubydoc.info/gems/roo/Roo/OpenOffice]
   # [.csv] Parsed by Roo returning an instance of {Roo::CSV}[https://www.rubydoc.info/gems/roo/Roo/CSV]
@@ -30,17 +35,22 @@ module AIPP
   #   AIPP::Downloader.new(storage: AIPP.options.storage, source: "2018-11-08") do |downloader|
   #     html = downloader.read(
   #       document: 'ENR-5.1',
-  #       url: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/FRANCE/AIRAC-2018-11-08/html/eAIP/FR-ENR-5.1-fr-FR.html'
+  #       origin: AIPP::Downloader::HTTP.new(
+  #         file: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/FRANCE/AIRAC-2018-11-08/html/eAIP/FR-ENR-5.1-fr-FR.html'
+  #       )
   #     )
   #     pdf = downloader.read(
   #       document: 'VAC-LFMV',
-  #       url: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.LFMV.pdf'
+  #       origin: AIPP::Downloader::HTTP.new(
+  #         file: 'https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_08_NOV_2018/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.LFMV.pdf'
+  #       )
   #     )
   #   end
   class Downloader
     include AIPP::Debugger
 
-    # Error when URL results in "404 Not Found" HTTP status
+    # Error raised when any kind of downloader fails to find the resource e.g.
+    # because the local file does not exist or the remote file is unavailable.
     class NotFoundError < StandardError; end
 
     # @return [Pathname] directory to operate within
@@ -80,22 +90,14 @@ module AIPP
     # Download and read +document+
     #
     # @param document [String] document to read (without extension)
-    # @param url [String] URL to download the document from
-    # @param type [Symbol, nil] document type: +nil+ (default) to derive it from
-    #   the URL, :xml, :ofmx, :html, :pdf, :xlsx, :ods or :csv
-    # @return [Nokogiri::HTML5::Document, AIPP::PDF, Roo::Spreadsheet, String]
-    def read(document:, url:, type: nil)
-      uri = URI(url)
-      type ||= Pathname(uri.path).extname[1..-1].to_sym
-      archive, file = nil, work_path.join([document, type].join('.'))
-      archive, file = file, work_path.join(Pathname(uri.fragment).basename) if type == :zip
+    # @param origin [AIPP::Downloader::File, AIPP::Downloader::HTTP,
+    #   AIPP::Downloader::GraphQL] origin to download the document from
+    # @return [Object]
+    def read(document:, origin:)
+      file = work_path.join(origin.fetched_file)
       unless file.exist?
         verbose_info "downloading #{document}"
-        IO.copy_stream(URI.open(url), archive || file)
-        if archive
-          extract(archive, only_entry: uri.fragment) or fail "`#{uri.fragment}' not found in archive"
-          archive.delete
-        end
+        origin.fetch_to(work_path)
       end
       convert file
     end
@@ -161,13 +163,15 @@ module AIPP
 
     def convert(file)
       case file.extname
-        when '.xml', '.ofmx' then Nokogiri.XML(File.open(file), &:noblanks)
-        when '.html' then Nokogiri.HTML5(File.open(file))
+        when '.xml', '.ofmx' then Nokogiri.XML(::File.open(file), &:noblanks)
+        when '.html' then Nokogiri.HTML5(::File.open(file))
+        when '.json' then JSON.load_file(file)
         when '.pdf' then AIPP::PDF.new(file)
         when '.xlsx', '.ods', '.csv' then Roo::Spreadsheet.open(file.to_s)
-        when '.txt' then File.read(file)
+        when '.txt' then ::File.read(file)
         else fail(ArgumentError, "unrecognized file type")
       end
     end
+
   end
 end

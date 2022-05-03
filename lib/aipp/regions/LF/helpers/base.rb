@@ -21,21 +21,21 @@ module AIPP
           end
         end
 
-        def url_for(document)
+        def origin_for(document)
           sia_date = AIPP.options.airac.date.strftime('%d_%^b_%Y')   # 04_JAN_2018
           xml_date = AIPP.options.airac.date.xmlschema               # 2018-01-04
           sia_url = "https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_#{sia_date}"
           case document
           when /^Obstacles$/   # obstacles spreadsheet
-            "#{sia_url}/FRANCE/ObstaclesDataZone1MFRANCE_#{xml_date.remove('-')}.xlsx"
+            AIPP::Downloader::HTTP(file: "#{sia_url}/FRANCE/ObstaclesDataZone1MFRANCE_#{xml_date.remove('-')}.xlsx")
 #         when /^VAC\-(\w+)/   # aerodrome VAC PDF
-#           "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf"
+#           AIPP::Downloader::HTTP(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf")
 #         when /^VACH\-(\w+)/   # helipad VAC PDF
-#           "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf"
+#           AIPP::Downloader::HTTP(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf")
 #         when /^[A-Z]+-/   # eAIP HTML page (e.g. ENR-5.5)
-#           "#{sia_url}/FRANCE/AIRAC-#{xml_date}/html/eAIP/FR-#{document}-fr-FR.html"
+#           AIPP::Downloader::HTTP(file: "#{sia_url}/FRANCE/AIRAC-#{xml_date}/html/eAIP/FR-#{document}-fr-FR.html")
           else   # SIA XML database dump
-            "XML_SIA_#{xml_date}.xml"
+            AIPP::Downloader::File(file: "XML_SIA_#{xml_date}.xml")
           end
         end
 

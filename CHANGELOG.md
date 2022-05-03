@@ -2,6 +2,8 @@
 
 #### Breaking Changes
 * Drop support for Ruby 3.0
+* Rename `url_for` to `origin_for` and introduce origin structures which allow
+  for more complex download scenarios such as HTTPS with session or GraphQL.
 * Overhaul file/class layout to accommodate other than AIP, implement NOTAM.
 * Cache, borders, fixtures, options and config are now dedicated objects
   accessible on `AIPP`.
