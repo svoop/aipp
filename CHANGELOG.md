@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.0.0.pre7
+
 #### Breaking Changes
 * Drop support for Ruby 3.0
 * Rename `url_for` to `origin_for` and introduce origin structures which allow
