@@ -31,7 +31,7 @@ module AIPP
 
         def setup
           AIPP.cache.aip = read('AIP').css('Ase')
-#         AIPP.cache.dabs = read('DABS')
+          AIPP.cache.dabs = read('DABS')
         end
 
         def origin_for(document)
@@ -55,10 +55,12 @@ module AIPP
               file: "ofmx_ls/isolated/ofmx_ls.ofmx"
             )
           when 'DABS'
-            AIPP::Downloader::HTTP.new(
-              file: "https://www.skybriefing.com/dabs?p_p_id=ch_skyguide_ibs_portal_dabs_DabsUI&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=APP&p_p_cacheability=cacheLevelPage&_ch_skyguide_ibs_portal_dabs_DabsUI_v-resourcePath=%2FAPP%2Fconnector%2F0%2F2%2Fhref%2Fdabs-#{aixm.effective_at.to_date}.pdf",
-              type: :pdf
-            )
+            if aixm.effective_at.to_date == Date.today   # DABS cross check works reliably for today only
+              AIPP::Downloader::HTTP.new(
+                file: "https://www.skybriefing.com/o/dabs?today",
+                type: :pdf
+              )
+            end
           else
             fail "document not recognized"
           end

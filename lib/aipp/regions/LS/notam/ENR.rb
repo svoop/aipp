@@ -7,13 +7,14 @@ module AIPP::LS::NOTAM
 
     def parse
       json = read
-      xml = read
+      added_notam_ids = []
       json['queryNOTAMs'].each do |row|
         text = row['notamRaw']
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
         notam = NOTAM.parse(text)
         if respect? notam
           next if notam.data[:five_day_schedules] == []
+          added_notam_ids << notam.data[:id]
           add(
             case notam.data[:content]
             when /\A[DR].AREA.+ACT/, /TMA.+ACT/
@@ -37,6 +38,7 @@ module AIPP::LS::NOTAM
           verbose_info("Skipping NOTAM #{notam.data[:id]}")
         end
       end
+      dabs_cross_check(added_notam_ids)
     end
 
     private
@@ -90,6 +92,20 @@ module AIPP::LS::NOTAM
 
     def obstacle_from(notam)
       # TODO: implement obstacle
+    end
+
+    def dabs_cross_check(added_notam_ids)
+      dabs_date = aixm.effective_at.to_date.strftime("DABS Date: %Y %^B %d")
+      case
+      when AIPP.cache.dabs.nil?
+        warn("DABS not available - skipping cross check")
+      when !AIPP.cache.dabs.text.include?(dabs_date)
+        warn("DABS date mismatch - skippping cross check")
+      else
+        dabs_notam_ids = AIPP.cache.dabs.text.scan(NOTAM::Item::ID_RE.decapture).uniq
+        missing_notam_ids = dabs_notam_ids - added_notam_ids
+        warn("DABS disagrees: #{missing_notam_ids.join(', ')} missing") if missing_notam_ids.any?
+      end
     end
 
   end
