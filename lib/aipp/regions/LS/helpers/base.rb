@@ -37,15 +37,17 @@ module AIPP
         def origin_for(document)
           case document
           when 'ENR'
+            variables = {
+              region: 'LS',
+              series: %w(W B),
+              start: aixm.effective_at.beginning_of_day.to_i,
+              end: aixm.expiration_at.to_i
+            }
+            verbose_info("Querying API with #{variables}")
             AIPP::Downloader::GraphQL.new(
               client: AIPP::NewayAPI::Client,
               query: AIPP::NewayAPI::Notam::Query,
-              variables: {
-                region: 'LS',
-                series: %w(W B),
-                start: aixm.expiration_at.to_i,
-                end: aixm.effective_at.beginning_of_day.to_i
-              }
+              variables: variables
             )
           when 'AD'
             fail "not yet implemented"

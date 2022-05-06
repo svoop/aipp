@@ -28,10 +28,14 @@ module AIPP::LS::NOTAM
                     .replace(timetable.to_xml(as: :Att).chomp)
                 end
               end
-            when /\ATEMPO [DR].AREA.+(?:ACT|EST)/
-              airspace_from(notam)
+            when /\ATEMPO [DR].AREA.+(?:ACT|EST|ESTABLISHED) WI AREA/
+              airspace_from(notam).tap do |airspace|
+                airspace.geometry = geometry_from_content(notam)
+              end
             else
-              airspace_from(notam)
+              airspace_from(notam).tap do |airspace|
+                airspace.geometry = geometry_from_q_item(notam)
+              end
             end
           )
         else
@@ -63,7 +67,7 @@ module AIPP::LS::NOTAM
     end
 
     def airspace_from(notam)
-      airspace = AIXM.airspace(
+      AIXM.airspace(
         id: notam.data[:id],
         type: :regulated_airspace,
         name: notam.data[:id]
@@ -76,18 +80,31 @@ module AIPP::LS::NOTAM
             )
           )
         )
-        airspace.geometry.add_segment(
-          AIXM.circle(
-            center_xy: notam.data[:center_point],
-            radius: notam.data[:radius]
-          )
-        )
         airspace.comment = notam.text
       end
     end
 
-    def geometry_from(text)
+    def geometry_from_content(notam)
+      if notam.data[:content].squish.match(/WI AREA(?<coordinates>(?: \d{6}N\d{7}E)+)/)
+        AIXM.geometry.tap do |geometry|
+          $~['coordinates'].split.each do |coordinate|
+            xy = AIXM.xy(lat: coordinate[0, 7], long: coordinate[7, 8])
+            geometry.add_segment(AIXM.point(xy: xy))
+          end
+        end
+      else
+        warn "cannot parse WI AREA - fallback to point and radius"
+        geometry_from_q_item(notam)
+      end
+    end
 
+    def geometry_from_q_item(notam)
+      AIXM.geometry.tap do |geometry|
+        geometry.add_segment AIXM.circle(
+          center_xy: notam.data[:center_point],
+          radius: notam.data[:radius]
+        )
+      end
     end
 
     def obstacle_from(notam)
