@@ -1,3 +1,3 @@
 module AIPP
-  VERSION = "2.0.0.pre7".freeze
+  VERSION = "2.0.0.pre8".freeze
 end

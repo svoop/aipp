@@ -2,7 +2,16 @@
 
 Nothing so far
 
+## 2.0.0.pre8
+
+#### Additions
+* LS NOTAM: Cross check against DABS
+* LS NOTAM: Parse detailed geometry from NOTAM E item
+
 ## 2.0.0.pre7
+
+#### Additions
+* Region LS NOTAM
 
 #### Breaking Changes
 * Drop support for Ruby 3.0
