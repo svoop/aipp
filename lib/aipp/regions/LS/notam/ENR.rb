@@ -7,6 +7,7 @@ module AIPP::LS::NOTAM
 
     def parse
       json = read
+      fail "malformed JSON received from API" unless json.has_key?('queryNOTAMs')
       added_notam_ids = []
       json['queryNOTAMs'].each do |row|
         text = row['notamRaw']
