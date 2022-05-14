@@ -21,7 +21,11 @@ module AIPP::LS::NOTAM
             when /\A[DR].AREA.+ACT/, /TMA.+ACT/
               AIXM.generic(fragment: fragment_for(notam)).tap do |airspace|
                 element = airspace.fragment.children.first
-                element.find_or_add_child('txtRmk').content = notam.data[:translated_content]
+                element.prepend_child(['<!--', notam.text ,'-->'].join("\n"))
+                content = ["NOTAM #{notam.data[:id]}", element.at_css('txtName').content].join(": ").strip
+                element.at_css('txtName').content = content
+                content = [element.at_css('txtRmk')&.text, notam.data[:translated_content]].join("\n").strip
+                element.find_or_add_child('txtRmk').content = content
                 if schedule = notam.data[:five_day_schedules]
                   timetable = timetable_from(schedule)
                   element
@@ -71,7 +75,7 @@ module AIPP::LS::NOTAM
       AIXM.airspace(
         id: notam.data[:id],
         type: :regulated_airspace,
-        name: notam.data[:id]
+        name: "NOTAM #{notam.data[:id]}"
       ).tap do |airspace|
         airspace.add_layer(
           AIXM.layer(
@@ -79,7 +83,13 @@ module AIPP::LS::NOTAM
               upper_z: notam.data[:upper_limit],
               lower_z: notam.data[:lower_limit]
             )
-          )
+          ).tap do |layer|
+            layer.selective = true
+            if schedule = notam.data[:five_day_schedules]
+              layer.timetable = timetable_from(schedule)
+            end
+            layer.remarks = notam.data[:translated_content]
+          end
         )
         airspace.comment = notam.text
       end

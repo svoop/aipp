@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Changes
+* LS NOTAM: Complete naming, remarks and timesheets
 
 ## 2.0.0.pre8
 
