@@ -32,7 +32,7 @@ module AIPP::LF::AIP
           )
         end
       end
-      AIXM::Memoize.method :to_uid do
+      AIXM::Concerns::Memoize.method :to_uid do
         aixm.features.find_by(:designated_point).duplicates.each do |duplicates|
           duplicates.first.name += '/' + duplicates[1..].map(&:name).join('/')
           aixm.remove_features(duplicates[1..])
