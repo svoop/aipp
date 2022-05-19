@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.0.0.pre10
+
 #### Additions
 * CLI option to set a custom output file
 
