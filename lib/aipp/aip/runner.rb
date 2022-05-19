@@ -19,7 +19,7 @@ module AIPP
         parse_sections
         validate_aixm
         write_build
-        write_aixm(aixm_file)
+        write_aixm(AIPP.options.output_file || output_file)
         write_config
       end
 
@@ -46,7 +46,7 @@ module AIPP
             tmp_dir = Pathname(tmp_dir)
             # AIXM/OFMX file
             AIXM.config.mid = true
-            File.write(tmp_dir.join(aixm_file), aixm.to_xml)
+            File.write(tmp_dir.join(output_file), aixm.to_xml)
             # Build details
             File.write(
               tmp_dir.join('build.yaml'), {

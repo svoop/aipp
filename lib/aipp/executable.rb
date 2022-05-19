@@ -32,6 +32,7 @@ module AIPP
       o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { AIPP.options.region = _1.upcase }
       o.on('-s', '--section STRING', String, 'process this section only') { AIPP.options.section = _1.classify }
       o.on('-d', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { AIPP.options.storage = Pathname(_1) }
+      o.on('-o', '--output FILE', String, 'output file') { AIPP.options.output_file = _1 }
     end
 
     def developer_options(o)

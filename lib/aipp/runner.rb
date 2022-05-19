@@ -48,7 +48,7 @@ module AIPP
       effective_at.xmlschema
     end
 
-    def aixm_file
+    def output_file
       "#{AIPP.options.region}_#{AIPP.options.module}_#{effective_at.xmlschema}.#{AIPP.options.schema}"
     end
 

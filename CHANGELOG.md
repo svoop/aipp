@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Additions
+* CLI option to set a custom output file
 
 ## 2.0.0.pre9
 

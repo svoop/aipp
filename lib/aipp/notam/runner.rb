@@ -18,7 +18,7 @@ module AIPP
         read_parsers
         parse_sections
         validate_aixm
-        write_aixm(aixm_file)
+        write_aixm(AIPP.options.output_file || output_file)
         write_config
       end
 

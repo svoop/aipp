@@ -20,7 +20,7 @@ module AIPP
           if AIPP.options.schema == :ofmx
             o.on('-g', '--[no-]grouped-obstacles', 'group obstacles (default: false)') { AIPP.options.grouped_obstacles = _1 }
           end
-          o.on('-o', '--region-options STRING', String, %Q[comma separated region specific options]) { AIPP.options.region_options = _1.split(',') }
+          o.on('-O', '--region-options STRING', String, %Q[comma separated region specific options]) { AIPP.options.region_options = _1.split(',') }
           developer_options(o)
         end.parse!
       end
