@@ -21,18 +21,25 @@ text.sub!(/D\) 20 1205-1212 21 1201-1208 22 1157-1204/, 'D) 20 1205-1212, 21 120
           add(
             case notam.data[:content]
             when /\A[DR].AREA.+ACT/, /TMA.+ACT/
-              AIXM.generic(fragment: fragment_for(notam)).tap do |airspace|
-                element = airspace.fragment.children.first
-                element.prepend_child(['<!--', notam.text ,'-->'].join("\n"))
-                content = ["NOTAM #{notam.data[:id]}", element.at_css('txtName').content].join(": ").strip
-                element.at_css('txtName').content = content
-                content = [element.at_css('txtRmk')&.text, notam.data[:translated_content]].join("\n").strip
-                element.find_or_add_child('txtRmk').content = content
-                if schedule = notam.data[:five_day_schedules]
-                  timetable = timetable_from(schedule)
-                  element
-                    .find_or_add_child('Att', before_css: %w(codeSelAvbl txtRmk))
-                    .replace(timetable.to_xml(as: :Att).chomp)
+              if fragment = fragment_for(notam)
+                AIXM.generic(fragment: fragment_for(notam)).tap do |airspace|
+                  element = airspace.fragment.children.first
+                  element.prepend_child(['<!--', notam.text ,'-->'].join("\n"))
+                  content = ["NOTAM #{notam.data[:id]}", element.at_css('txtName').content].join(": ").strip
+                  element.at_css('txtName').content = content
+                  content = [element.at_css('txtRmk')&.text, notam.data[:translated_content]].join("\n").strip
+                  element.find_or_add_child('txtRmk').content = content
+                  if schedule = notam.data[:five_day_schedules]
+                    timetable = timetable_from(schedule)
+                    element
+                      .find_or_add_child('Att', before_css: %w(codeSelAvbl txtRmk))
+                      .replace(timetable.to_xml(as: :Att).chomp)
+                  end
+                end
+              else
+                warn "no feature found for `#{notam.data[:content]}' - fallback to point and radius"
+                airspace_from(notam).tap do |airspace|
+                  airspace.geometry = geometry_from_q_item(notam)
                 end
               end
             when /\ATEMPO [DR].AREA.+(?:ACT|EST|ESTABLISHED) WI AREA/
@@ -69,7 +76,7 @@ text.sub!(/D\) 20 1205-1212 21 1201-1208 22 1157-1204/, 'D) 20 1205-1212, 21 120
       when /[DR].AREA (?<name>LS-[DR]\d+[A-Z]?).+ACT/
         'Ase:has(codeId:matches("^%s( .+)?$"))' % [$~['name']]
       end.then do |selector|
-        AIPP.cache.aip.at_css(selector, Nokogiri::MATCHES) or fail "no feature found for `#{notam.data[:content]}'"
+        AIPP.cache.aip.at_css(selector, Nokogiri::MATCHES)
       end
     end
 
