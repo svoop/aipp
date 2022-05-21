@@ -11,6 +11,8 @@ module AIPP::LS::NOTAM
       added_notam_ids = []
       json['queryNOTAMs'].each do |row|
         text = row['notamRaw']
+# HACK: fix malformed D item of B0248/22
+text.sub!(/D\) 20 1205-1212 21 1201-1208 22 1157-1204/, 'D) 20 1205-1212, 21 1201-1208, 22 1157-1204')
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
         notam = NOTAM.parse(text)
         if respect? notam
