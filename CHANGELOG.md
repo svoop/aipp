@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.0.0.pre12
+
 ### Fixes
 * Require important fix of NOTAM gem.
 
