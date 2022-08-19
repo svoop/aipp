@@ -2,6 +2,10 @@
 
 Nothing so far
 
+## 2.0.0.pre13
+
+* Fix fallback if not geometry fragment is found.
+
 ## 2.0.0.pre12
 
 ### Fixes
