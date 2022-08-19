@@ -75,6 +75,8 @@ text.sub!(/D\) 20 1205-1212 21 1201-1208 22 1157-1204/, 'D) 20 1205-1212, 21 120
         'Ase:has(codeType:contains("%s") + codeId:contains("%s %s"))' % [$~['type'], notam.data[:locations].first, $~['section']]
       when /[DR].AREA (?<name>LS-[DR]\d+[A-Z]?).+ACT/
         'Ase:has(codeId:matches("^%s( .+)?$"))' % [$~['name']]
+      else
+        return
       end.then do |selector|
         AIPP.cache.aip.at_css(selector, Nokogiri::MATCHES)
       end
