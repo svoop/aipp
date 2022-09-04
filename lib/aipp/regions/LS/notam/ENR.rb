@@ -11,20 +11,14 @@ module AIPP::LS::NOTAM
       added_notam_ids = []
       json['queryNOTAMs'].each do |row|
         text = row['notamRaw']
-# HACK: fix malformed D item of B0248/22
-text.sub!(/D\) 20 1205-1212 21 1201-1208 22 1157-1204/, 'D) 20 1205-1212, 21 1201-1208, 22 1157-1204')
-# HACK: fix malformed D item of B1008/22
-text.sub!(/D\) 18 20 0800-1600 21 0830-1600/, 'D) 18 20 0800-1600, 21 0830-1600')
-# HACK: fix malformed D item of B1031/22
-text.sub!(/D\) 0900-1000 1130 1430/, 'D) 0900-1000 1130-1430')
-# HACK: fix malformed D item of B1098/22
-text.sub!(/D\) 22 0700-1700 23 0430-1800 24 0430-1400/, 'D) 22 0700-1700, 23 0430-1800, 24 0430-1400')
-# HACK: fix malformed D item of B0971/22
-text.sub!(/D\) 03 1130-1530 04 0800-1530/, 'D) 03 1130-1530, 04 0800-1530')
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
-###puts text[0,8]
-#text.sub!(/D\) AUG 23-25 30-SEP 01 0530-2100, AUG 29 0800-2100, SEP 02 0530-1400/, 'D) AUG 23-25 30-SEP 01 0530-2100 AUG 29 0800-2100 SEP 02 0530-1400')
-#debugger if text.match? /W1512\/22/
+# HACK: try to add missing commas to D-item of A- and B-series NOTAM
+if text.match? /\A[AB]/
+  if text.gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
+    text.gsub!(/,+/, ',')
+    text.sub!(/,\n/, "\n")
+  end
+end
         notam = NOTAM.parse(text)
         if respect? notam
           next if notam.data[:five_day_schedules] == []
