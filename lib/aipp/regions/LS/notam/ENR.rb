@@ -139,7 +139,7 @@ end
     end
 
     def dabs_cross_check(added_notam_ids)
-      dabs_date = aixm.effective_at.to_date.strftime("DABS Date: %Y %^B %d")
+      dabs_date = aixm.effective_at.to_date.strftime("DABS Date: %Y %^b %d")
       case
       when AIPP.cache.dabs.nil?
         warn("DABS not available - skipping cross check")
