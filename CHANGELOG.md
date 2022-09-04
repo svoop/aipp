@@ -2,6 +2,10 @@
 
 Nothing so far
 
+## 2.0.0.pre15
+
+* Hacks for more malformed D items upstream.
+
 ## 2.0.0.pre14
 
 * Hacks for malformed D items upstream.

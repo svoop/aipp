@@ -22,6 +22,9 @@ text.sub!(/D\) 22 0700-1700 23 0430-1800 24 0430-1400/, 'D) 22 0700-1700, 23 043
 # HACK: fix malformed D item of B0971/22
 text.sub!(/D\) 03 1130-1530 04 0800-1530/, 'D) 03 1130-1530, 04 0800-1530')
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
+###puts text[0,8]
+#text.sub!(/D\) AUG 23-25 30-SEP 01 0530-2100, AUG 29 0800-2100, SEP 02 0530-1400/, 'D) AUG 23-25 30-SEP 01 0530-2100 AUG 29 0800-2100 SEP 02 0530-1400')
+#debugger if text.match? /W1512\/22/
         notam = NOTAM.parse(text)
         if respect? notam
           next if notam.data[:five_day_schedules] == []
