@@ -19,6 +19,8 @@ text.sub!(/D\) 18 20 0800-1600 21 0830-1600/, 'D) 18 20 0800-1600, 21 0830-1600'
 text.sub!(/D\) 0900-1000 1130 1430/, 'D) 0900-1000 1130-1430')
 # HACK: fix malformed D item of B1098/22
 text.sub!(/D\) 22 0700-1700 23 0430-1800 24 0430-1400/, 'D) 22 0700-1700, 23 0430-1800, 24 0430-1400')
+# HACK: fix malformed D item of B0971/22
+text.sub!(/D\) 03 1130-1530 04 0800-1530/, 'D) 03 1130-1530, 04 0800-1530')
         next unless text.match? /^Q\) LS/   # only parse national NOTAM
         notam = NOTAM.parse(text)
         if respect? notam
