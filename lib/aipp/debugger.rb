@@ -58,7 +58,9 @@ module AIPP
     # @param message [String] informational message
     # @param color [Symbol] message color
     def info(message, color: nil)
-      puts color ? message.upcase_first.send(color) : message.upcase_first
+      unless AIPP.options.quiet
+        puts color ? message.upcase_first.send(color) : message.upcase_first
+      end
     end
 
     # Issue a verbose informational message.

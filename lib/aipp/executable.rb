@@ -11,6 +11,7 @@ module AIPP
         clean: false,
         force: false,
         mid: false,
+        quiet: false,
         verbose: false,
         debug_on_warning: false,
         debug_on_error: false
@@ -42,7 +43,8 @@ module AIPP
       end
       o.on('-h', '--[no-]check-links', 'check all links with HEAD requests') { AIPP.options.check_links = _1 }
       o.on('-c', '--[no-]clean', 'clean cache and download from sources anew (default: false)') { AIPP.options.clean = _1 }
-      o.on('-f', '--[no-]force', 'ignore XML schema validation (default: false)') { AIPP.options.force = _1 }
+      o.on('-f', '--[no-]force', 'continue on non-fatal errors (default: false)') { AIPP.options.force = _1 }
+      o.on('-q', '--[no-]quiet', 'suppress all informational output (default: false)') { AIPP.options.quiet = _1 }
       o.on('-v', '--[no-]verbose', 'verbose output including unsevere warnings (default: false)') { AIPP.options.verbose = _1 }
       o.on('-w', '--debug-on-warning [ID]', Integer, 'open debug session on warning with ID (default: false)') { AIPP.options.debug_on_warning = _1 || true }
       o.on('-e', '--[no-]debug-on-error', 'open debug session on error (default: false)') { AIPP.options.debug_on_error = _1 }

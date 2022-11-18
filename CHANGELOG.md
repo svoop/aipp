@@ -3,6 +3,7 @@
 #### Additions
 * Region LS NOTAM
 * CLI option to set a custom output file
+* `--quiet` option
 
 #### Breaking Changes
 * Drop support for Ruby 3.0
