@@ -19,6 +19,7 @@ module AIPP
 
     def run
       with_debugger do
+        String.disable_colorization = !STDOUT.tty?
         starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         [:AIPP, AIPP.options.module, :Runner].constantize.new.run
         ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
