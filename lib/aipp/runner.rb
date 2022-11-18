@@ -115,13 +115,13 @@ module AIPP
       if (duplicates = aixm.features.duplicates).any?
         message = "duplicates found"
         details = duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
-        AIPP.options.force ? warn(message) : fail([message, details].join("\n"))
+        AIPP.options.force ? warn(message) : fail([message, details].join(":\n"))
       end
       info("validating #{AIPP.options.schema.upcase}")
       unless aixm.valid?
         message = "invalid #{AIPP.options.schema.upcase} document"
         details = aixm.errors.map(&:message).join("\n")
-        AIPP.options.force ? warn(message) : fail([message, details].join("\n"))
+        AIPP.options.force ? warn(message) : fail([message, details].join(":\n"))
       end
       info("counting #{aixm.features.count} features")
     end

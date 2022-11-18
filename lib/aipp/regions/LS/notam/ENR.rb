@@ -19,7 +19,13 @@ if text.match? /\A[AB]/
     text.sub!(/,\n/, "\n")
   end
 end
-        notam = NOTAM.parse(text)
+        begin
+          notam = NOTAM.parse(text)
+        rescue
+          raise unless AIPP.options.force
+          warn "skipping #{row['notamRaw'][0,8]} due to error while parsing"
+          next
+        end
         if respect? notam
           next if notam.data[:five_day_schedules] == []
           added_notam_ids << notam.data[:id]

@@ -36,6 +36,20 @@ The following query object shows all parameters and columns:
 }
 ```
 
+## Asynchronous Use
+
+### Command Line Arguments
+
+When used asynchronously, the following command line arguments should be considered:
+
+* `-c` – clear cache (mandatory to create builds more often than once per hour)
+* `-f` – continue on non-fatal errors such as if the validation fails
+* `-q` – suppress all informational output
+
+### Monitoring
+
+Any output on STDERR should trigger an alert.
+
 ## References
 
 * [skybriefing](https://www.skybriefing.com)
