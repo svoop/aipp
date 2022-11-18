@@ -1,57 +1,8 @@
 ## Main
 
-Nothing so far
-
-## 2.0.0.pre16
-
-#### Fixes
-* Generic hack for missing commas in D items upstream.
-
-## 2.0.0.pre15
-
-#### Fixes
-* Hacks for more malformed D items upstream.
-
-## 2.0.0.pre14
-
-#### Fixes
-* Hacks for malformed D items upstream.
-
-## 2.0.0.pre13
-
-#### Fixes
-* Fix fallback if not geometry fragment is found.
-
-## 2.0.0.pre12
-
-#### Fixes
-* Require important fix of NOTAM gem.
-
-## 2.0.0.pre11
-
-#### Minor Changes
-* Fallback to NOTAM point and radius geometry if feature is not found upstream.
-
-## 2.0.0.pre10
-
-#### Additions
-* CLI option to set a custom output file
-
-## 2.0.0.pre9
-
-#### Changes
-* LS NOTAM: Complete naming, remarks and timesheets
-
-## 2.0.0.pre8
-
-#### Additions
-* LS NOTAM: Cross check against DABS
-* LS NOTAM: Parse detailed geometry from NOTAM E item
-
-## 2.0.0.pre7
-
 #### Additions
 * Region LS NOTAM
+* CLI option to set a custom output file
 
 #### Breaking Changes
 * Drop support for Ruby 3.0
