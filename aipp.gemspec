@@ -44,8 +44,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 3.1.0'
 
   spec.add_runtime_dependency 'airac', '~> 1.0', '>= 1.0.1'
-  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.3.0'
-  spec.add_runtime_dependency 'notam', '~> 0', '>= 0.1.3'
+  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.3.2'
+  spec.add_runtime_dependency 'notam', '~> 1'
   spec.add_runtime_dependency 'activesupport', '~> 7'
   spec.add_runtime_dependency 'excon', '~> 0'
   spec.add_runtime_dependency 'graphql-client', '~> 0'
