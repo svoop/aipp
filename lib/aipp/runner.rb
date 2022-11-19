@@ -49,7 +49,7 @@ module AIPP
     end
 
     def output_file
-      "#{AIPP.options.region}_#{AIPP.options.module}_#{effective_at.xmlschema}.#{AIPP.options.schema}"
+      "#{AIPP.options.region}_#{AIPP.options.module}_#{effective_at.strftime('%F_%HZ')}.#{AIPP.options.schema}"
     end
 
     # @return [Pathname] directory containing the builds
