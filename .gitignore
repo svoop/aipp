@@ -18,6 +18,7 @@ pkg/*
 .yardoc
 
 # Data
+/crossload
 /*.aixm
 /*.ofmx
 /*.xml

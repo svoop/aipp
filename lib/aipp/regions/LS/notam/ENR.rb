@@ -10,22 +10,18 @@ module AIPP::LS::NOTAM
       fail "malformed JSON received from API" unless json.has_key?('queryNOTAMs')
       added_notam_ids = []
       json['queryNOTAMs'].each do |row|
-        text = row['notamRaw']
-        next unless text.match? /^Q\) LS/   # only parse national NOTAM
+        next unless row['notamRaw'].match? /^Q\) LS/   # only parse national NOTAM
+
 # HACK: try to add missing commas to D-item of A- and B-series NOTAM
-if text.match? /\A[AB]/
-  if text.gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
-    text.gsub!(/,+/, ',')
-    text.sub!(/,\n/, "\n")
+if row['notamRaw'].match? /\A[AB]/
+  if row['notamRaw'].gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
+    row['notamRaw'].gsub!(/,+/, ',')
+    row['notamRaw'].sub!(/,\n/, "\n")
+    warn("HACK: added missing commas to D item")
   end
 end
-        begin
-          notam = NOTAM.parse(text)
-        rescue
-          raise unless AIPP.options.force
-          warn "skipping #{row['notamRaw'][0,8]} due to error while parsing"
-          next
-        end
+
+        (notam = notam_for(row['notamRaw'])) or next
         if respect? notam
           next if notam.data[:five_day_schedules] == []
           added_notam_ids << notam.data[:id]
@@ -71,6 +67,21 @@ end
     end
 
     private
+
+    def notam_for(raw_notam)
+      notam_id = raw_notam.strip.split(/\s+/, 2).first
+      if AIPP.options.crossload
+        crossload_file = AIPP.options.crossload.join('LS', "#{notam_id.sub('/', '_')}.txt")
+        if File.exist? crossload_file
+          info("crossloading #{crossload_file}")
+          return NOTAM.parse(crossload_file.read)
+        end
+      end
+      NOTAM.parse(raw_notam)
+    rescue
+      warn "cannot parse #{notam_id}"
+      raise if AIPP.options.force
+    end
 
     # @return [Boolean] whether to respect this NOTAM or ignore it
     def respect?(notam)

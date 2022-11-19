@@ -45,6 +45,7 @@ When used asynchronously, the following command line arguments should be conside
 * `-c` – clear cache (mandatory to create builds more often than once per hour)
 * `-f` – continue on non-fatal errors such as if the validation fails
 * `-q` – suppress all informational output
+* `-x` – crossload fixed versions of malformed NOTAM
 
 ### Monitoring
 

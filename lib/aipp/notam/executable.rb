@@ -17,6 +17,7 @@ module AIPP
           END
           common_options(o)
           o.on('-t', '--effective (TIME)', String, %Q[effective after this point in time (default: #{AIPP.options.effective_at})]) { AIPP.options.effective_at = Time.parse(_1) }
+          o.on('-x', '--crossload DIR', String, 'crossload directory') { AIPP.options.crossload = Pathname(_1) }
           developer_options(o)
         end.parse!
       end

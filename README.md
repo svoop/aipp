@@ -67,8 +67,8 @@ The following modules are currently available:
 
 Module | Content | Executables | Cache
 -------|---------|-------------|------
-AIP | aeronautical information publication | `aip2aixm` and `aip2ofmx` | by AIRAC cycle
-NOTAM | notice to airmen | `notam2aixm` and `notam2ofmx` | by effective date and time
+[AIP](lib/aipp/aip/README.md) | aeronautical information publication | `aip2aixm` and `aip2ofmx` | by AIRAC cycle
+[NOTAM](lib/aipp/notam/README.md) | notice to airmen | `notam2aixm` and `notam2ofmx` | by effective date and hour
 
 To list all available regions and sections for a given module:
 
@@ -315,7 +315,7 @@ module MyAPI
 end
 ```
 
-For performance, all downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each module defines a cache scope, see the [table of modules above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` CLI option.
+For performance, all downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each module defines a cache time window, see the [table of modules above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` command line argument.
 
 #### Optional `setup` Method
 
