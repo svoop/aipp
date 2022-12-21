@@ -21,6 +21,14 @@ if row['notamRaw'].match? /\A[AB]/
   end
 end
 
+# HACK: remove braindead years from D-item of W-series NOTAM
+if row['notamRaw'].match? /\AW/
+  year = Time.now.year + 1
+  if row['notamRaw'].gsub!(/\s*#{year}\s*(#{NOTAM::Schedule::MONTH_RE})/, ' \1')
+    warn("HACK: removed braindead years from D item")
+  end
+end
+
         (notam = notam_for(row['notamRaw'])) or next
         if respect? notam
           next if notam.data[:five_day_schedules] == []
