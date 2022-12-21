@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Fixes
+* Fix ineffective rescue when parsing a NOTAM fails in force mode
 
 ## 2.0.0
 

@@ -80,7 +80,7 @@ end
       NOTAM.parse(raw_notam)
     rescue
       warn "cannot parse #{notam_id}"
-      raise if AIPP.options.force
+      raise unless AIPP.options.force
     end
 
     # @return [Boolean] whether to respect this NOTAM or ignore it
