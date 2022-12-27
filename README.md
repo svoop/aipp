@@ -1,5 +1,5 @@
 [![Version](https://img.shields.io/gem/v/aipp.svg?style=flat)](https://rubygems.org/gems/aipp)
-[![Tests](https://img.shields.io/github/workflow/status/svoop/aipp/Test.svg?style=flat&label=tests)](https://github.com/svoop/aipp/actions?workflow=Test)
+[![Tests](https://img.shields.io/github/actions/workflow/status/svoop/aipp/test.yml?style=flat&label=tests)](https://github.com/svoop/aipp/actions?workflow=Test)
 [![Donorbox](https://img.shields.io/badge/donate-on_donorbox-yellow.svg)](https://donorbox.org/bitcetera)
 
 # AIPP
