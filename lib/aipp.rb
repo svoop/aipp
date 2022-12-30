@@ -60,10 +60,3 @@ require_relative 'aipp/aip/parser'
 require_relative 'aipp/notam/executable'
 require_relative 'aipp/notam/runner'
 require_relative 'aipp/notam/parser'
-
-# Disable "did you mean?" suggestions
-#
-# @!visibility private
-module DidYouMean::Correctable
-  remove_method :to_s
-end
