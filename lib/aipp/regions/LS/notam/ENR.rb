@@ -23,8 +23,8 @@ end
 
 # HACK: remove braindead years from D-item of W-series NOTAM
 if row['notamRaw'].match? /\AW/
-  year = Time.now.year + 1
-  if row['notamRaw'].gsub!(/\s*#{year}\s*(#{NOTAM::Schedule::MONTH_RE})/, ' \1')
+  year = Time.now.year
+  if row['notamRaw'].gsub!(/\s*(?:#{year}|#{year+1})\s*(#{NOTAM::Schedule::MONTH_RE})/, ' \1')
     warn("HACK: removed braindead years from D item")
   end
 end

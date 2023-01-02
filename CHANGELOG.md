@@ -1,11 +1,16 @@
 ## Main
 
-Nothing so far
+#### Additions
+* Support for Ruby 3.2
+
+#### Fixes
+* Improve hack to fix braindead years on D-items
 
 ## 2.0.1
 
 #### Fixes
 * Fix ineffective rescue when parsing a NOTAM fails in force mode
+* Hack to fix braindead years on D-items
 
 ## 2.0.0
 
