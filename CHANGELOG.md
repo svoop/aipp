@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.0.2
+
 #### Additions
 * Support for Ruby 3.2
 
