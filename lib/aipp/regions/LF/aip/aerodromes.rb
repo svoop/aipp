@@ -109,7 +109,7 @@ module AIPP::LF::AIP
         runway.surface = surface_from(rwy_node)
         runway.forth.geographic_bearing = given(rwy_node.(:OrientationGeo)) { AIXM.a(_1.to_f) }
         runway.forth.xy = given(rwy_node.(:LatThr1), rwy_node.(:LongThr1)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
-        runway.forth.displaced_threshold = given(rwy_node.(:LatDThr1), rwy_node.(:LongDThr1)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
+        runway.forth.displaced_threshold_xy = given(rwy_node.(:LatDThr1), rwy_node.(:LongDThr1)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
         runway.forth.z = given(rwy_node.(:AltFtDThr1)) { AIXM.z(_1.to_i, :qnh) }
         runway.forth.z ||= given(rwy_node.(:AltFtThr1)) { AIXM.z(_1.to_i, :qnh) }
         if rwylgt_node = rwylgt_nodes[0]
@@ -121,7 +121,7 @@ module AIPP::LF::AIP
         end
         if rwy_node.(:Rwy).match? '/'
           runway.back.xy = given(rwy_node.(:LatThr2), rwy_node.(:LongThr2)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
-          runway.back.displaced_threshold = given(rwy_node.(:LatDThr2), rwy_node.(:LongDThr2)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
+          runway.back.displaced_threshold_xy = given(rwy_node.(:LatDThr2), rwy_node.(:LongDThr2)) { AIXM.xy(lat: _1.to_f, long: _2.to_f) }
           runway.back.z = given(rwy_node.(:AltFtDThr2)) { AIXM.z(_1.to_i, :qnh) }
           runway.back.z ||= given(rwy_node.(:AltFtThr2)) { AIXM.z(_1.to_i, :qnh) }
           if rwylgt_node = rwylgt_nodes[1]
