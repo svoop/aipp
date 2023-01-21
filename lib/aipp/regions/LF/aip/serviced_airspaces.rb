@@ -27,15 +27,17 @@ module AIPP::LF::AIP
       'REIMS' => 'LFRR'
     }.freeze
 
+    DELEGATED_RE = /(?:deleg\.|delegated|delegation)/i.freeze
+
     def parse
       SOURCE_TYPES.each do |source_type, target|
         verbose_info("processing #{source_type}")
         AIPP.cache.espace.css(%Q(Espace[lk^="[LF][#{source_type} "])).each do |espace_node|
-          # Skip all delegated airspaces
-          next if espace_node.(:Nom).match? /deleg/i
+          next if espace_node.(:Nom).match? DELEGATED_RE
           next if (re = target[:skip]) && espace_node.(:Nom).match?(re)
           # Build airspaces and layers
           AIPP.cache.partie.css(%Q(Partie:has(Espace[pk="#{espace_node['pk']}"]))).each do |partie_node|
+            next if partie_node.(:NomPartie).match? DELEGATED_RE
             add(
               AIXM.airspace(
                 source: source(part: 'ENR', position: espace_node.line),
