@@ -2,6 +2,12 @@
 
 Nothing so far
 
+## 2.0.3
+
+#### Breaking Changes
+* THR/DTHR fixes from AIXM gem
+* Improve filters of delegated airspaces (region LF)
+
 ## 2.0.2
 
 #### Additions
