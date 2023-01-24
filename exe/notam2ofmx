@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'aipp'
-
-AIPP::NOTAM::Executable.new(File.basename($0)).run

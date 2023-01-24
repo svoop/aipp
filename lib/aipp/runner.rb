@@ -9,7 +9,7 @@ module AIPP
     attr_reader :aixm
 
     def initialize
-      AIPP.options.storage = AIPP.options.storage.join(AIPP.options.region, AIPP.options.module.downcase)
+      AIPP.options.storage = AIPP.options.storage.join(AIPP.options.region, AIPP.options.scope.downcase)
       AIPP.options.storage.mkpath
       @dependencies = THash.new
       @aixm = AIXM.document(effective_at: effective_at, expiration_at: expiration_at)
@@ -49,7 +49,7 @@ module AIPP
     end
 
     def output_file
-      "#{AIPP.options.region}_#{AIPP.options.module}_#{effective_at.strftime('%F_%HZ')}.#{AIPP.options.schema}"
+      "#{AIPP.options.region}_#{AIPP.options.scope}_#{effective_at.strftime('%F_%HZ')}.#{AIPP.options.schema}"
     end
 
     # @return [Pathname] directory containing the builds
@@ -86,7 +86,7 @@ module AIPP
     # Read parser files.
     def read_parsers
       verbose_info("reading parsers")
-      region_dir.join(AIPP.options.module.downcase).glob('*.rb').each do |file|
+      region_dir.join(AIPP.options.scope.downcase).glob('*.rb').each do |file|
         verbose_info "requiring #{file.basename}"
         require file
         section = file.basename('.*').to_s.classify
@@ -145,7 +145,7 @@ module AIPP
     end
 
     def class_for(section)
-      [:AIPP, AIPP.options.region, AIPP.options.module.upcase, section.classify].constantize
+      [:AIPP, AIPP.options.region, AIPP.options.scope, section.classify].constantize
     end
   end
 

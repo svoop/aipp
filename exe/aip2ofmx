@@ -2,4 +2,4 @@
 
 require 'aipp'
 
-AIPP::AIP::Executable.new(File.basename($0)).run
+AIPP::Executable.new(File.basename($0)).run

@@ -55,22 +55,29 @@ bundle install --trust-policy MediumSecurity
 
 ## Usage
 
-AIPP parses different kind of information sources. The parsers are organized in three levels:
+AIPP parses different kind of information sources and converts them to different output formats depending on which executable you use:
+
+Executable | Output Format
+-----------|--------------
+`aip2aixm` | AIXM
+`aip2ofmx` | OFMX
+
+The parsers are organized in three levels:
 
 ```
 region            ⬅︎ aeronautical region such as "LF" (France)
-└── module        ⬅︎ subject area such as "AIP" or "NOTAM"
-    └── section   ⬅︎ part of the subject area such as "ENR-2.1" or "aerodromes"
+└── scope         ⬅︎ scope such as "AIP" or "NOTAM"
+    └── section   ⬅︎ section of the scope such as "ENR-2.1" or "aerodromes"
 ```
 
-The following modules are currently available:
+The following scopes are currently available:
 
-Module | Content | Executables | Cache
--------|---------|-------------|------
-[AIP](lib/aipp/aip/README.md) | aeronautical information publication | `aip2aixm` and `aip2ofmx` | by AIRAC cycle
-[NOTAM](lib/aipp/notam/README.md) | notice to airmen | `notam2aixm` and `notam2ofmx` | by effective date and hour
+Scope | Content | Cache
+------|---------|------
+[AIP](lib/aipp/aip/README.md) (default) | aeronautical information publication | by AIRAC cycle
+[NOTAM](lib/aipp/notam/README.md) | notice to airmen | by effective date and hour
 
-To list all available regions and sections for a given module:
+To list all available scopes, regions and sections:
 
 ```
 aip2aixm --list
@@ -92,15 +99,15 @@ You'll find the OFMX file in the current directory if the binary exits successfu
 
 ## Regions
 
-To implement a region, you have to create a directory <samp>lib/aipp/regions/{REGION}/</samp> off the gem root and then subdirectories for each module as well as for support files. Here's a simplified overview for the region "LF" (France):
+To implement a region, you have to create a directory <samp>lib/aipp/regions/{REGION}/</samp> off the gem root and then subdirectories for each scope as well as for support files. Here's a simplified overview for the region "LF" (France):
 
 ```
 LF/                         ⬅︎ region "LF"
 ├── README.md
-├── aip                     ⬅︎ module "AIP"
+├── aip                     ⬅︎ scope "AIP"
 │   ├── AD-2.rb             ⬅︎ section "AD-2"
 │   └── ENR-4.3.rb          ⬅︎ section "ENR-4.3"
-├── notam                   ⬅︎ module "NOTAM"
+├── notam                   ⬅︎ scope "NOTAM"
 │   ├── AD.rb               ⬅︎ section "AD"
 │   └── ENR.rb              ⬅︎ section "ENR"
 ├── borders
@@ -315,7 +322,7 @@ module MyAPI
 end
 ```
 
-For performance, all downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each module defines a cache time window, see the [table of modules above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` command line argument.
+For performance, all downloads are cached and subsequent runs will use the cached data rather than fetching the sources anew. Each scope defines a cache time window, see the [table of scopes above](#label-Usage). You can discard existing and rebuild caches by use of the `--clean` command line argument.
 
 #### Optional `setup` Method
 
@@ -499,7 +506,7 @@ debugger
 
 AIPP uses a storage directory for configuration, caching and in order to keep the results of previous runs. The default location is `~/.aipp`, however, you can pass a different directory with the `--storage` argument.
 
-You'll find a directory for each region and module which contains the following items:
+You'll find a directory for each region and scope which contains the following items:
 
 * `sources/`<br>ZIP archives which cache all source files used to build.
 * `builds/`<br>ZIP archives of successful builds containing:

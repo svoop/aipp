@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.files         = Dir['lib/**/*']
   spec.require_paths = %w(lib)
   spec.bindir        = 'exe'
-  spec.executables   = %w(aip2aixm aip2ofmx notam2aixm notam2ofmx)
+  spec.executables   = %w(aip2aixm aip2ofmx)
 
   spec.cert_chain  = ["certs/svoop.pem"]
   spec.signing_key = File.expand_path(ENV['GEM_SIGNING_KEY']) if ENV['GEM_SIGNING_KEY']
