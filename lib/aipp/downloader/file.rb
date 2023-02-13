@@ -3,6 +3,8 @@ module AIPP
 
     # Local file
     class File
+      attr_reader :file
+
       def initialize(archive: nil, file:, type: nil)
         @archive = Pathname(archive) if archive
         @file, @type = Pathname(file), type&.to_s
@@ -12,10 +14,10 @@ module AIPP
         path.join(fetched_file).tap do |target|
           if @archive
             fail NotFoundError unless @archive.exist?
-            extract(@file, from: @archive, as: target)
+            extract(file, from: @archive, as: target)
           else
-            fail NotFoundError unless @file.exist?
-            FileUtils.cp(@file, target)
+            fail NotFoundError unless file.exist?
+            FileUtils.cp(file, target)
           end
         end
         self
@@ -28,11 +30,11 @@ module AIPP
       private
 
       def name
-        @file.basename(@file.extname).to_s
+        file.basename(file.extname).to_s
       end
 
       def type
-        @type || @file.extname[1..] || fail("type must be declared")
+        @type || file.extname[1..] || fail("type must be declared")
       end
 
       def extract(file, from:, as:)
