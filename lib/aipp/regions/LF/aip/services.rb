@@ -68,10 +68,12 @@ module AIPP::LF::AIP
           end
         end
       end
-      # Assign fallback address (default A/A frequency) to all yet radioless airports
+      # Assign A/A address to all yet radioless airports
       find_by(:airport).each do |airport|
         unless airport.services.find_by(:service, type: :aerodrome_control_tower_service).any? || airport.addresses.any?
-          airport.add_address(fallback_address_for(airport.name))
+          airport.add_address(
+            address_from_vac_for(airport) || fallback_address_for(airport)
+          )
         end
       end
     end
@@ -98,14 +100,32 @@ module AIPP::LF::AIP
       end.compact
     end
 
-    def fallback_address_for(callsign)
+    # TODO: A/A adresses are read unreliably from VAC due to data inconsistencies
+    #   in XML. Once fixed, integrate this into `addresses_from` as per:
+    #   https://gitlab.com/openflightmaps/region-issues/-/issues/68
+    def address_from_vac_for(airport)
+      if aa = read("VAC-#{airport.id}").text.first_match(%r(A/A\s+\(?(\d{3}\.\d{1,3})))
+        AIXM.address(
+          type: :radio_frequency,
+          address: AIXM.f(aa.to_f, :mhz)
+        ).tap do |address|
+          address.remarks = {
+            'type' => 'A/A',
+            'indicatif/callsign' => airport.name
+          }.to_remarks
+        end
+      end
+    rescue AIPP::Downloader::NotFoundError
+    end
+
+    def fallback_address_for(airport)
       AIXM.address(
         type: :radio_frequency,
         address: AIXM.f(123.5, :mhz)
       ).tap do |address|
         address.remarks = {
           'type' => 'A/A',
-          'indicatif/callsign' => callsign
+          'indicatif/callsign' => airport.name
         }.to_remarks
       end
     end

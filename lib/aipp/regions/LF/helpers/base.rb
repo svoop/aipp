@@ -28,12 +28,10 @@ module AIPP
           case document
           when /^Obstacles$/   # obstacles spreadsheet
             AIPP::Downloader::HTTP.new(file: "#{sia_url}/FRANCE/ObstaclesDataZone1MFRANCE_#{xml_date.remove('-')}.xlsx")
-#         when /^VAC\-(\w+)/   # aerodrome VAC PDF
-#           AIPP::Downloader::HTTP.new(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf")
-#         when /^VACH\-(\w+)/   # helipad VAC PDF
-#           AIPP::Downloader::HTTP.new(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf")
-#         when /^[A-Z]+-/   # eAIP HTML page (e.g. ENR-5.5)
-#           AIPP::Downloader::HTTP.new(file: "#{sia_url}/FRANCE/AIRAC-#{xml_date}/html/eAIP/FR-#{document}-fr-FR.html")
+          when /^VAC\-(\w+)/   # aerodrome VAC PDF
+            AIPP::Downloader::HTTP.new(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VAC/AD/AD-2.#{$1}.pdf")
+          when /^VACH\-(\w+)/   # helipad VAC PDF
+            AIPP::Downloader::HTTP.new(file: "#{sia_url}/Atlas-VAC/PDF_AIPparSSection/VACH/AD/AD-3.#{$1}.pdf")
           else   # SIA XML database dump
             AIPP::Downloader::File.new(file: "XML_SIA_#{xml_date}.xml")
           end
