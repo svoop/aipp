@@ -167,10 +167,17 @@ module AIPP
         when '.html' then Nokogiri.HTML5(::File.open(file))
         when '.json' then JSON.load_file(file)
         when '.pdf' then AIPP::PDF.new(file)
-        when '.xlsx', '.ods', '.csv' then Roo::Spreadsheet.open(file.to_s)
+        when '.xlsx', '.ods' then Roo::Spreadsheet.open(file.to_s)
+        when '.csv' then Roo::Spreadsheet.open(file.to_s, csv_options: { col_sep: separator(file) })
         when '.txt' then ::File.read(file)
         else fail(ArgumentError, "unrecognized file type")
       end
+    end
+
+    # @return [String] most likely separator character of CSV and similar files
+    def separator(file)
+      content = file.read
+      %W(, ; \t).map { [content.scan(_1).count, _1] }.sort.last.last
     end
 
   end
