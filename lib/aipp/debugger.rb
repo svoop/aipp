@@ -78,7 +78,11 @@ module AIPP
     rescue => error
       message = error.respond_to?(:original_message) ? error.original_message : error.message
       puts "ERROR: #{message}".magenta
-      raise if AIPP.options.verbose
+      if AIPP.options.verbose
+        raise
+      else
+        exit 1
+      end
     end
 
     def call_without_rescue(&block)

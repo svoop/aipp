@@ -97,6 +97,9 @@ module AIPP
     def require_scope
       lib_dir.join('scopes', scope.downcase).glob('*.rb').each { require _1 }
       extend [:AIPP, scope, :Executable].constantize
+    rescue NameError
+      puts "ERROR: unknown scope `#{scope}'".magenta
+      exit 1
     end
   end
 end
