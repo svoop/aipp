@@ -29,10 +29,6 @@ module AIPP
 
         # Mandatory Interface
 
-        def setup
-          AIPP.cache.time_zone = aixm.effective_at.at_noon.strftime('%z')
-        end
-
         def origin_for(document)
           case document
           when 'ENR'

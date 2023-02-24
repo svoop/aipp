@@ -62,8 +62,8 @@ module AIPP::LS::SHOOT
     # Returns +nil+ if neither beginning nor ending time is declared which
     # has to be treated as "no shooting".
     def schedule_for(row)
-      from = AIXM.time("#{row[3]} #{AIPP.cache.time_zone}") if row[3]
-      to = AIXM.time("#{row[4]} #{AIPP.cache.time_zone}") if row[4]
+      from = AIXM.time("#{row[3]} #{AIPP.options.time_zone}") if row[3]
+      to = AIXM.time("#{row[4]} #{AIPP.options.time_zone}") if row[4]
       case
         when from && to then (from..to)
         when from then (from..AIXM::END_OF_DAY)
