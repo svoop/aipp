@@ -17,9 +17,13 @@ module AIPP
         read_region
         read_parsers
         parse_sections
-        validate_aixm
-        write_build
-        write_aixm(AIPP.options.output_file || output_file)
+        if aixm.features.any?
+          validate_aixm
+          write_build
+          write_aixm(AIPP.options.output_file || output_file)
+        else
+          warn("no features to write")
+        end
         write_config
       end
 

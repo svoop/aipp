@@ -6,30 +6,32 @@ module AIPP::LS::NOTAM
     include AIPP::LS::Helpers::Base
 
     def parse
+      AIPP.cache.aip ||= read('AIP').css('Ase')
+      AIPP.cache.dabs ||= read('DABS')
       json = read
-      fail "malformed JSON received from API" unless json.has_key?('queryNOTAMs')
+      fail "malformed JSON received from API" unless json.has_key?(:queryNOTAMs)
       added_notam_ids = []
-      json['queryNOTAMs'].each do |row|
-        next unless row['notamRaw'].match? /^Q\) LS/   # only parse national NOTAM
+      json[:queryNOTAMs].each do |row|
+        next unless row[:notamRaw].match? /^Q\) LS/   # only parse national NOTAM
 
 # HACK: try to add missing commas to D-item of A- and B-series NOTAM
-if row['notamRaw'].match? /\A[AB]/
-  if row['notamRaw'].gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
-    row['notamRaw'].gsub!(/,+/, ',')
-    row['notamRaw'].sub!(/,\n/, "\n")
+if row[:notamRaw].match? /\A[AB]/
+  if row[:notamRaw].gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
+    row[:notamRaw].gsub!(/,+/, ',')
+    row[:notamRaw].sub!(/,\n/, "\n")
     warn("HACK: added missing commas to D item")
   end
 end
 
 # HACK: remove braindead years from D-item of W-series NOTAM
-if row['notamRaw'].match? /\AW/
+if row[:notamRaw].match? /\AW/
   year = Time.now.year
-  if row['notamRaw'].gsub!(/\s*(?:#{year}|#{year+1})\s*(#{NOTAM::Schedule::MONTH_RE})/, ' \1')
+  if row[:notamRaw].gsub!(/\s*(?:#{year}|#{year+1})\s*(#{NOTAM::Schedule::MONTH_RE})/, ' \1')
     warn("HACK: removed braindead years from D item")
   end
 end
 
-        (notam = notam_for(row['notamRaw'])) or next
+        (notam = notam_for(row[:notamRaw])) or next
         if respect? notam
           next if notam.data[:five_day_schedules] == []
           added_notam_ids << notam.data[:id]

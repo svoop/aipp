@@ -1,5 +1,5 @@
 module AIPP
-  module NOTAM
+  module SHOOT
 
     class Runner < AIPP::Runner
 
@@ -12,7 +12,7 @@ module AIPP
       end
 
       def run
-        info("NOTAM effective #{effective_at}", color: :green)
+        info("SHOOT effective #{effective_at}", color: :green)
         read_config
         read_region
         read_parsers

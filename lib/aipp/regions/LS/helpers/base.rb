@@ -30,8 +30,7 @@ module AIPP
         # Mandatory Interface
 
         def setup
-          AIPP.cache.aip = read('AIP').css('Ase')
-          AIPP.cache.dabs = read('DABS')
+          AIPP.cache.time_zone = aixm.effective_at.at_noon.strftime('%z')
         end
 
         def origin_for(document)
@@ -63,6 +62,16 @@ module AIPP
                 type: :pdf
               )
             end
+          when 'shooting_grounds'
+            AIPP::Downloader::HTTP.new(
+              file: "https://data.geo.admin.ch/ch.vbs.schiessanzeigen/schiessanzeigen/schiessanzeigen.csv",
+              type: :csv
+            )
+          when /^shooting_grounds-(\d+\.\d+)/
+            AIPP::Downloader::HTTP.new(
+              file: "https://api3.geo.admin.ch/rest/services/api/MapServer/ch.vbs.schiessanzeigen/#{$1}?sr=4326&geometryFormat=geojson",
+              type: :json
+            )
           else
             fail "document not recognized"
           end

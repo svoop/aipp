@@ -123,7 +123,7 @@ module AIPP
         details = aixm.errors.map(&:message).join("\n")
         AIPP.options.force ? warn(message) : fail([message, details].join(":\n"))
       end
-      info("counting #{aixm.features.count} features")
+      info("counting #{aixm.features.count} feature(s)")
     end
 
     # Write the AIXM document.
@@ -135,7 +135,7 @@ module AIPP
 
     # Write build information.
     def write_build
-      info ("skipping build")
+      info("skipping build")
     end
 
     # Write the configuration to config.yml.

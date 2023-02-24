@@ -165,7 +165,7 @@ module AIPP
       case file.extname
         when '.xml', '.ofmx' then Nokogiri.XML(::File.open(file), &:noblanks)
         when '.html' then Nokogiri.HTML5(::File.open(file))
-        when '.json' then JSON.load_file(file)
+        when '.json' then JSON.load_file(file, symbolize_names: true)
         when '.pdf' then AIPP::PDF.new(file)
         when '.xlsx', '.ods' then Roo::Spreadsheet.open(file.to_s)
         when '.csv' then Roo::Spreadsheet.open(file.to_s, csv_options: { col_sep: separator(file) })

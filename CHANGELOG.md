@@ -3,6 +3,9 @@
 #### Breaking Changes
 * Unify all executables into `aip2aixm` and `aip2aixm` respectively
 
+#### Additions
+* Support for shooting grounds in LS
+
 ## 2.0.3
 
 #### Breaking Changes

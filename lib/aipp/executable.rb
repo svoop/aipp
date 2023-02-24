@@ -40,6 +40,7 @@ module AIPP
         o.on('-L', '--list', 'list implemented regions') { list }
         o.on('-V', '--version', 'show version and exit') { version }
       end.parse!
+      guard if respond_to? :guard
     end
 
     def run
