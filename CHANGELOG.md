@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.1.1
+
 #### Additions
 * Improve help when no scope is given
 * Add `-0` to write empty OFMX in case of no upstream data
