@@ -14,7 +14,7 @@ module AIPP
       def option_parser(o)
         o.banner = <<~END
           Download online AIP and convert it to #{AIPP.options.schema.upcase}.
-          Usage: #{File.basename($0)} [options]
+          Usage: #{File.basename($0)} [aip] [options]
         END
         o.on('-a', '--airac (DATE|INTEGER)', String, %Q[AIRAC date or delta e.g. "+1" (default: "#{AIPP.options.airac.date.xmlschema}")]) { AIPP.options.airac = airac_for(_1) }
         if AIPP.options.schema == :ofmx

@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Additions
+* Improve help when no scope is given
 
 ## 2.1.0
 

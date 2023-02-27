@@ -5,10 +5,12 @@ module AIPP
     include AIPP::Debugger
 
     def initialize(exe_file)
+      @exe_file = exe_file
+      help if ARGV.none? || ARGV.first == '--help'
       require_scope
       AIPP.options.replace(
         scope: scope,
-        schema: exe_file.split('2').last.to_sym,
+        schema: schema,
         storage: Pathname(Dir.home).join('.aipp'),
         clean: false,
         force: false,
@@ -18,14 +20,14 @@ module AIPP
         debug_on_warning: false,
         debug_on_error: false
       )
-      options
+      options if respond_to? :options
       OptionParser.new do |o|
         o.on('-r', '--region STRING', String, 'region (e.g. "LF")') { AIPP.options.region = _1.upcase }
         o.on('-s', '--section STRING', String, 'process this section only') { AIPP.options.section = _1.classify }
         o.on('-d', '--storage DIR', String, 'storage directory (default: "~/.aipp")') { AIPP.options.storage = Pathname(_1) }
         o.on('-o', '--output FILE', String, 'output file') { AIPP.options.output_file = _1 }
         option_parser(o)
-        if AIPP.options.schema == :ofmx
+        if schema == :ofmx
           o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { AIPP.options.mid = _1 }
         end
         o.on('-h', '--[no-]check-links', 'check all links with HEAD requests') { AIPP.options.check_links = _1 }
@@ -54,6 +56,14 @@ module AIPP
     end
 
     private
+
+    def help
+      puts <<~END
+        Download online aeronautical data and convert it to #{schema.upcase}.
+        Usage: #{File.basename($0)} [aip|notam|shoot] --help
+      END
+      exit
+    end
 
     def about
       puts 'Written by Sven Schwyn (bitcetera.com) and distributed under MIT license.'
@@ -88,6 +98,10 @@ module AIPP
 
     def lib_dir
       Pathname(__FILE__).dirname
+    end
+
+    def schema
+      @schema ||= @exe_file.split('2').last.to_sym
     end
 
     def scope
