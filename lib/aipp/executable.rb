@@ -12,6 +12,7 @@ module AIPP
         scope: scope,
         schema: schema,
         storage: Pathname(Dir.home).join('.aipp'),
+        check_links: false,
         clean: false,
         force: false,
         mid: false,
@@ -30,7 +31,7 @@ module AIPP
         if schema == :ofmx
           o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { AIPP.options.mid = _1 }
         end
-        o.on('-h', '--[no-]check-links', 'check all links with HEAD requests') { AIPP.options.check_links = _1 }
+        o.on('-h', '--[no-]check-links', 'check all links with HEAD requests (default: false)') { AIPP.options.check_links = _1 }
         o.on('-c', '--[no-]clean', 'clean cache and download from sources anew (default: false)') { AIPP.options.clean = _1 }
         o.on('-f', '--[no-]force', 'continue on non-fatal errors (default: false)') { AIPP.options.force = _1 }
         o.on('-q', '--[no-]quiet', 'suppress all informational output (default: false)') { AIPP.options.quiet = _1 }
