@@ -16,6 +16,7 @@ module AIPP
         clean: false,
         force: false,
         mid: false,
+        write_empty: false,
         quiet: false,
         verbose: false,
         debug_on_warning: false,
@@ -30,6 +31,7 @@ module AIPP
         option_parser(o)
         if schema == :ofmx
           o.on('-m', '--[no-]mid', 'insert mid attributes into all Uid elements (default: false)') { AIPP.options.mid = _1 }
+          o.on('-0', '--[no-]empty', 'write empty OFMX files in case of no upstream data (default: false)') { AIPP.options.write_empty = _1 }
         end
         o.on('-h', '--[no-]check-links', 'check all links with HEAD requests (default: false)') { AIPP.options.check_links = _1 }
         o.on('-c', '--[no-]clean', 'clean cache and download from sources anew (default: false)') { AIPP.options.clean = _1 }

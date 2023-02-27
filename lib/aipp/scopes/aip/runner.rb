@@ -20,10 +20,8 @@ module AIPP
         if aixm.features.any?
           validate_aixm
           write_build
-          write_aixm(AIPP.options.output_file || output_file)
-        else
-          warn("no features to write")
         end
+        write_aixm(AIPP.options.output_file || output_file)
         write_config
       end
 

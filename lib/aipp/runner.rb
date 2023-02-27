@@ -128,9 +128,13 @@ module AIPP
 
     # Write the AIXM document.
     def write_aixm(file)
-      info("writing #{file}")
-      AIXM.config.mid = AIPP.options.mid
-      File.write(file, aixm.to_xml)
+      if aixm.features.any? || AIPP.options.write_empty
+        info("writing #{file}")
+        AIXM.config.mid = AIPP.options.mid
+        File.write(file, aixm.to_xml)
+      else
+        info("no features to write")
+      end
     end
 
     # Write build information.

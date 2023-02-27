@@ -2,6 +2,7 @@
 
 #### Additions
 * Improve help when no scope is given
+* Add `-0` to write empty OFMX in case of no upstream data
 
 ## 2.1.0
 
