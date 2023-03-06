@@ -5,7 +5,8 @@ module AIPP::LS::SHOOT
 
     include AIPP::LS::Helpers::Base
 
-    DEFAULT_Z = AIXM.z(1000, :qfe)   # height 300m unless present in publication
+    DEFAULT_Z = AIXM.z(2000, :qfe)   # fallback if no max height is defined
+    SAFETY = 100                     # safety margin in meters added to max height
 
     def parse
       effective_date = AIPP.options.local_effective_at.strftime('%Y%m%d')
@@ -23,7 +24,7 @@ module AIPP::LS::SHOOT
             location_codes: row[5].split(/ *, */),   # TODO: currently ignored - not available as separate geometries
             details: row[6].blank_to_nil,
             url: row[10].blank_to_nil,
-            upper_z: (AIXM.z(AIXM.d(row[15].to_i, :m).to_ft.dim.round, :qfe) if row[15]),
+            upper_z: (AIXM.z(AIXM.d(row[15].to_i + SAFETY, :m).to_ft.dim.round, :qfe) if row[15]),
             dabs: (row[16] == '1'),
             schedules: []
           )

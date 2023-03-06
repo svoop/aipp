@@ -92,6 +92,14 @@ TOT | 0   | Row        | text(3)                   | yes  | "TOT" (aka: Total)
 TOT | 1   | Created at | datetime(yyyymmddhhmmss)  | yes  | Date and time of CSV creation
 TOT | 2   | SPL count  | number                    | yes  | Number of SPL records
 
+### Safety Margins
+
+The max height (BSZ col 15) has to be treated as an advisory value, not a guarantee:
+
+If no value is given, the ammunition *should* not exceed 250m above ground. However, regulations for certain ammunition types allow for higher peaks. As of March 2023, 6cm mortars *may* reach up to 500m and future weapon systems *may* even go beyond that.
+
+To account for this, the two constants `DEFAULT_Z` and `SAFETY` should be revisited from time to time.
+
 ## Asynchronous Use
 
 ### Command Line Arguments
