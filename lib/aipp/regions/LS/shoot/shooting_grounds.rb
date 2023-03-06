@@ -8,25 +8,26 @@ module AIPP::LS::SHOOT
     DEFAULT_Z = AIXM.z(1000, :qfe)   # height 300m unless present in publication
 
     def parse
-      effective_date = aixm.effective_at.strftime('%Y%m%d')
+      effective_date = AIPP.options.local_effective_at.strftime('%Y%m%d')
       airac_date = AIRAC::Cycle.new(aixm.effective_at).to_s('%Y-%m-%d')
       shooting_grounds = {}
       read.each_with_index do |row, line|
         type, id, date, no_shooting = row[0], row[1], row[2], (row[17] == "1")
-        if type == 'BSZ' && !no_shooting && date == effective_date
-          shooting_grounds[id] ||= read("shooting_grounds-#{id}")
-            .fetch(:feature)
-            .merge(
-              csv_line: line,
-              location_codes: row[5].split(/ *, */),   # TODO: currently ignored - not available as separate geometries
-              details: row[6].blank_to_nil,
-              url: row[10].blank_to_nil,
-              upper_z: (AIXM.z(AIXM.d(row[15].to_i, :m).to_ft.dim.round, :qfe) if row[15]),
-              dabs: (row[16] == '1'),
-              schedules: []
-            )
-          shooting_grounds[id][:schedules] << schedule_for(row)
-        end
+        next unless type == 'BSZ'
+        next if no_shooting || date != effective_date
+        next if AIPP.options.id && AIPP.options.id != id
+        shooting_grounds[id] ||= read("shooting_grounds-#{id}")
+          .fetch(:feature)
+          .merge(
+            csv_line: line,
+            location_codes: row[5].split(/ *, */),   # TODO: currently ignored - not available as separate geometries
+            details: row[6].blank_to_nil,
+            url: row[10].blank_to_nil,
+            upper_z: (AIXM.z(AIXM.d(row[15].to_i, :m).to_ft.dim.round, :qfe) if row[15]),
+            dabs: (row[16] == '1'),
+            schedules: []
+          )
+        shooting_grounds[id][:schedules] += schedules_for(row)
       end
       shooting_grounds.each do |id, data|
         data in csv_line:, location_codes:, details:, url:, upper_z:, schedules:, properties: { bezeichnung: name, infotelefonnr: phone, infoemail: email }
@@ -59,16 +60,32 @@ module AIPP::LS::SHOOT
 
     private
 
-    # Returns +nil+ if neither beginning nor ending time is declared which
-    # has to be treated as "no shooting".
-    def schedule_for(row)
-      from = AIXM.time("#{row[3]} #{AIPP.options.time_zone}") if row[3]
-      to = AIXM.time("#{row[4]} #{AIPP.options.time_zone}") if row[4]
-      case
-        when from && to then (from..to)
-        when from then (from..AIXM::END_OF_DAY)
-        when to then (AIXM::BEGINNING_OF_DAY..to)
+    def schedules_for(row)
+      from, to = time_for(row[3]), time_for(row[4], ending: true)
+      if from.to_date == to.to_date
+        [
+          [AIXM.date(from), (AIXM.time(from)..AIXM.time(to))]
+        ]
+      else
+        [
+          [AIXM.date(from), (AIXM.time(from)..AIXM::END_OF_DAY)],
+          [AIXM.date(to), (AIXM::BEGINNING_OF_DAY..AIXM.time(to))]
+        ]
       end
+    end
+
+    def time_for(string, ending: false)
+      hour, min = case string.strip
+      when /(\d{2})(\d{2})/
+        [$1.to_i, $2.to_i]
+      when '', '0'
+        [0, 0]
+      else
+        warn("ignoring malformed time `#{string}'")
+        [0, 0]
+      end
+      hour = 24 if hour.zero? && min.zero? && ending
+      AIPP.options.local_effective_at.change(hour: hour, min: min).utc
     end
 
     def geometries_for(polygons)
@@ -97,15 +114,15 @@ module AIPP::LS::SHOOT
 
     def timetable_for(schedules)
       AIXM.timetable.tap do |timetable|
-        schedules.each do |schedule|
+        schedules.each do |(date, times)|
           timetable.add_timesheet(
             AIXM.timesheet(
               adjust_to_dst: true,
-              dates: (AIXM.date(aixm.effective_at)..AIXM.date(aixm.effective_at))
+              dates: (date..date)
               # TODO: transform to...
-              # dates: AIXM.date(aixm.effective_at)
+              # dates: AIXM.date(date)
             ).tap do |timesheet|
-              timesheet.times = schedule
+              timesheet.times = times
             end
           )
         end

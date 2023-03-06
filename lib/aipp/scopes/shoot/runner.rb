@@ -8,7 +8,7 @@ module AIPP
       end
 
       def expiration_at
-        effective_at.end_of_day.round - 1
+        effective_at + 86399
       end
 
       def run

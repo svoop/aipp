@@ -6,7 +6,8 @@ module AIPP
       def options
         AIPP.options.merge(
           module: 'Shoot',
-          effective_at: Time.now.at_midnight
+          local_effective_at: Time.now.at_midnight,
+          id: nil
         )
       end
 
@@ -15,12 +16,13 @@ module AIPP
           Download online shooting activities and convert them to #{AIPP.options.schema.upcase}.
           Usage: #{File.basename($0)} shoot [options]
         END
-        o.on('-t', '--effective (DATE)', String, %Q[effective on this date (default: "#{AIPP.options.effective_at.to_date}")]) { AIPP.options.effective_at = Time.parse("#{_1} CET") }
+        o.on('-t', '--effective (DATE)', String, %Q[effective on this date (default: "#{AIPP.options.local_effective_at.to_date}")]) { AIPP.options.local_effective_at = Time.parse("#{_1} CET") }
+        o.on('-i', '--id ID', String, %Q[process shooting ground with this ID only]) { AIPP.options.id = _1 }
       end
 
       def guard
-        AIPP.options.time_zone = AIPP.options.effective_at.at_noon.strftime('%z')
-        AIPP.options.effective_at = AIPP.options.effective_at.at_midnight.utc
+        AIPP.options.time_zone = AIPP.options.local_effective_at.at_noon.strftime('%z')
+        AIPP.options.effective_at = AIPP.options.local_effective_at.at_midnight.utc
       end
 
     end

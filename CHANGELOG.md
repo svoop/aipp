@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Changes
+* Improve timesheet calculation for shooting grounds in LS
 
 ## 2.1.1
 

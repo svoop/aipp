@@ -44,7 +44,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 3.1.0'
 
   spec.add_runtime_dependency 'airac', '~> 1.0', '>= 1.0.1'
-  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.4.1'
+  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.4.2'
   spec.add_runtime_dependency 'notam', '~> 1', '>=1.1'
   spec.add_runtime_dependency 'activesupport', '~> 7'
   spec.add_runtime_dependency 'excon', '~> 0'
