@@ -17,23 +17,28 @@ module AIPP::LS::SHOOT
         next unless type == 'BSZ'
         next if no_shooting || date != effective_date
         next if AIPP.options.id && AIPP.options.id != id
-        shooting_grounds[id] ||= read("shooting_grounds-#{id}")
-          .fetch(:feature)
-          .merge(
-            csv_line: line,
-            location_codes: row[5].split(/ *, */),   # TODO: currently ignored - not available as separate geometries
-            details: row[6].blank_to_nil,
-            url: row[10].blank_to_nil,
-            upper_z: (AIXM.z(AIXM.d(row[15].to_i + SAFETY, :m).to_ft.dim.round, :qfe) if row[15]),
-            dabs: (row[16] == '1'),
-            schedules: []
-          )
-        shooting_grounds[id][:schedules] += schedules_for(row)
+        # TODO: Several BSZ lines may exist for the same shooting area with
+        #   different location codes (aka: partial activations). The geometries
+        #   of those location codes are not currently available, we therefore
+        #   have to merge the data into one record. The geometries should become
+        #   available by the end of 2023 which will make it possible to map
+        #   each line to one geometry and remove the merging logic.
+        upper_z = row[15] ? AIXM.z(AIXM.d(row[15].to_i + SAFETY, :m).to_ft.dim.round, :qfe) : DEFAULT_Z
+        (shooting_grounds[id] ||= { schedules: [], upper_z: AIXM::GROUND }).then do |s|
+          s[:feature] ||= read("shooting_grounds-#{id}").fetch(:feature)
+          s[:csv_line] ||= line
+          s[:url] ||= row[10].blank_to_nil
+          s[:details] = [s[:details], row[6].blank_to_nil].compact.join("\n")
+          s[:dabs] ||= (row[16] == '1')
+          s[:upper_z] = upper_z if upper_z.alt > s[:upper_z].alt
+          s[:schedules] += schedules_for(row)
+        end
       end
       shooting_grounds.each do |id, data|
-        data in csv_line:, location_codes:, details:, url:, upper_z:, schedules:, properties: { bezeichnung: name, infotelefonnr: phone, infoemail: email }
-        if schedules.compact.any?
-          geometries = geometries_for data[:geometry]
+        data in csv_line:, details:, url:, upper_z:, schedules:, dabs:, feature: { geometry: polygons, properties: { bezeichnung: name, infotelefonnr: phone, infoemail: email } }
+        schedules = consolidate(schedules)
+        if schedules.any?
+          geometries = geometries_for polygons
           indexed = geometries.count > 1
           geometries.each_with_index do |geometry, index|
             remarks = {
@@ -51,7 +56,7 @@ module AIPP::LS::SHOOT
               ).tap do |airspace|
                 airspace.add_layer layer_for(upper_z, schedules, remarks)
                 airspace.geometry = geometry
-                airspace.comment = "DABS: marked for publication"
+                airspace.comment = "DABS: marked for publication" if dabs
               end
             )
           end
@@ -115,19 +120,29 @@ module AIPP::LS::SHOOT
 
     def timetable_for(schedules)
       AIXM.timetable.tap do |timetable|
-        schedules.each do |(date, times)|
-          timetable.add_timesheet(
-            AIXM.timesheet(
-              adjust_to_dst: true,
-              dates: (date..date)
-              # TODO: transform to...
-              # dates: AIXM.date(date)
-            ).tap do |timesheet|
-              timesheet.times = times
-            end
-          )
+        schedules.each do |date, times_array|
+          times_array.each do |times|
+            timetable.add_timesheet(
+              AIXM.timesheet(
+                adjust_to_dst: true,
+                dates: (date..date)
+                # TODO: transform to...
+                # dates: AIXM.date(date)
+              ).tap do |timesheet|
+                timesheet.times = times
+              end
+            )
+          end
         end
       end
+    end
+
+    # TODO: Consolidate will become obsolete once location code geometries
+    #   are available.
+    def consolidate(schedules)
+      schedules
+        .group_by(&:first)
+        .transform_values { _1.map(&:last).consolidate_ranges(:time) }
     end
 
   end
