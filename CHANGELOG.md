@@ -3,6 +3,7 @@
 #### Changes
 * Improve timesheet calculation for shooting grounds in LS
 * Improve safety margins for shooting grounds in LS
+* Switch to unzipped OFMX for now due to issues upstream
 
 ## 2.1.1
 
