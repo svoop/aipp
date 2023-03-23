@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.1.2
+
 #### Changes
 * Improve timesheet calculation for shooting grounds in LS
 * Improve safety margins for shooting grounds in LS
