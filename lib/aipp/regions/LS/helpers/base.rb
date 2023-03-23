@@ -48,12 +48,9 @@ module AIPP
             fail "not yet implemented"
           when 'AIP'
             AIPP::Downloader::HTTP.new(
-              file: "https://storage.googleapis.com/snapshots.openflightmaps.org/live/#{AIRAC::Cycle.new.id}/ofmx/lsas/latest/isolated/ofmx_ls.xml"
+              archive: "https://snapshots.openflightmaps.org/live/#{AIRAC::Cycle.new.id}/ofmx/lsas/latest/ofmx_ls.zip",
+              file: "ofmx_ls/isolated/ofmx_ls.ofmx"
             )
-            # AIPP::Downloader::HTTP.new(
-            #   archive: "https://snapshots.openflightmaps.org/live/#{AIRAC::Cycle.new.id}/ofmx/lsas/latest/ofmx_ls.zip",
-            #   file: "ofmx_ls/isolated/ofmx_ls.ofmx"
-            # )
           when 'DABS'
             if aixm.effective_at.to_date == Date.today   # DABS cross check works reliably for today only
               AIPP::Downloader::HTTP.new(

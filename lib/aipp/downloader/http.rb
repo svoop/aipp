@@ -4,7 +4,8 @@ module AIPP
     # Remote file via HTTP
     class HTTP < File
       ARCHIVE_MIME_TYPES = {
-        'application/zip' => :zip
+        'application/zip' => :zip,
+        'application/x-zip-compressed' => :zip
       }.freeze
 
       def initialize(archive: nil, file:, type: nil, headers: {})
