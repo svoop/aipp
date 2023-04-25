@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Changes
+* Use uncompressed OFMX download for LS NOTAM
 
 ## 2.1.2
 
