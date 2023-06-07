@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Fixes
+* Update NOTAM gem
 
 ## 2.1.3
 
