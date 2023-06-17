@@ -51,7 +51,7 @@ module AIPP
               file: "https://snapshots.openflightmaps.org/live/#{AIRAC::Cycle.new.id}/ofmx/lsas/latest/isolated/ofmx_ls.xml"
             )
           when 'DABS'
-            if aixm.effective_at.to_date == Date.today   # DABS cross check works reliably for today only
+            if aixm.effective_at.to_date == Time.now.utc.to_date   # DABS cross check works reliably for today only
               AIPP::Downloader::HTTP.new(
                 file: "https://www.skybriefing.com/o/dabs?today",
                 type: :pdf
