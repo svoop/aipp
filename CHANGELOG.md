@@ -1,6 +1,11 @@
 ## Main
 
+Nothing so far
+
+## 2.1.5
+
 #### Fixes
+* Use UTC date for DABS cross check
 * Update NOTAM gem
 
 ## 2.1.4
