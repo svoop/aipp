@@ -4,7 +4,7 @@ describe Array do
 
   describe :constantize do
     it "returns non-namespaced class" do
-      _(%w(MiniTest).constantize).must_equal MiniTest
+      _(%w(Minitest).constantize).must_equal Minitest
     end
 
     it "returns namespaced class" do

@@ -17,7 +17,7 @@ module AIPP
   end
 end
 
-class MiniTest::Spec
+class Minitest::Spec
   class << self
     alias_method :context, :describe
   end
