@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.1.7
+
 #### Fixes
 * Workaround for temporary upstream CSV quoting error
 
