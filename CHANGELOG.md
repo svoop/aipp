@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Additions
+* Include contact name to remarks in LS SHOOT
 
 ## 2.1.7
 

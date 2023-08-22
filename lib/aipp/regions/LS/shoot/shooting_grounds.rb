@@ -35,7 +35,7 @@ module AIPP::LS::SHOOT
         end
       end
       shooting_grounds.each do |id, data|
-        data in csv_line:, details:, url:, upper_z:, schedules:, dabs:, feature: { geometry: polygons, properties: { bezeichnung: name, infotelefonnr: phone, infoemail: email } }
+        data in csv_line:, details:, url:, upper_z:, schedules:, dabs:, feature: { geometry: polygons, properties: { bezeichnung: name, infobezeichnung: contact, infotelefonnr: phone, infoemail: email } }
         schedules = consolidate(schedules)
         if schedules.any?
           geometries = geometries_for polygons
@@ -43,6 +43,7 @@ module AIPP::LS::SHOOT
           geometries.each_with_index do |geometry, index|
             remarks = {
               details: details,
+              contact: contact,
               phone: phone,
               email: email,
               bulletin: url
