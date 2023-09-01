@@ -125,7 +125,9 @@ module AIPP::LS::SHOOT
           times_array.each do |times|
             timetable.add_timesheet(
               AIXM.timesheet(
-                adjust_to_dst: true,
+# HACK: Temporarily produce UTC instead of UTCW
+#               adjust_to_dst: true,
+adjust_to_dst: false,
                 dates: (date..date)
                 # TODO: transform to...
                 # dates: AIXM.date(date)
