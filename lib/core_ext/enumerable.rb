@@ -20,9 +20,9 @@ module Enumerable
   #   @yield [Object] element to analyze
   #   @yieldreturn [Boolean] whether to split at this element or not
   #   @return [Array]
-  def split(*args, &)
+  def split(*args, &block)
     [].tap do |array|
-      while index = slice((start ||= 0)...length).find_index(*args, &)
+      while index = slice((start ||= 0)...length).find_index(*args, &block)
         array << slice(start...start+index)
         start += index + 1
       end

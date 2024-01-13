@@ -43,16 +43,17 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 3.1.0'
 
-  spec.add_runtime_dependency 'airac', '~> 1.0', '>= 1.0.1'
-  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.4.2'
-  spec.add_runtime_dependency 'notam', '~> 1', '>=1.1.3'
+  spec.add_runtime_dependency 'airac', '~> 1.0', '>= 1.0.3'
+  spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.4.3'
+  spec.add_runtime_dependency 'notam', '~> 1', '>=1.1.5'
   spec.add_runtime_dependency 'activesupport', '~> 7'
   spec.add_runtime_dependency 'excon', '~> 0'
-  spec.add_runtime_dependency 'graphql', '< 2.1'   # TODO: remove once compatbiel with 2.1
+  spec.add_runtime_dependency 'graphql', '< 2.1'   # TODO: remove once compatible with 2.1
   spec.add_runtime_dependency 'graphql-client', '~> 0'
   spec.add_runtime_dependency 'nokogiri', '~> 1', '>= 1.12.0'
   spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
+  spec.add_runtime_dependency 'csv', '~> 3'
   spec.add_runtime_dependency 'json', '~> 2'
   spec.add_runtime_dependency 'rubyzip', '~> 2'
   spec.add_runtime_dependency 'colorize', '~> 0'

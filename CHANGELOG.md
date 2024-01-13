@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Additions
+* Support for Ruby 3.3
 
 ## 2.1.8
 
