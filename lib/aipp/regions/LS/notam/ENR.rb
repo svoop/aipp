@@ -12,7 +12,6 @@ module AIPP::LS::NOTAM
       fail "malformed JSON received from API" unless json.has_key?(:queryNOTAMs)
       added_notam_ids = []
       json[:queryNOTAMs].each do |row|
-puts row[:notamRaw][0,9]
         next unless row[:notamRaw].match? /^Q\) LS/   # only parse national NOTAM
 
 # HACK: try to add missing commas to D-item of A- and B-series NOTAM
