@@ -66,6 +66,7 @@ module AIPP
 
     # Read the configuration from config.yml.
     def read_config
+      info("using gem aipp-#{AIPP::VERSION}")
       info("reading config.yml")
       AIPP.config.read! config_file
       @aixm.namespace = AIPP.config.namespace
