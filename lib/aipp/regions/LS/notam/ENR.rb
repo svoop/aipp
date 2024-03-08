@@ -15,13 +15,13 @@ module AIPP::LS::NOTAM
         next unless row[:notamRaw].match? /^Q\) LS/   # only parse national NOTAM
 
 # HACK: try to add missing commas to D-item of A- and B-series NOTAM
-if row[:notamRaw].match? /\A[AB]/
-  if row[:notamRaw].gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
-    row[:notamRaw].gsub!(/,+/, ',')
-    row[:notamRaw].sub!(/,\n/, "\n")
-    warn("HACK: added missing commas to D item")
-  end
-end
+# if row[:notamRaw].match? /\A[AB]/
+#   if row[:notamRaw].gsub!(/(#{NOTAM::Schedule::HOUR_RE.decapture}-#{NOTAM::Schedule::HOUR_RE.decapture})/, '\1,')
+#     row[:notamRaw].gsub!(/,+/, ',')
+#     row[:notamRaw].sub!(/,\n/, "\n")
+#     warn("HACK: added missing commas to D item")
+#   end
+# end
 
 # HACK: remove braindead years from D-item of W-series NOTAM
 if row[:notamRaw].match? /\AW/
