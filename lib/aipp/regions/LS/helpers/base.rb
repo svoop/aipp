@@ -74,9 +74,9 @@ module AIPP
 
         # Templates
 
-        def organisation_lf
-          unless AIPP.cache.organisation_lf
-            AIPP.cache.organisation_lf = AIXM.organisation(
+        def organisation_ls
+          unless AIPP.cache.organisation_ls
+            AIPP.cache.organisation_ls = AIXM.organisation(
               source: source(position: 1, document: "GEN-3.1"),
               name: 'SWITZERLAND',
               type: 'S'
