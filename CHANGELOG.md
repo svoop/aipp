@@ -3,6 +3,9 @@
 #### Additions
 * Show the gem version used in order to verify deployments
 
+#### Changes
+* Make dash between LS and DPR zone optional in NOTAM
+
 ## 2.1.9
 
 #### Additions
