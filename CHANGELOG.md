@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.1.10
+
 #### Additions
 * Show the gem version used in order to verify deployments
 
