@@ -118,6 +118,7 @@ Any output on STDERR should trigger an alert.
 ## References
 
 * [skybriefing](https://www.skybriefing.com)
+* [skybriefing contact (aka: LS NOF)](https://www.skybriefing.com/support)
 * [AIM Data Catalogue](https://www.aerodatacat.ch)
 * [DABS](https://www.skybriefing.com/de/dabs)
 * [NOTAM Info](https://notaminfo.com/switzerlandmap)
