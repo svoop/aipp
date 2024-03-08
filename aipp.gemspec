@@ -48,8 +48,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'notam', '~> 1', '>=1.1.5'
   spec.add_runtime_dependency 'activesupport', '~> 7'
   spec.add_runtime_dependency 'excon', '~> 0'
-  spec.add_runtime_dependency 'graphql', '< 2.1'   # TODO: remove once compatible with 2.1 - see https://github.com/github/graphql-client/issues/310
-  spec.add_runtime_dependency 'graphql-client', '~> 0'
+  spec.add_runtime_dependency 'graphql', '~> 2'
+  spec.add_runtime_dependency 'graphql-client', '~> 0', '>= 0.19.0'
   spec.add_runtime_dependency 'nokogiri', '~> 1', '>= 1.12.0'
   spec.add_runtime_dependency 'roo', '~> 2'
   spec.add_runtime_dependency 'pdf-reader', '~> 2'
