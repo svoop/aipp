@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Changes
+* Adapt lookup for DPR zones which no longer contain dash in LS.
 
 ## 2.1.10
 
