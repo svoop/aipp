@@ -1,6 +1,6 @@
 [![Version](https://img.shields.io/gem/v/aipp.svg?style=flat)](https://rubygems.org/gems/aipp)
 [![Tests](https://img.shields.io/github/actions/workflow/status/svoop/aipp/test.yml?style=flat&label=tests)](https://github.com/svoop/aipp/actions?workflow=Test)
-[![Donorbox](https://img.shields.io/badge/donate-on_donorbox-yellow.svg)](https://donorbox.org/bitcetera)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/svoop.svg)](https://github.com/sponsors/svoop)
 
 # AIPP
 
@@ -11,6 +11,8 @@ This gem incluces executables to download and parse aeronautical information (HT
 * [Homepage](https://github.com/svoop/aipp)
 * [Rubydoc](https://www.rubydoc.info/gems/aipp/AIPP)
 * Author: [Sven Schwyn - Bitcetera](https://bitcetera.com)
+
+Thank you for supporting free and open-source software by sponsoring on [GitHub](https://github.com/sponsors/svoop) or on [Donorbox](https://donorbox.com/bitcetera). Any gesture is appreciated, from a single Euro for a ☕️ cup of coffee to 🍹 early retirement.
 
 ## Table of Contents
 
