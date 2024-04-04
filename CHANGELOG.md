@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.2.0
+
 #### Changes
 * Bump aixm gem to >=1.5.0 in order to bump to OFMX schema 0.2
 
