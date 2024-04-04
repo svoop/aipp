@@ -1,11 +1,12 @@
 ## Main
 
-Nothing so far
+#### Changes
+* Bump aixm gem to >=1.5.0 in order to bump to OFMX schema 0.2
 
 ## 2.1.11
 
 #### Changes
-* Adapt lookup for DPR zones which no longer contain dash in LS.
+* Adapt lookup for DPR zones which no longer contain dash in LS
 
 ## 2.1.10
 
