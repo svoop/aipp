@@ -53,7 +53,9 @@ module AIPP::LF::AIP
           given service_from(service_node) do |service|
             AIPP.cache.frequence.css(%Q(Frequence:has(Service[pk="#{service_node['pk']}"]))).each do |frequence_node|
               if frequency = frequency_from(frequence_node, service_node)
-                service.add_frequency frequency
+                unless frequency.type == :emergency
+                  service.add_frequency frequency
+                end
               end
             end
             if airport
