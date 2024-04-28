@@ -40,9 +40,15 @@ module AIPP::LF::AIP
       AIPP.cache.service.css(%Q(Service[lk^="[LF]"][pk])).each do |service_node|
         # Ignore private services/frequencies
         next if service_node.(:IndicLieu) == 'XX'
-        # Load referenced airport
+        # Load directly referenced airport
         airport = given(service_node.at_css('Ad')&.attr('pk')) do
           find_by(:airport, meta: _1).first
+        end
+        # Load indirectly referenced airport
+        airport ||= given(service_node.at_css('Espace')&.attr('pk')) do
+          if airspace = find_by(:airspace, meta: _1)&.first
+            find_by(:airport, id: airspace.id[0, 4])&.first
+          end
         end
         # Build addresses and services
         case SOURCE_TYPES.fetch(type_for(service_node))
