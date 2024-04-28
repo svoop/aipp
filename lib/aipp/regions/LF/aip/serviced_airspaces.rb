@@ -3,6 +3,8 @@ module AIPP::LF::AIP
 
     include AIPP::LF::Helpers::Base
 
+    depends_on :Aerodromes
+
     # Map source types to type and optional local type and skip regexp
     SOURCE_TYPES = {
       'FIR' => { type: 'FIR' },
@@ -36,15 +38,22 @@ module AIPP::LF::AIP
           next if espace_node.(:Nom).match? DELEGATED_RE
           next if (re = target[:skip]) && espace_node.(:Nom).match?(re)
           # Build airspaces and layers
-          AIPP.cache.partie.css(%Q(Partie:has(Espace[pk="#{espace_node['pk']}"]))).each do |partie_node|
+          partie_nodes = AIPP.cache.partie.css(%Q(Partie:has(Espace[pk="#{espace_node['pk']}"])))
+          partie_nodes.each_with_index do |partie_node, index|
             next if partie_node.(:NomPartie).match? DELEGATED_RE
+            partie_nom = partie_node.(:NomPartie).remove(/^\.$/).blank_to_nil
+            partie_index = if partie_nodes.count > 1
+              if partie_nom.match?(/^\d+$/)
+                partie_nom.to_i   # use declared index if numerical...
+              else
+                index   # ...or positional index otherwise
+              end
+            end
             add(
               AIXM.airspace(
                 source: source(part: 'ENR', position: espace_node.line),
-                name: [
-                  espace_node.(:Nom),
-                  partie_node.(:NomPartie).remove(/^\.$/).blank_to_nil
-                ].compact.join(' '),
+                id: id_from(espace_node, partie_index),
+                name: name_from(espace_node, partie_nom),
                 type: target[:type],
                 local_type: target[:local_type]
               ).tap do |airspace|
@@ -65,5 +74,19 @@ module AIPP::LF::AIP
       end
     end
 
+    private
+
+    def id_from(espace_node, partie_index)
+      if espace_node.(:TypeEspace) == 'CTR' &&
+        (ad_pk = espace_node.at_css(:AdAssocie)&.attr('pk')) &&
+        (airport = find_by(:airport, meta: ad_pk).first)
+      then
+        [airport.id, partie_index].join
+      end
+    end
+
+    def name_from(espace_node, partie_nom)
+      [espace_node.(:Nom), partie_nom].compact.join(' ')
+    end
   end
 end
