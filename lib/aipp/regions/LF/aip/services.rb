@@ -78,7 +78,10 @@ module AIPP::LF::AIP
       end
       # Assign A/A address to all yet radioless airports
       find_by(:airport).each do |airport|
-        unless airport.services.find_by(:service, type: :aerodrome_control_tower_service).any? || airport.addresses.any?
+        unless airport.addresses.any? ||
+          airport.services.find_by(:service, type: :aerodrome_control_tower_service).any? ||
+          airport.services.find_by(:service, type: :flight_information_service).any?
+        then
           airport.add_address(
             address_from_vac_for(airport) || fallback_address_for(airport)
           )
