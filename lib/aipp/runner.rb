@@ -115,7 +115,11 @@ module AIPP
       info("detecting duplicates")
       if (duplicates = aixm.features.duplicates).any?
         message = "duplicates found"
-        details = duplicates.map { "#{_1.inspect} from #{_1.source}" }.join("\n")
+        details = duplicates.map do |group|
+          group.map.with_index do |member, index|
+            "#{member.inspect} from #{member.source} #{'has duplicate(s)...' if index.zero?}"
+          end
+        end.join("\n")
         AIPP.options.force ? warn(message) : fail([message, details].join(":\n"))
       end
       info("validating #{AIPP.options.schema.upcase}")
