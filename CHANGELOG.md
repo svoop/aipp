@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Changes
+* Adopt latest update of OFMX to accommodate new airspace types RMZ, TMZ and DRA
 
 ## 2.2.0
 

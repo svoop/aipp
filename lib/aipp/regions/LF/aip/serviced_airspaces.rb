@@ -15,9 +15,7 @@ module AIPP::LF::AIP
       'TMA' => { type: 'TMA', skip: /geneve/i },   # Geneva listed FYI only
       'SIV' => { type: 'SECTOR', local_type: 'FIZ/SIV' },   # providing FIS
       'CTR' => { type: 'CTR' },
-      'RMZ' => { type: 'RAS', local_type: 'RMZ' },
-      'TMZ' => { type: 'RAS', local_type: 'TMZ' },
-      'RMZ-TMZ' => { type: 'RAS', local_type: 'RMZ-TMZ' }
+      'RMZ-TMZ' => { type: ['RMZ', 'TMZ'] }   # two separate airspaces
     }.freeze
 
     # Map airspace "<type> <name>" to location indicator
@@ -49,26 +47,28 @@ module AIPP::LF::AIP
                 index   # ...or positional index otherwise
               end
             end
-            add(
-              AIXM.airspace(
-                source: source(part: 'ENR', position: espace_node.line),
-                id: id_from(espace_node, partie_index),
-                name: name_from(espace_node, partie_nom),
-                type: target[:type],
-                local_type: target[:local_type]
-              ).tap do |airspace|
-                airspace.meta = espace_node.attr('pk')
-                airspace.geometry = geometry_from(partie_node.(:Contour))
-                fail("geometry is not closed") unless airspace.geometry.closed?
-                AIPP.cache.volume.css(%Q(Volume:has(Partie[pk="#{partie_node['pk']}"]))).each do |volume_node|
-                  airspace.add_layer(
-                    layer_from(volume_node).tap do |layer|
-                      layer.location_indicator = FIR_LOCATION_INDICATORS.fetch(airspace.name) if airspace.type == :flight_information_region
-                    end
-                  )
+            [target[:type]].flatten.each do |type|
+              add(
+                AIXM.airspace(
+                  source: source(part: 'ENR', position: espace_node.line),
+                  id: id_from(espace_node, partie_index),
+                  name: name_from(espace_node, partie_nom),
+                  type: type,
+                  local_type: target[:local_type]
+                ).tap do |airspace|
+                  airspace.meta = espace_node.attr('pk')
+                  airspace.geometry = geometry_from(partie_node.(:Contour))
+                  fail("geometry is not closed") unless airspace.geometry.closed?
+                  AIPP.cache.volume.css(%Q(Volume:has(Partie[pk="#{partie_node['pk']}"]))).each do |volume_node|
+                    airspace.add_layer(
+                      layer_from(volume_node).tap do |layer|
+                        layer.location_indicator = FIR_LOCATION_INDICATORS.fetch(airspace.name) if airspace.type == :flight_information_region
+                      end
+                    )
+                  end
                 end
-              end
-            )
+              )
+            end
           end
         end
       end
