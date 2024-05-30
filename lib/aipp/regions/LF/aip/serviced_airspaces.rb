@@ -15,6 +15,8 @@ module AIPP::LF::AIP
       'TMA' => { type: 'TMA', skip: /geneve/i },   # Geneva listed FYI only
       'SIV' => { type: 'SECTOR', local_type: 'FIZ/SIV' },   # providing FIS
       'CTR' => { type: 'CTR' },
+      'RMZ' => { type: 'RMZ' },
+      'TMZ' => { type: 'TMZ' },
       'RMZ-TMZ' => { type: ['RMZ', 'TMZ'] }   # two separate airspaces
     }.freeze
 

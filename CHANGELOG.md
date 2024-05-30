@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Fix
+* Re-add accidentally removed RMZ and TMZ
 
 ## 2.2.1
 
