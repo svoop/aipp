@@ -46,6 +46,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'airac', '~> 1.0', '>= 1.0.3'
   spec.add_runtime_dependency 'aixm', '~> 1', '>= 1.5.2'
   spec.add_runtime_dependency 'notam', '~> 1', '>=1.1.5'
+  spec.add_runtime_dependency 'ostruct', '~> 0'
   spec.add_runtime_dependency 'activesupport', '~> 7'
   spec.add_runtime_dependency 'excon', '~> 0'
   spec.add_runtime_dependency 'graphql', '~> 2'
