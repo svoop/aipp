@@ -162,12 +162,6 @@ module AIPP
     end
 
     def convert(file)
-# TODO: temporary workaround for broken CSV - see https://github.com/svoop/aipp/issues/28
-if file.basename.to_s == 'schiessanzeigen.csv'
-  contents = file.read
-  contents.gsub!(';Blindgänger Sprengung, Aufräumaktion "SÄNTIS 23";', ';"Blindgänger Sprengung, Aufräumaktion SÄNTIS 23";')
-  file.write(contents)
-end
       case file.extname
         when '.xml', '.ofmx' then Nokogiri.XML(::File.open(file), &:noblanks)
         when '.html' then Nokogiri.HTML5(::File.open(file))
