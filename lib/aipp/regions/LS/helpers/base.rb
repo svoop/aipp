@@ -11,6 +11,7 @@ module AIPP
     class Notam
       Query = Client.parse <<~END
         query ($region: String!, $series: [String!], $start: Int!, $end: Int!) {
+          latestUpdate,
           queryNOTAMs(
             filter: {region: $region, series: $series, start: $start, end: $end}
           ) {

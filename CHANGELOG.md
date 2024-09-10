@@ -1,6 +1,7 @@
 ## Main
 
-Nothing so far
+#### Additions
+* Include the date and time of the last upstream update for LS NOTAM and SHOOT
 
 ## 2.2.2
 

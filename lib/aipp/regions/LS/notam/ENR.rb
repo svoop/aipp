@@ -11,6 +11,7 @@ module AIPP::LS::NOTAM
       json = read
       fail "malformed JSON received from API" unless json.has_key?(:queryNOTAMs)
       added_notam_ids = []
+      aixm.sourced_at = Time.at(json[:latestUpdate])
       json[:queryNOTAMs].each do |row|
         next unless row[:notamRaw].match? /^Q\) LS/   # only parse national NOTAM
 

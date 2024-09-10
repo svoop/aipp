@@ -28,7 +28,7 @@ module AIPP
   # [.json] Deserialized JSON e.g. as response to a GraphQL query
   # [.xlsx] Parsed by Roo returning an instance of {Roo::Excelx}[https://www.rubydoc.info/gems/roo/Roo/Excelx]
   # [.ods] Parsed by Roo returning an instance of {Roo::OpenOffice}[https://www.rubydoc.info/gems/roo/Roo/OpenOffice]
-  # [.csv] Parsed by Roo returning an instance of {Roo::CSV}[https://www.rubydoc.info/gems/roo/Roo/CSV]
+  # [.csv] Parsed by Roo returning an instance of {Roo::CSV}[https://www.rubydoc.info/gems/roo/Roo/CSV] including the first header line
   # [.txt] Instance of +String+
   #
   # @example
@@ -168,7 +168,7 @@ module AIPP
         when '.json' then JSON.load_file(file, symbolize_names: true)
         when '.pdf' then AIPP::PDF.new(file)
         when '.xlsx', '.ods' then Roo::Spreadsheet.open(file.to_s)
-        when '.csv' then Roo::Spreadsheet.open(file.to_s, csv_options: { col_sep: separator(file) })
+        when '.csv' then Roo::Spreadsheet.open(file.to_s, csv_options: { encoding: 'bom|utf-8', headers: false, col_sep: separator(file) })
         when '.txt' then ::File.read(file)
         else fail(ArgumentError, "unrecognized file type")
       end

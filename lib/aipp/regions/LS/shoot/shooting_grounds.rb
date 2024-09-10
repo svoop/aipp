@@ -12,28 +12,40 @@ module AIPP::LS::SHOOT
       effective_date = AIPP.options.local_effective_at.strftime('%Y%m%d')
       airac_date = AIRAC::Cycle.new(aixm.effective_at).to_s('%Y-%m-%d')
       shooting_grounds = {}
+      spl_rows = 0
       read.each_with_index do |row, line|
-        type, id, date, no_shooting = row[0], row[1], row[2], (row[17] == "1")
-        next unless type == 'BSZ'
-        next if no_shooting || date != effective_date
-        next if AIPP.options.id && AIPP.options.id != id
-        # TODO: Several BSZ lines may exist for the same shooting area with
-        #   different location codes (aka: partial activations). The geometries
-        #   of those location codes are not currently available, we therefore
-        #   have to merge the data into one record. The geometries should become
-        #   available by the end of 2023 which will make it possible to map
-        #   each line to one geometry and remove the merging logic.
-        upper_z = row[15] ? AIXM.z(AIXM.d(row[15].to_i + SAFETY, :m).to_ft.dim.round, :qfe) : DEFAULT_Z
-        (shooting_grounds[id] ||= { schedules: [], upper_z: AIXM::GROUND }).then do |s|
-          s[:feature] ||= read("shooting_grounds-#{id}").fetch(:feature)
-          s[:csv_line] ||= line
-          s[:url] ||= row[10].blank_to_nil
-          s[:details] = [s[:details], row[6].blank_to_nil].compact.join("\n")
-          s[:dabs] ||= (row[16] == '1')
-          s[:upper_z] = upper_z if upper_z.alt > s[:upper_z].alt
-          s[:schedules] += schedules_for(row)
+        case row[0].strip
+        when 'TOT'
+          date, spl_count = row[1], row[2].to_i
+          fail "malformed CSV: #{spl_count} SPL records announced but #{spl_rows} SPL records found" unless spl_count == spl_rows
+          aixm.sourced_at = [date, TZInfo::Timezone.get('Europe/Zurich').abbr].join(' ')
+          next
+        when 'SPL'
+          spl_rows += 1
+          next
+        when 'BSZ'
+          id, date, no_shooting = row[1], row[2], (row[17] == "1")
+          next if no_shooting || date != effective_date
+          next if AIPP.options.id && AIPP.options.id != id
+          # TODO: Several BSZ lines may exist for the same shooting area with
+          #   different location codes (aka: partial activations). The geometries
+          #   of those location codes are not currently available, we therefore
+          #   have to merge the data into one record. The geometries should become
+          #   available by the end of 2023 which will make it possible to map
+          #   each line to one geometry and remove the merging logic.
+          upper_z = row[15] ? AIXM.z(AIXM.d(row[15].to_i + SAFETY, :m).to_ft.dim.round, :qfe) : DEFAULT_Z
+          (shooting_grounds[id] ||= { schedules: [], upper_z: AIXM::GROUND }).then do |s|
+            s[:feature] ||= read("shooting_grounds-#{id}").fetch(:feature)
+            s[:csv_line] ||= line
+            s[:url] ||= row[10].blank_to_nil
+            s[:details] = [s[:details], row[6].blank_to_nil].compact.join("\n")
+            s[:dabs] ||= (row[16] == '1')
+            s[:upper_z] = upper_z if upper_z.alt > s[:upper_z].alt
+            s[:schedules] += schedules_for(row)
+          end
         end
       end
+      fail "malformed CSV: TOT record missing" unless aixm.sourced_at
       shooting_grounds.each do |id, data|
         data in csv_line:, details:, url:, upper_z:, schedules:, dabs:, feature: { geometry: polygons, properties: { bezeichnung: name, infobezeichnung: contact, infotelefonnr: phone, infoemail: email } }
         schedules = consolidate(schedules)
