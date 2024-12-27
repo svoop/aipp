@@ -1,5 +1,9 @@
 ## Main
 
+Nothing so far
+
+## 2.3.1
+
 #### Changes
 * Update Ruby to 3.4
 
