@@ -1,130 +1,131 @@
 ## Main
 
-Nothing so far
+### Changes
+* Drop certs
 
 ## 2.3.1
 
-#### Changes
+### Changes
 * Update Ruby to 3.4
 
 ## 2.3.0
 
-#### Additions
+### Additions
 * Include the date and time of the last upstream update for LS NOTAM and SHOOT
 
 ## 2.2.2
 
-#### Fix
+### Fix
 * Re-add accidentally removed RMZ and TMZ
 
 ## 2.2.1
 
-#### Changes
+### Changes
 * Adopt latest update of OFMX to accommodate new airspace types RMZ, TMZ and DRA
 
 ## 2.2.0
 
-#### Changes
+### Changes
 * Bump aixm gem to >=1.5.0 in order to bump to OFMX schema 0.2
 
 ## 2.1.11
 
-#### Changes
+### Changes
 * Adapt lookup for DPR zones which no longer contain dash in LS
 
 ## 2.1.10
 
-#### Additions
+### Additions
 * Show the gem version used in order to verify deployments
 
-#### Changes
+### Changes
 * Make dash between LS and DPR zone optional in NOTAM
 
 ## 2.1.9
 
-#### Additions
+### Additions
 * Support for Ruby 3.3
 
 ## 2.1.8
 
-#### Additions
+### Additions
 * Include contact name to remarks in LS SHOOT
 
 ## 2.1.7
 
-#### Fixes
+### Fixes
 * Workaround for temporary upstream CSV quoting error
 
 ## 2.1.6
 
-#### Fixes
+### Fixes
 * Update NOTAM gem
 
 ## 2.1.5
 
-#### Fixes
+### Fixes
 * Use UTC date for DABS cross check
 * Update NOTAM gem
 
 ## 2.1.4
 
-#### Fixes
+### Fixes
 * Update NOTAM gem
 
 ## 2.1.3
 
-#### Changes
+### Changes
 * Use uncompressed OFMX download for LS NOTAM
 
 ## 2.1.2
 
-#### Changes
+### Changes
 * Improve timesheet calculation for shooting grounds in LS
 * Improve safety margins for shooting grounds in LS
 * Switch to unzipped OFMX for now due to issues upstream
 
 ## 2.1.1
 
-#### Additions
+### Additions
 * Improve help when no scope is given
 * Add `-0` to write empty OFMX in case of no upstream data
 
 ## 2.1.0
 
-#### Breaking Changes
+### Breaking Changes
 * Unify all executables into `aip2aixm` and `aip2aixm` respectively
 
-#### Additions
+### Additions
 * Support for shooting grounds in LS
 
 ## 2.0.3
 
-#### Breaking Changes
+### Breaking Changes
 * THR/DTHR fixes from AIXM gem
 * Improve filters of delegated airspaces (region LF)
 
 ## 2.0.2
 
-#### Additions
+### Additions
 * Support for Ruby 3.2
 
-#### Fixes
+### Fixes
 * Improve hack to fix braindead years on D-items
 
 ## 2.0.1
 
-#### Fixes
+### Fixes
 * Fix ineffective rescue when parsing a NOTAM fails in force mode
 * Hack to fix braindead years on D-items
 
 ## 2.0.0
 
-#### Additions
+### Additions
 * Region LS NOTAM
 * CLI option to set a custom output file
 * `--quiet` option
 
-#### Breaking Changes
+### Breaking Changes
 * Drop support for Ruby 3.0
 * Rename `url_for` to `origin_for` and introduce origin structures which allow
   for more complex download scenarios such as HTTPS with session or GraphQL.
@@ -135,7 +136,7 @@ Nothing so far
 
 ## 1.0.0
 
-#### Breaking Changes
+### Breaking Changes
 * Switch from individual AIP HTML files to the comprehensive AIP XML
   database dump for the LF region reference implementation.
 * Drop the mandatory `URL` helper in favour of a mandatory `url_for` method.
@@ -143,99 +144,99 @@ Nothing so far
 * Improve calculation of short feature hash in manifest in order to include
   e.g. geometries of airspaces.
 
-#### Changes
+### Changes
 * Switch from `pry` to `debug`
 
-#### Additions
+### Additions
 * Unsevere warnings
 * Support for .xlsx, .ods and .csv files
 
 ## 0.2.6
 
-#### Additions
+### Additions
 * Detect duplicate features
 
-#### Changes
+### Changes
 * Require Ruby 2.7
 
 ## 0.2.5
 
-#### Additions
+### Additions
 * LF/AD-2>2.19 (AD navigational aids relevant to VFR)
 * Write build and manifest to `~/.aipp/<region>/builds`
 
-#### Changes
+### Changes
 * Renamed `~/.aipp/<region>/archive` to `~/.aipp/<region>/sources`
 
 ## 0.2.4
 
-#### Additions
+### Additions
 * LF/AD-3.1
 * Automatically load fixtures for patches
 
 ## 0.2.3
 
-#### Additons
+### Additons
 * Borders defined as GeoJSON (used by LF/ENR-2.1)
 * LF/AD-5.5
 
-#### Breaking Changes
+### Breaking Changes
 * Renamed `AIPP::AIP#write` method to `AIPP::AIP#add`
 
 ## 0.2.2
 
-#### Changes
+### Changes
 * Helper modules instead of one monolythic `helper.rb`
 
-#### Additions
+### Additions
 * LF/AD-1.3
 * LF/AD-1.6
 * LF/AD-2
 
 ## 0.2.1
 
-#### Changes
+### Changes
 * Require Ruby 2.6
 * Fix broken downloader
 
-#### Additions
+### Additions
 * Support for PDF files
 
 ## 0.2.0
 
-#### Changes
+### Changes
 * Complete rewrite of the framework in order to allow cross-AIP parsing made necessary due to recent changes in LF AIP.
 
-#### Additions
+### Additions
 * LF/ENR-2.1
 * Handling of errors and warnings optimized for parser development
 
-#### Removals
+### Removals
 * LF/AD-1.5
 
 ## 0.1.3
 
-#### Changes
+### Changes
 * Summary at end of run
 
-#### Additions
+### Additions
 * LF/AD-1.5
 * Source file line number evaluation
 
 ## 0.1.2
 
-#### Additions:
+### Additions:
 * LF/ENR-4.3
 
 ## 0.1.1
 
-#### Additions:
+### Additions:
 * LF/ENR-4.1
 * Helper modules
 
 ## 0.1.0
 
-#### Initial Implementation
+### Initial Implementation
 * Require Ruby 2.5
 * Framework and aip2aixm executable
 * LF/ENR-5.1

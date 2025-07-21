@@ -25,20 +25,12 @@ Thank you for supporting free and open-source software by sponsoring on [GitHub]
 
 ## Install
 
-### Security
-
-This gem is [cryptographically signed](https://guides.rubygems.org/security/#using-gems) in order to assure it hasn't been tampered with. Unless already done, please add the author's public key as a trusted certificate now:
-
-```
-gem cert --add <(curl -Ls https://raw.github.com/svoop/aipp/main/certs/svoop.pem)
-```
-
 ### Standalone
 
 Make sure to have the [latest version of Ruby](https://www.ruby-lang.org/en/documentation/installation/) and then install this gem:
 
 ```
-gem install aipp --trust-policy MediumSecurity
+gem install aipp
 ```
 
 ### Bundler
@@ -52,7 +44,7 @@ gem 'aipp'
 And then install the bundle:
 
 ```
-bundle install --trust-policy MediumSecurity
+bundle install
 ```
 
 ## Usage
@@ -78,6 +70,7 @@ Scope | Content | Cache
 ------|---------|------
 [AIP](lib/aipp/aip/README.md) (default) | aeronautical information publication | by AIRAC cycle
 [NOTAM](lib/aipp/notam/README.md) | notice to airmen | by effective date and hour
+[SHOOT](lib/aipp/shoot/README.md) | firing ranges | by day
 
 To list all available scopes, regions and sections:
 
