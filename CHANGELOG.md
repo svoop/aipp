@@ -1,6 +1,8 @@
 ## Main
 
-Nothing so far
+### Changes
+* Adapt lookup for DPR zones for LS which no longer contain the zone denominator
+  in codeId (as per docs) but in txtName
 
 ## 2.4.0
 

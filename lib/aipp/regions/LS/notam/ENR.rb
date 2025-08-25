@@ -107,7 +107,7 @@ end
       when /(?<type>TMA) ((SECT )?(?<section>\d+) )?ACT/
         'Ase:has(codeType:contains("%s") + codeId:contains("%s %s"))' % [$~['type'], notam.data[:locations].first, $~['section']]
       when /[DR].AREA LS-?(?<name>[DR]\d+[A-Z]?).+ACT/
-        'Ase:has(codeId:matches("^LS%s( .+)?$"))' % [$~['name']]
+        'Ase:has(txtName:matches("^LS%s "))' % [$~['name']]
       else
         return
       end.then do |selector|
