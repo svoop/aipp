@@ -6,7 +6,8 @@ require 'minitest/autorun'
 require Pathname(__dir__).join('..', 'lib', 'aipp')
 
 require 'minitest/flash'
-require 'minitest/focus'
+
+Minitest.load_plugins
 
 module AIPP
   def self.root
